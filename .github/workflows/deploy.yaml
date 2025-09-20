@@ -1,0 +1,51 @@
+# 工作流程的名稱，會顯示在 GitHub Actions 頁面上
+name: Deploy Hugo Site to GCP VM
+
+# 觸發條件：當 main 分支收到 push 時執行
+on:
+  push:
+    branches:
+      - main
+
+# 定義要執行的任務
+jobs:
+  build-and-deploy:
+    # 執行任務的虛擬環境類型
+    runs-on: ubuntu-latest
+
+    # 任務包含的步驟
+    steps:
+      # 步驟一：拉取你的 GitHub Repo 原始碼
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true  # 如果你的佈景主題 (theme) 是用 git submodule 方式引入的，這行很重要
+
+      # 步驟二：安裝並設定 Hugo 環境
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest' # 使用最新版的 Hugo
+          extended: true         # 如果你的佈景主題需要 Sass/SCSS 支援
+
+      # 步驟三：執行 Hugo 指令來編譯網站
+      # --minify 會壓縮 HTML/CSS/JS，讓網站載入更快
+      - name: Build static site
+        run: hugo --minify
+
+      # 步驟四：將編譯好的網站成品 (public/ 目錄) 部署到你的 VM
+      - name: Deploy to server
+        uses: easingthemes/ssh-deploy@v5.0.0
+        with:
+          # 從 GitHub Secrets 讀取 SSH 私鑰
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          # 遠端伺服器 IP
+          REMOTE_HOST: ${{ secrets.SERVER_HOST }}
+          # 遠端伺服器使用者
+          REMOTE_USER: ${{ secrets.SERVER_USER }}
+          # 要上傳的來源目錄 (Hugo 編譯後的成品)
+          SOURCE: "public/"
+          # 要部署到遠端伺服器的目標目錄
+          TARGET: ${{ secrets.TARGET_DIR }}
+          # 使用 rsync 的參數，-avz 是標準用法，--delete 會刪除伺服器上多餘的舊檔案
+          ARGS: "-avz --delete"
