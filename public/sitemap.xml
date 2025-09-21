@@ -11,10 +11,10 @@
     <loc>http://localhost:1313/dev-log/nginx-on-vm/</loc>
     <lastmod>2025-09-21T13:03:12+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/</loc>
+    <loc>http://localhost:1313/dev-log/</loc>
     <lastmod>2025-09-21T13:03:12+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/dev-log/</loc>
+    <loc>http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/</loc>
     <lastmod>2025-09-21T13:03:12+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/dev-log/vm-creation/</loc>
