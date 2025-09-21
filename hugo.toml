@@ -1,4 +1,16 @@
 baseURL = 'https://yamatrail.com/'
 languageCode = 'zh-tw'
-title = 'My New Hugo Site'
+title = "Yama's trail"
 theme = 'ananke'
+
+[taxonomies]
+  category = "categories"
+  series = "series"  # <<<<<<<<<<<<<<<< 新增這一行
+  tag = "tags"
+
+[[menu.main]]
+  identifier = "series-website-birth"
+  name = "這個網站的誕生"
+  url = "/dev-log/"
+  weight = 20 
+

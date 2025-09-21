@@ -2,10 +2,25 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/posts/hello-world/</loc>
-    <lastmod>2025-09-20T21:52:54+08:00</lastmod>
+    <loc>http://localhost:1313/series/</loc>
+    <lastmod>2025-09-21T13:03:12+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/</loc>
+    <lastmod>2025-09-21T13:03:12+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/dev-log/nginx-on-vm/</loc>
+    <lastmod>2025-09-21T13:03:12+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/</loc>
+    <lastmod>2025-09-21T13:03:12+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/dev-log/</loc>
+    <lastmod>2025-09-21T13:03:12+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/dev-log/vm-creation/</loc>
+    <lastmod>2025-09-21T12:33:40+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/posts/hello-world/</loc>
     <lastmod>2025-09-20T21:52:54+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/posts/</loc>

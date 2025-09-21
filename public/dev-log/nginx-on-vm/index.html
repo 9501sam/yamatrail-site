@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>在 vm 上建立 nginx server | Yama&#39;s trail</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="description" content="取得 domain
+架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，
+註冊好一個 domain 之後，在 DNS &gt; Records 的地方新增一個 Record
+
+Type: A
+name: yamatrail.com
+IPv4 Address: 填入 vm 的 IP (在 google cloud 上取得)
+
+這會告訴他當其他人在瀏覽器中輸入 yamatrail.com 時，會導到我們先前在 google cloud 上所建立的 vm
+在 Cloudflare 產生憑證
+
+登入您的 Cloudflare 儀表板，選擇 yamatrail.com。
+點擊左側選單的 SSL/TLS，然後選擇 Origin Server (源伺服器) 子分頁。
+點擊「Create Certificate」按鈕。
+保持預設選項（私鑰類型 RSA，憑證有效期 15 年），直接點擊最下方的「Create」。
+這是最關鍵的一步：Cloudflare 會顯示兩個大框框的文字，分別是 Origin Certificate 和 Private Key。
+
+請立刻將這兩段文字完整複製出來，並分別儲存到您本地筆電的兩個純文字檔案中：
+
+將 Origin Certificate 的內容存為 yamatrail.com.pem。
+將 Private Key 的內容存為 yamatrail.com.key。
+
+
+注意：Private Key 只會顯示這一次，關閉頁面後就再也看不到了！
+
+
+
+之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線">
+    <meta name="generator" content="Hugo 0.146.0">
+    
+    
+    
+      <meta name="robots" content="noindex, nofollow">
+    
+    
+
+    
+<link rel="stylesheet" href="/ananke/css/main.min.css" >
+
+
+
+
+    
+
+
+    
+      
+
+    
+
+    
+
+    
+      <link rel="canonical" href="http://localhost:1313/dev-log/nginx-on-vm/">
+    
+
+    <meta property="og:url" content="http://localhost:1313/dev-log/nginx-on-vm/">
+  <meta property="og:site_name" content="Yama&#39;s trail">
+  <meta property="og:title" content="在 vm 上建立 nginx server">
+  <meta property="og:description" content="取得 domain 架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，
+註冊好一個 domain 之後，在 DNS &gt; Records 的地方新增一個 Record
+Type: A name: yamatrail.com IPv4 Address: 填入 vm 的 IP (在 google cloud 上取得) 這會告訴他當其他人在瀏覽器中輸入 yamatrail.com 時，會導到我們先前在 google cloud 上所建立的 vm
+在 Cloudflare 產生憑證 登入您的 Cloudflare 儀表板，選擇 yamatrail.com。 點擊左側選單的 SSL/TLS，然後選擇 Origin Server (源伺服器) 子分頁。 點擊「Create Certificate」按鈕。 保持預設選項（私鑰類型 RSA，憑證有效期 15 年），直接點擊最下方的「Create」。 這是最關鍵的一步：Cloudflare 會顯示兩個大框框的文字，分別是 Origin Certificate 和 Private Key。 請立刻將這兩段文字完整複製出來，並分別儲存到您本地筆電的兩個純文字檔案中： 將 Origin Certificate 的內容存為 yamatrail.com.pem。 將 Private Key 的內容存為 yamatrail.com.key。 注意：Private Key 只會顯示這一次，關閉頁面後就再也看不到了！ 之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線">
+  <meta property="og:locale" content="zh_tw">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="dev-log">
+    <meta property="article:published_time" content="2025-09-21T13:03:12+08:00">
+    <meta property="article:modified_time" content="2025-09-21T13:03:12+08:00">
+      <meta property="og:see_also" content="http://localhost:1313/dev-log/vm-creation/">
+
+  <meta itemprop="name" content="在 vm 上建立 nginx server">
+  <meta itemprop="description" content="取得 domain 架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，
+註冊好一個 domain 之後，在 DNS &gt; Records 的地方新增一個 Record
+Type: A name: yamatrail.com IPv4 Address: 填入 vm 的 IP (在 google cloud 上取得) 這會告訴他當其他人在瀏覽器中輸入 yamatrail.com 時，會導到我們先前在 google cloud 上所建立的 vm
+在 Cloudflare 產生憑證 登入您的 Cloudflare 儀表板，選擇 yamatrail.com。 點擊左側選單的 SSL/TLS，然後選擇 Origin Server (源伺服器) 子分頁。 點擊「Create Certificate」按鈕。 保持預設選項（私鑰類型 RSA，憑證有效期 15 年），直接點擊最下方的「Create」。 這是最關鍵的一步：Cloudflare 會顯示兩個大框框的文字，分別是 Origin Certificate 和 Private Key。 請立刻將這兩段文字完整複製出來，並分別儲存到您本地筆電的兩個純文字檔案中： 將 Origin Certificate 的內容存為 yamatrail.com.pem。 將 Private Key 的內容存為 yamatrail.com.key。 注意：Private Key 只會顯示這一次，關閉頁面後就再也看不到了！ 之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線">
+  <meta itemprop="datePublished" content="2025-09-21T13:03:12+08:00">
+  <meta itemprop="dateModified" content="2025-09-21T13:03:12+08:00">
+  <meta itemprop="wordCount" content="227">
+  <meta itemprop="keywords" content="系列文章：這個網站的誕生">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="在 vm 上建立 nginx server">
+  <meta name="twitter:description" content="取得 domain 架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，
+註冊好一個 domain 之後，在 DNS &gt; Records 的地方新增一個 Record
+Type: A name: yamatrail.com IPv4 Address: 填入 vm 的 IP (在 google cloud 上取得) 這會告訴他當其他人在瀏覽器中輸入 yamatrail.com 時，會導到我們先前在 google cloud 上所建立的 vm
+在 Cloudflare 產生憑證 登入您的 Cloudflare 儀表板，選擇 yamatrail.com。 點擊左側選單的 SSL/TLS，然後選擇 Origin Server (源伺服器) 子分頁。 點擊「Create Certificate」按鈕。 保持預設選項（私鑰類型 RSA，憑證有效期 15 年），直接點擊最下方的「Create」。 這是最關鍵的一步：Cloudflare 會顯示兩個大框框的文字，分別是 Origin Certificate 和 Private Key。 請立刻將這兩段文字完整複製出來，並分別儲存到您本地筆電的兩個純文字檔案中： 將 Origin Certificate 的內容存為 yamatrail.com.pem。 將 Private Key 的內容存為 yamatrail.com.key。 注意：Private Key 只會顯示這一次，關閉頁面後就再也看不到了！ 之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線">
+
+	
+  </head><body class="ma0 avenir bg-near-white development">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l center items-center justify-between">
+    <a href="/" class="f3 fw2 hover-white white-90 dib no-underline">
+      
+        Yama&#39;s trail
+      
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+        <ul class="pl0 mr3">
+          
+          <li class="list f5 f4-ns fw4 dib pr3">
+            <a class="hover-white white-90 no-underline" href="/dev-log/" title="這個網站的誕生 page">
+              這個網站的誕生
+            </a>
+          </li>
+          
+        </ul>
+      
+      <div class="ananke-socials"></div>
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  
+  <article class="flex-l mw8 center ph3 flex-wrap justify-between">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked ttu">
+          
+        這個網站的誕生
+      </aside><div id="sharing" class="mt3 ananke-socials"></div>
+<h1 class="f1 athelas mt3 mb1">在 vm 上建立 nginx server</h1>
+      
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2025-09-21T13:03:12+08:00">September 21, 2025</time>
+      
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links mid-gray pr4-l w-two-thirds-l"><h3 id="取得-domain">取得 domain</h3>
+<p>架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，</p>
+<p>註冊好一個 domain 之後，在 DNS &gt; Records 的地方新增一個 Record</p>
+<ul>
+<li>Type: A</li>
+<li>name: yamatrail.com</li>
+<li>IPv4 Address: 填入 vm 的 IP (在 google cloud 上取得)</li>
+</ul>
+<p>這會告訴他當其他人在瀏覽器中輸入 <a href="http://yamatrail.com">yamatrail.com</a> 時，會導到我們先前在 google cloud 上所建立的 vm</p>
+<h3 id="在-cloudflare-產生憑證">在 Cloudflare 產生憑證</h3>
+<ol>
+<li>登入您的 Cloudflare 儀表板，選擇 <code>yamatrail.com</code>。</li>
+<li>點擊左側選單的 <strong>SSL/TLS</strong>，然後選擇 <strong>Origin Server</strong> (源伺服器) 子分頁。</li>
+<li>點擊「<strong>Create Certificate</strong>」按鈕。</li>
+<li>保持預設選項（私鑰類型 RSA，憑證有效期 15 年），直接點擊最下方的「<strong>Create</strong>」。</li>
+<li><strong>這是最關鍵的一步</strong>：Cloudflare 會顯示兩個大框框的文字，分別是 <strong>Origin Certificate</strong> 和 <strong>Private Key</strong>。
+<ul>
+<li><strong>請立刻將這兩段文字完整複製出來</strong>，並分別儲存到您<strong>本地筆電</strong>的兩個純文字檔案中：
+<ul>
+<li>將 <strong>Origin Certificate</strong> 的內容存為 <code>yamatrail.com.pem</code>。</li>
+<li>將 <strong>Private Key</strong> 的內容存為 <code>yamatrail.com.key</code>。</li>
+</ul>
+</li>
+<li><strong>注意：Private Key 只會顯示這一次，關閉頁面後就再也看不到了！</strong></li>
+</ul>
+</li>
+</ol>
+<p>之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線</p>
+<h3 id="安裝-nginx">安裝 nginx</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt install nginx
+</span></span></code></pre></div><h3 id="設定-nginx">設定 nginx</h3>
+<p>安裝好之後，nginx 有以下幾個比較重要的資料夾</p>
+<ul>
+<li>設定檔： <code>/etc/nginx</code></li>
+<li>網站內容：<code>/var/www/</code></li>
+<li>log 存放位置： <code>/var/log/nginx</code></li>
+</ul>
+<h3 id="設定檔etcnginx">設定檔：<code>/etc/nginx</code></h3>
+<p>這裡的 key 可以經由 cloudflare 產生</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo mkdir -p /etc/nginx/ssl
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo vim /etc/nginx/ssl/yamatrail.com.pem
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo vim /etc/nginx/ssl/yamatrail.com.key
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo vim /etc/nginx/sites-available/yamatrail.com
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 這個 server block 會抓取所有 HTTP (port 80) 的請求，並永久轉址到 HTTPS</span>
+</span></span><span style="display:flex;"><span>server <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    listen 80;
+</span></span><span style="display:flex;"><span>    listen <span style="color:#f92672">[</span>::<span style="color:#f92672">]</span>:80;
+</span></span><span style="display:flex;"><span>    server_name yamatrail.com www.yamatrail.com;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">301</span> https://$server_name$request_uri;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 這是主要的 HTTPS server block</span>
+</span></span><span style="display:flex;"><span>server <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    listen <span style="color:#ae81ff">443</span> ssl http2;
+</span></span><span style="display:flex;"><span>    listen <span style="color:#f92672">[</span>::<span style="color:#f92672">]</span>:443 ssl http2;
+</span></span><span style="display:flex;"><span>    server_name yamatrail.com www.yamatrail.com;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># SSL 憑證設定</span>
+</span></span><span style="display:flex;"><span>    ssl_certificate /etc/nginx/ssl/yamatrail.com.pem;
+</span></span><span style="display:flex;"><span>    ssl_certificate_key /etc/nginx/ssl/yamatrail.com.key;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 網站根目錄和其他設定</span>
+</span></span><span style="display:flex;"><span>    root /var/www/yamatrail.com;
+</span></span><span style="display:flex;"><span>    index index.html;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    location / <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        try_files $uri $uri/ <span style="color:#f92672">=</span>404;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>做好設定檔之後，使用 link 的方式放到 <code>sites-enabled</code> 中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ln -s /etc/nginx/sites-available/yamatrail.com /etc/nginx/sites-enabled/
+</span></span></code></pre></div><p>利用 link 的好處在於可以快速的切換網站設定</p>
+<h3 id="網站本體的放置">網站本體的放置</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo mkdir -p /var/www/yamatrail.com
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo vim /var/www/yamatrail.com/index.html
+</span></span></code></pre></div><p>可以先在 index.html 中先寫一些簡單的東西</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>Hello!
+</span></span></code></pre></div><h3 id="重啟-nginx">重啟 nginx</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo nginx -t <span style="color:#75715e"># 檢查有沒有語法上的錯誤</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo systemctl restart nginx
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo systemctl status nginx
+</span></span></code></pre></div><p>之後就可以經由網址 <a href="https://yamatrail.com">yamatrail.com</a> 進入網站了</p>
+<ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white white-70 dn dib-ns pv2 ph3 no-underline" href="http://localhost:1313/" >
+    &copy;  Yama's trail 2025 
+  </a>
+    <div><div class="ananke-socials"></div>
+</div>
+  </div>
+</footer>
+
+  </body>
+</html>

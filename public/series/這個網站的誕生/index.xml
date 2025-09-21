@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Yama&#39;s trail</title>
-    <link>http://localhost:1313/</link>
-    <description>Recent content on Yama&#39;s trail</description>
+    <title>系列文章：這個網站的誕生 on Yama&#39;s trail</title>
+    <link>http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/</link>
+    <description>Recent content in 系列文章：這個網站的誕生 on Yama&#39;s trail</description>
     <generator>Hugo</generator>
     <language>zh-tw</language>
     <lastBuildDate>Sun, 21 Sep 2025 13:03:12 +0800</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>在 vm 上建立 nginx server</title>
       <link>http://localhost:1313/dev-log/nginx-on-vm/</link>
@@ -21,13 +21,6 @@
       <pubDate>Sun, 21 Sep 2025 12:33:40 +0800</pubDate>
       <guid>http://localhost:1313/dev-log/vm-creation/</guid>
       <description>&lt;h3 id=&#34;如何建立一個免費的-vm&#34;&gt;如何建立一個免費的 vm&lt;/h3&gt;&#xA;&lt;p&gt;根據 google cloud 的說明&lt;/p&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://cloud.google.com/free?hl=en&#34;&gt;https://cloud.google.com/free?hl=en&lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;滿足以下條件的 vm 是可以不用收錢的&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;1 non-preemptible &lt;code&gt;e2-micro&lt;/code&gt; VM instance per month in one of the following US regions:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Oregon: &lt;code&gt;us-west1&lt;/code&gt;&lt;/li&gt;&#xA;&lt;li&gt;Iowa: &lt;code&gt;us-central1&lt;/code&gt;&lt;/li&gt;&#xA;&lt;li&gt;South Carolina: &lt;code&gt;us-east1&lt;/code&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;30 GB-months standard persistent disk&lt;/li&gt;&#xA;&lt;li&gt;1 GB of outbound data transfer from North America to all region destinations (excluding China and Australia) per month&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;因此等等在建立 vm 時，按照上面的條件建立，並且要注意的是建立兩個以上的 vm 還是要收錢的，免費的只有第一個&lt;/p&gt;&#xA;&lt;h3 id=&#34;建立-vm-步驟&#34;&gt;建立 vm 步驟&lt;/h3&gt;&#xA;&lt;p&gt;首先你會先需要建立一個 google cloud 帳號&lt;/p&gt;&#xA;&lt;p&gt;在 compute engin 中，點選上方的 “Create Instance”&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Hello World</title>
-      <link>http://localhost:1313/posts/hello-world/</link>
-      <pubDate>Sat, 20 Sep 2025 21:52:54 +0800</pubDate>
-      <guid>http://localhost:1313/posts/hello-world/</guid>
-      <description>&lt;p&gt;This is my first article!&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
