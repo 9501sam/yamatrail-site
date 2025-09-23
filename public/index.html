@@ -105,6 +105,11 @@
                     <span>這個網站的誕生</span>
                 </a>
             </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
         </ul>
     </nav>
 </header>
@@ -120,6 +125,18 @@
 </div>
 
 <article class="first-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 206. Reverse Linked List
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>/** * Definition for singly-linked list. * struct ListNode { * int val; * ListNode *next; * ListNode() : val(0), next(nullptr) {} * ListNode(int x) : val(x), next(nullptr) {} * ListNode(int x, ListNode *next) : val(x), next(next) {} * }; */ class Solution { public: ListNode* reverseList(ListNode* head) { ListNode *slow = nullptr; ListNode *fast = head; while (fast != nullptr) { ListNode *nextNode = fast-&gt;next; fast-&gt;next = slow; slow = fast; fast = nextNode; } return slow; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-23 20:31:28 +0800 CST'>September 23, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 206. Reverse Linked List" href="http://localhost:1313/leetcode/206-reverse-linked-list/"></a>
+</article>
+
+<article class="post-entry"> 
   <header class="entry-header">
     <h2 class="entry-hint-parent">[這個網站的誕生: 03] 使用 Hugo 產生網站
     </h2>
@@ -167,6 +184,20 @@ https://cloud.google.com/free?hl=en
   </div>
   <footer class="entry-footer"><span title='2025-09-21 12:33:40 +0800 CST'>September 21, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [這個網站的誕生: 01] 建立一個免費的 vm" href="http://localhost:1313/dev-log/vm-creation/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Hello World
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>This is my first article!
+所以我說那個醬汁呢？
+</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-20 21:52:54 +0800 CST'>September 20, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Hello World" href="http://localhost:1313/posts/hello-world/"></a>
 </article>
     </main>
     

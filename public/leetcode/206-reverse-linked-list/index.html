@@ -5,11 +5,35 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>這個網站的誕生 | Yama 的網站</title>
+<title>[LeetCode 解題] 206. Reverse Linked List | Yama 的網站</title>
 <meta name="keywords" content="">
-<meta name="description" content="">
+<meta name="description" content="/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        ListNode *slow = nullptr;
+        ListNode *fast = head;
+        while (fast != nullptr) {
+            ListNode *nextNode = fast-&gt;next;
+            fast-&gt;next = slow;
+            slow = fast;
+            fast = nextNode;
+        }
+        return slow;
+    }
+};
+">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/">
+<link rel="canonical" href="http://localhost:1313/leetcode/206-reverse-linked-list/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
@@ -18,8 +42,7 @@
 <link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/index.xml">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/leetcode/206-reverse-linked-list/">
 <noscript>
     <style>
         #theme-toggle,
@@ -59,7 +82,7 @@
 </noscript>
 </head>
 
-<body class="list" id="top">
+<body class="" id="top">
 <script>
     if (localStorage.getItem("pref-theme") === "dark") {
         document.body.classList.add('dark');
@@ -112,61 +135,50 @@
         </ul>
     </nav>
 </header>
-<main class="main"> 
-<header class="page-header">
-  <h1>
-    這個網站的誕生
-  </h1>
-</header>
+<main class="main">
 
-<article class="post-entry tag-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[這個網站的誕生: 03] 使用 Hugo 產生網站
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>安裝套件 sudo apt update &amp;&amp; sudo apt upgrade -y sudo apt install nginx git -y wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb sudo dpkg -i hugo_extended_0.146.0_linux-amd64.deb hugo version 在筆電上先使用 hugo 建立一個 repo 出來，並且使用 git 做版控，然後推到自己的 github 上
-hugo new site yamatrail-site cd yamatrail-site git init git add . git commit -m &#34;Init commit&#34; 使用這個指令可以新增一篇文章:
-hugo new content posts/hello-world.md vim content/posts/hello-world.md 設定 theme 這裡可先在 Hugo Themes 看看，再決定自己要用的主題
-git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke git submodule add https://github.com/jimfrenette/hugo-starter.git themes/starter git submodule add https://github.com/lukeorth/poison.git themes/poison git submodule add https://github.com/adityatelange/hugo-PaperMod themes/PaperMod git submodule update --init --recursive vim hugo.toml baseURL = &#39;https://yamatrail.com/&#39; languageCode = &#39;zh-tw&#39; title = &#39;My New Hugo Site&#39; theme = &#39;PaperMod&#39; # -D 或 --buildDrafts 參數是告訴 Hugo 把草稿也顯示出來 hugo server -D 建立網站部署流程 總流程概覽 我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-23 19:35:47 +0800 CST'>September 23, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [這個網站的誕生: 03] 使用 Hugo 產生網站" href="http://localhost:1313/dev-log/how-to-use-hugo/"></a>
-</article>
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      [LeetCode 解題] 206. Reverse Linked List
+    </h1>
+    <div class="post-meta"><span title='2025-09-23 20:31:28 +0800 CST'>September 23, 2025</span>
 
-<article class="post-entry tag-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[這個網站的誕生: 02] 在 vm 上建立 nginx server
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>取得 domain 架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，
-註冊好一個 domain 之後，在 DNS &gt; Records 的地方新增一個 Record
-Type: A name: yamatrail.com IPv4 Address: 填入 vm 的 IP (在 google cloud 上取得) 這會告訴他當其他人在瀏覽器中輸入 yamatrail.com 時，會導到我們先前在 google cloud 上所建立的 vm
-在 Cloudflare 產生憑證 登入您的 Cloudflare 儀表板，選擇 yamatrail.com。 點擊左側選單的 SSL/TLS，然後選擇 Origin Server (源伺服器) 子分頁。 點擊「Create Certificate」按鈕。 保持預設選項（私鑰類型 RSA，憑證有效期 15 年），直接點擊最下方的「Create」。 這是最關鍵的一步：Cloudflare 會顯示兩個大框框的文字，分別是 Origin Certificate 和 Private Key。 請立刻將這兩段文字完整複製出來，並分別儲存到您本地筆電的兩個純文字檔案中： 將 Origin Certificate 的內容存為 yamatrail.com.pem。 將 Private Key 的內容存為 yamatrail.com.key。 注意：Private Key 只會顯示這一次，關閉頁面後就再也看不到了！ 之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-21 13:03:12 +0800 CST'>September 21, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [這個網站的誕生: 02] 在 vm 上建立 nginx server" href="http://localhost:1313/dev-log/nginx-on-vm/"></a>
-</article>
+</div>
+  </header> 
+  <div class="post-content"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * Definition for singly-linked list.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * struct ListNode {
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *     int val;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *     ListNode *next;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *     ListNode() : val(0), next(nullptr) {}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *     ListNode(int x) : val(x), next(nullptr) {}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * };
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span> {
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    ListNode<span style="color:#f92672">*</span> reverseList(ListNode<span style="color:#f92672">*</span> head) {
+</span></span><span style="display:flex;"><span>        ListNode <span style="color:#f92672">*</span>slow <span style="color:#f92672">=</span> <span style="color:#66d9ef">nullptr</span>;
+</span></span><span style="display:flex;"><span>        ListNode <span style="color:#f92672">*</span>fast <span style="color:#f92672">=</span> head;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (fast <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nullptr</span>) {
+</span></span><span style="display:flex;"><span>            ListNode <span style="color:#f92672">*</span>nextNode <span style="color:#f92672">=</span> fast<span style="color:#f92672">-&gt;</span>next;
+</span></span><span style="display:flex;"><span>            fast<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> slow;
+</span></span><span style="display:flex;"><span>            slow <span style="color:#f92672">=</span> fast;
+</span></span><span style="display:flex;"><span>            fast <span style="color:#f92672">=</span> nextNode;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> slow;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div>
 
-<article class="post-entry tag-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[這個網站的誕生: 01] 建立一個免費的 vm
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>如何建立一個免費的 vm 根據 google cloud 的說明
-https://cloud.google.com/free?hl=en
-滿足以下條件的 vm 是可以不用收錢的
-1 non-preemptible e2-micro VM instance per month in one of the following US regions: Oregon: us-west1 Iowa: us-central1 South Carolina: us-east1 30 GB-months standard persistent disk 1 GB of outbound data transfer from North America to all region destinations (excluding China and Australia) per month 因此等等在建立 vm 時，按照上面的條件建立，並且要注意的是建立兩個以上的 vm 還是要收錢的，免費的只有第一個
-建立 vm 步驟 首先你會先需要建立一個 google cloud 帳號
-在 compute engin 中，點選上方的 “Create Instance”
-...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-09-21 12:33:40 +0800 CST'>September 21, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [這個網站的誕生: 01] 建立一個免費的 vm" href="http://localhost:1313/dev-log/vm-creation/"></a>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
 </article>
     </main>
     
