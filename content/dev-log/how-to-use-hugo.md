@@ -1,6 +1,6 @@
 +++
 date = '2025-09-23T19:35:47+08:00'
-draft = true
+draft = false
 title = '[這個網站的誕生: 03] 使用 Hugo 產生網站'
 series = "這個網站的誕生"
 +++
