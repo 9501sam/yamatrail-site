@@ -1,26 +1,118 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>這個網站的誕生 on Yama&#39;s trail</title>
+    <title>這個網站的誕生 on Yama 的網站</title>
     <link>http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/</link>
-    <description>Recent content in 這個網站的誕生 on Yama&#39;s trail</description>
-    <generator>Hugo</generator>
+    <description>Recent content in 這個網站的誕生 on Yama 的網站</description>
+    <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Sun, 21 Sep 2025 13:03:12 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 23 Sep 2025 19:35:47 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>在 vm 上建立 nginx server</title>
+      <title>[這個網站的誕生: 03] 使用 Hugo 產生網站</title>
+      <link>http://localhost:1313/dev-log/how-to-use-hugo/</link>
+      <pubDate>Tue, 23 Sep 2025 19:35:47 +0800</pubDate>
+      <guid>http://localhost:1313/dev-log/how-to-use-hugo/</guid>
+      <description>&lt;h3 id=&#34;安裝套件&#34;&gt;安裝套件&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt update &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo apt upgrade -y
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt install nginx git -y
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# 前往 Hugo 的 GitHub Releases 頁面找到最新的 .deb 檔案連結&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# 安裝下載的 .deb 檔案&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo dpkg -i hugo_extended_0.146.0_linux-amd64.deb
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# 驗證安裝成功&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo version
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在筆電上先使用 hugo 建立一個 repo 出來，並且使用 git 做版控，然後推到自己的 github 上&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo new site yamatrail-site
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd yamatrail-site
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git init
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git add .
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git commit -m &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Init commit&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo new content posts/hello-world.md
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vim content/posts/hello-world.md
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule add https://github.com/jimfrenette/hugo-starter.git themes/starter
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule add https://github.com/lukeorth/poison.git themes/poison
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule add https://github.com/adityatelange/hugo-PaperMod themes/PaperMod
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule update --init --recursive
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vim hugo.toml
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;baseURL &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;https://yamatrail.com/&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;languageCode &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;zh-tw&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;title &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;My New Hugo Site&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;theme &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;ananke&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# -D 或 --buildDrafts 參數是告訴 Hugo：請連同草稿一起顯示&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo server -D
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;建立工作流程&#34;&gt;建立工作流程&lt;/h3&gt;
+&lt;h3 id=&#34;總流程概覽&#34;&gt;總流程概覽&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;準備工作&lt;/strong&gt;：在你的&lt;strong&gt;筆電&lt;/strong&gt;和&lt;strong&gt;GCP VM&lt;/strong&gt;之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 可以安全地免密碼登入你的伺服器。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;設定 GitHub Repo&lt;/strong&gt;：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 GitHub Repository 的 Secrets 中。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;建立 GitHub Actions Workflow&lt;/strong&gt;：在你的專案中撰寫 &lt;code&gt;.yml&lt;/code&gt; 設定檔，也就是自動化流程的「劇本」。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;觸發與驗證&lt;/strong&gt;：將程式碼 &lt;code&gt;git push&lt;/code&gt; 到 GitHub，觸發自動化流程，並驗證網站是否更新成功。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;階段一準備工作---建立-ssh-信任關係&#34;&gt;階段一：準備工作 - 建立 SSH 信任關係&lt;/h3&gt;
+&lt;p&gt;步驟 1：在你的「筆電」上產生一對 SSH Key&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[這個網站的誕生: 02] 在 vm 上建立 nginx server</title>
       <link>http://localhost:1313/dev-log/nginx-on-vm/</link>
       <pubDate>Sun, 21 Sep 2025 13:03:12 +0800</pubDate>
       <guid>http://localhost:1313/dev-log/nginx-on-vm/</guid>
-      <description>&lt;h3 id=&#34;取得-domain&#34;&gt;取得 domain&lt;/h3&gt;&#xA;&lt;p&gt;架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，&lt;/p&gt;&#xA;&lt;p&gt;註冊好一個 domain 之後，在 DNS &amp;gt; Records 的地方新增一個 Record&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Type: A&lt;/li&gt;&#xA;&lt;li&gt;name: yamatrail.com&lt;/li&gt;&#xA;&lt;li&gt;IPv4 Address: 填入 vm 的 IP (在 google cloud 上取得)&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;這會告訴他當其他人在瀏覽器中輸入 &lt;a href=&#34;http://yamatrail.com&#34;&gt;yamatrail.com&lt;/a&gt; 時，會導到我們先前在 google cloud 上所建立的 vm&lt;/p&gt;&#xA;&lt;h3 id=&#34;在-cloudflare-產生憑證&#34;&gt;在 Cloudflare 產生憑證&lt;/h3&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;登入您的 Cloudflare 儀表板，選擇 &lt;code&gt;yamatrail.com&lt;/code&gt;。&lt;/li&gt;&#xA;&lt;li&gt;點擊左側選單的 &lt;strong&gt;SSL/TLS&lt;/strong&gt;，然後選擇 &lt;strong&gt;Origin Server&lt;/strong&gt; (源伺服器) 子分頁。&lt;/li&gt;&#xA;&lt;li&gt;點擊「&lt;strong&gt;Create Certificate&lt;/strong&gt;」按鈕。&lt;/li&gt;&#xA;&lt;li&gt;保持預設選項（私鑰類型 RSA，憑證有效期 15 年），直接點擊最下方的「&lt;strong&gt;Create&lt;/strong&gt;」。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;這是最關鍵的一步&lt;/strong&gt;：Cloudflare 會顯示兩個大框框的文字，分別是 &lt;strong&gt;Origin Certificate&lt;/strong&gt; 和 &lt;strong&gt;Private Key&lt;/strong&gt;。&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;請立刻將這兩段文字完整複製出來&lt;/strong&gt;，並分別儲存到您&lt;strong&gt;本地筆電&lt;/strong&gt;的兩個純文字檔案中：&#xA;&lt;ul&gt;&#xA;&lt;li&gt;將 &lt;strong&gt;Origin Certificate&lt;/strong&gt; 的內容存為 &lt;code&gt;yamatrail.com.pem&lt;/code&gt;。&lt;/li&gt;&#xA;&lt;li&gt;將 &lt;strong&gt;Private Key&lt;/strong&gt; 的內容存為 &lt;code&gt;yamatrail.com.key&lt;/code&gt;。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;注意：Private Key 只會顯示這一次，關閉頁面後就再也看不到了！&lt;/strong&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線&lt;/p&gt;</description>
+      <description>&lt;h3 id=&#34;取得-domain&#34;&gt;取得 domain&lt;/h3&gt;
+&lt;p&gt;架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，&lt;/p&gt;
+&lt;p&gt;註冊好一個 domain 之後，在 DNS &amp;gt; Records 的地方新增一個 Record&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Type: A&lt;/li&gt;
+&lt;li&gt;name: yamatrail.com&lt;/li&gt;
+&lt;li&gt;IPv4 Address: 填入 vm 的 IP (在 google cloud 上取得)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;這會告訴他當其他人在瀏覽器中輸入 &lt;a href=&#34;http://yamatrail.com&#34;&gt;yamatrail.com&lt;/a&gt; 時，會導到我們先前在 google cloud 上所建立的 vm&lt;/p&gt;
+&lt;h3 id=&#34;在-cloudflare-產生憑證&#34;&gt;在 Cloudflare 產生憑證&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;登入您的 Cloudflare 儀表板，選擇 &lt;code&gt;yamatrail.com&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;點擊左側選單的 &lt;strong&gt;SSL/TLS&lt;/strong&gt;，然後選擇 &lt;strong&gt;Origin Server&lt;/strong&gt; (源伺服器) 子分頁。&lt;/li&gt;
+&lt;li&gt;點擊「&lt;strong&gt;Create Certificate&lt;/strong&gt;」按鈕。&lt;/li&gt;
+&lt;li&gt;保持預設選項（私鑰類型 RSA，憑證有效期 15 年），直接點擊最下方的「&lt;strong&gt;Create&lt;/strong&gt;」。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;這是最關鍵的一步&lt;/strong&gt;：Cloudflare 會顯示兩個大框框的文字，分別是 &lt;strong&gt;Origin Certificate&lt;/strong&gt; 和 &lt;strong&gt;Private Key&lt;/strong&gt;。
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;請立刻將這兩段文字完整複製出來&lt;/strong&gt;，並分別儲存到您&lt;strong&gt;本地筆電&lt;/strong&gt;的兩個純文字檔案中：
+&lt;ul&gt;
+&lt;li&gt;將 &lt;strong&gt;Origin Certificate&lt;/strong&gt; 的內容存為 &lt;code&gt;yamatrail.com.pem&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;將 &lt;strong&gt;Private Key&lt;/strong&gt; 的內容存為 &lt;code&gt;yamatrail.com.key&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;注意：Private Key 只會顯示這一次，關閉頁面後就再也看不到了！&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線&lt;/p&gt;</description>
     </item>
     <item>
-      <title>建立一個免費的 vm</title>
+      <title>[這個網站的誕生: 01] 建立一個免費的 vm</title>
       <link>http://localhost:1313/dev-log/vm-creation/</link>
       <pubDate>Sun, 21 Sep 2025 12:33:40 +0800</pubDate>
       <guid>http://localhost:1313/dev-log/vm-creation/</guid>
-      <description>&lt;h3 id=&#34;如何建立一個免費的-vm&#34;&gt;如何建立一個免費的 vm&lt;/h3&gt;&#xA;&lt;p&gt;根據 google cloud 的說明&lt;/p&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://cloud.google.com/free?hl=en&#34;&gt;https://cloud.google.com/free?hl=en&lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;滿足以下條件的 vm 是可以不用收錢的&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;1 non-preemptible &lt;code&gt;e2-micro&lt;/code&gt; VM instance per month in one of the following US regions:&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Oregon: &lt;code&gt;us-west1&lt;/code&gt;&lt;/li&gt;&#xA;&lt;li&gt;Iowa: &lt;code&gt;us-central1&lt;/code&gt;&lt;/li&gt;&#xA;&lt;li&gt;South Carolina: &lt;code&gt;us-east1&lt;/code&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;30 GB-months standard persistent disk&lt;/li&gt;&#xA;&lt;li&gt;1 GB of outbound data transfer from North America to all region destinations (excluding China and Australia) per month&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;因此等等在建立 vm 時，按照上面的條件建立，並且要注意的是建立兩個以上的 vm 還是要收錢的，免費的只有第一個&lt;/p&gt;&#xA;&lt;h3 id=&#34;建立-vm-步驟&#34;&gt;建立 vm 步驟&lt;/h3&gt;&#xA;&lt;p&gt;首先你會先需要建立一個 google cloud 帳號&lt;/p&gt;&#xA;&lt;p&gt;在 compute engin 中，點選上方的 “Create Instance”&lt;/p&gt;</description>
+      <description>&lt;h3 id=&#34;如何建立一個免費的-vm&#34;&gt;如何建立一個免費的 vm&lt;/h3&gt;
+&lt;p&gt;根據 google cloud 的說明&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://cloud.google.com/free?hl=en&#34;&gt;https://cloud.google.com/free?hl=en&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;滿足以下條件的 vm 是可以不用收錢的&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;1 non-preemptible &lt;code&gt;e2-micro&lt;/code&gt; VM instance per month in one of the following US regions:
+&lt;ul&gt;
+&lt;li&gt;Oregon: &lt;code&gt;us-west1&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Iowa: &lt;code&gt;us-central1&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;South Carolina: &lt;code&gt;us-east1&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;30 GB-months standard persistent disk&lt;/li&gt;
+&lt;li&gt;1 GB of outbound data transfer from North America to all region destinations (excluding China and Australia) per month&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;因此等等在建立 vm 時，按照上面的條件建立，並且要注意的是建立兩個以上的 vm 還是要收錢的，免費的只有第一個&lt;/p&gt;
+&lt;h3 id=&#34;建立-vm-步驟&#34;&gt;建立 vm 步驟&lt;/h3&gt;
+&lt;p&gt;首先你會先需要建立一個 google cloud 帳號&lt;/p&gt;
+&lt;p&gt;在 compute engin 中，點選上方的 “Create Instance”&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

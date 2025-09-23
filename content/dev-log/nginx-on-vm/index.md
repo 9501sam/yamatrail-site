@@ -1,8 +1,8 @@
 +++
 date = '2025-09-21T13:03:12+08:00'
 draft = false
-title = '在 vm 上建立 nginx server'
-series = ["這個網站的誕生"]
+title = '[這個網站的誕生: 02] 在 vm 上建立 nginx server'
+series = "這個網站的誕生"
 +++
 ### 取得 domain
 

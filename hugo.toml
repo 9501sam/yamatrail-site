@@ -1,16 +1,16 @@
 baseURL = 'https://yamatrail.com/'
 languageCode = 'zh-tw'
-title = "Yama's trail"
-theme = 'ananke'
+title = "Yama 的網站"
+theme = 'PaperMod'
 
 [taxonomies]
   category = "categories"
-  series = "series"  # <<<<<<<<<<<<<<<< 新增這一行
+  series = "series"
   tag = "tags"
 
+# --- Update your menu for the Poison theme ---
 [[menu.main]]
-  identifier = "series-website-birth"
+  identifier = "dev-log"
   name = "這個網站的誕生"
   url = "/dev-log/"
-  weight = 20 
-
+  weight = 1
