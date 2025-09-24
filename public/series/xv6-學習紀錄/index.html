@@ -5,12 +5,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>Hello World | Yama 的網站</title>
+<title>Xv6 學習紀錄 | Yama 的網站</title>
 <meta name="keywords" content="">
-<meta name="description" content="This is my first article!
-所以我說那個醬汁呢？">
+<meta name="description" content="">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/posts/hello-world/">
+<link rel="canonical" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
@@ -19,7 +18,8 @@
 <link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/hello-world/">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/">
 <noscript>
     <style>
         #theme-toggle,
@@ -59,7 +59,7 @@
 </noscript>
 </head>
 
-<body class="" id="top">
+<body class="list" id="top">
 <script>
     if (localStorage.getItem("pref-theme") === "dark") {
         document.body.classList.add('dark');
@@ -117,28 +117,27 @@
         </ul>
     </nav>
 </header>
-<main class="main">
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    Xv6 學習紀錄
+  </h1>
+</header>
 
-<article class="post-single">
-  <header class="post-header">
-    
-    <h1 class="post-title entry-hint-parent">
-      Hello World
-    </h1>
-    <div class="post-meta"><span title='2025-09-20 21:52:54 +0800 CST'>September 20, 2025</span>
-
-</div>
-  </header> 
-  <div class="post-content"><p>This is my first article!</p>
-<p>所以我說那個醬汁呢？</p>
-
-
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Lab2
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab2 syscall: 記錄 6.1810 的課程網址
+本文紀錄課程中的作業 Lab: system calls 的解題過程
+關於 xv6 的環境架設，可以參考 [MIT-6.S081-2020] OS課程—-Xv6作業系統的環境架設 ，但是在這篇文章裡，將會使用 2022 年的版本
+大綱 xv6 有哪些 system call，以及他們的作用為何 ? 以程式碼的觀點來理解 xv6 的 system call 流程 Using gdb System call tracing 1. xv6 有哪些 system call，以及他們的作用為何 ? 0. kernel/syscall.h 定義 syste mcall 的編號 // System call numbers #define SYS_fork 1 #define SYS_exit 2 #define SYS_wait 3 #define SYS_pipe 4 #define SYS_read 5 #define SYS_kill 6 #define SYS_exec 7 #define SYS_fstat 8 #define SYS_chdir 9 #define SYS_dup 10 #define SYS_getpid 11 #define SYS_sbrk 12 #define SYS_sleep 13 #define SYS_uptime 14 #define SYS_open 15 #define SYS_write 16 #define SYS_mknod 17 #define SYS_unlink 18 #define SYS_link 19 #define SYS_mkdir 20 #define SYS_close 21 2. 以程式碼的觀點來理解 xv6 的 system call 流程 以下使用 user/cat.c 為例，來探討 xv6 的 system call 流程，流程中有 3 大步驟
+...</p>
   </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-    </ul>
-  </footer>
+  <footer class="entry-footer"><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Lab2" href="http://localhost:1313/xv6/lab2/"></a>
 </article>
     </main>
     
@@ -210,53 +209,6 @@
         }
     })
 
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = 'copy';
-
-        function copyingDone() {
-            copybutton.innerHTML = 'copied!';
-            setTimeout(() => {
-                copybutton.innerHTML = 'copy';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
 </script>
 </body>
 

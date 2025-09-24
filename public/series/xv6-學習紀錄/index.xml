@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Xv6 學習紀錄 on Yama 的網站</title>
+    <link>http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/</link>
+    <description>Recent content in Xv6 學習紀錄 on Yama 的網站</description>
+    <generator>Hugo -- 0.146.0</generator>
+    <language>zh-tw</language>
+    <lastBuildDate>Wed, 24 Sep 2025 13:07:09 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Lab2</title>
+      <link>http://localhost:1313/xv6/lab2/</link>
+      <pubDate>Wed, 24 Sep 2025 13:07:09 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab2/</guid>
+      <description>&lt;h1 id=&#34;lab2-syscall--記錄&#34;&gt;Lab2 syscall:  記錄&lt;/h1&gt;
+&lt;p&gt;&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/schedule.html&#34;&gt;6.1810 的課程網址&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;本文紀錄課程中的作業 &lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/syscall.html&#34;&gt;Lab: system calls&lt;/a&gt; 的解題過程&lt;/p&gt;
+&lt;p&gt;關於 xv6 的環境架設，可以參考 &lt;a href=&#34;https://ithelp.ithome.com.tw/articles/10257913&#34;&gt;[MIT-6.S081-2020] OS課程&amp;mdash;-Xv6作業系統的環境架設 &lt;/a&gt; ，但是在這篇文章裡，將會使用 2022 年的版本&lt;/p&gt;
+&lt;h3 id=&#34;大綱&#34;&gt;大綱&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;xv6 有哪些 system call，以及他們的作用為何 ?&lt;/li&gt;
+&lt;li&gt;以程式碼的觀點來理解 xv6 的 system call 流程&lt;/li&gt;
+&lt;li&gt;Using gdb&lt;/li&gt;
+&lt;li&gt;System call tracing&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;1-xv6-有哪些-system-call以及他們的作用為何-&#34;&gt;1. xv6 有哪些 system call，以及他們的作用為何 ?&lt;/h2&gt;
+&lt;h4 id=&#34;0-kernelsyscallh-定義-syste-mcall-的編號&#34;&gt;0. &lt;code&gt;kernel/syscall.h&lt;/code&gt; 定義 syste mcall 的編號&lt;/h4&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// System call numbers
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_fork    1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_exit    2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_wait    3
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_pipe    4
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_read    5
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_kill    6
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_exec    7
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_fstat   8
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_chdir   9
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_dup    10
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_getpid 11
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_sbrk   12
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_sleep  13
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_uptime 14
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_open   15
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_write  16
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_mknod  17
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_unlink 18
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_link   19
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_mkdir  20
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#define SYS_close  21
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;2-以程式碼的觀點來理解-xv6-的-system-call-流程&#34;&gt;2. 以程式碼的觀點來理解 xv6 的 system call 流程&lt;/h2&gt;
+&lt;p&gt;以下使用 &lt;code&gt;user/cat.c&lt;/code&gt; 為例，來探討 xv6 的 system call 流程，流程中有 3 大步驟&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

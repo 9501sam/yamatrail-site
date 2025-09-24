@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities | Yama 的網站</title>
+<meta name="keywords" content="">
+<meta name="description" content="Lab 連結: Lab: Xv6 and Unix utilities
+Boot xv6(Easy)
+這部份的詳細內容都寫在 lab util 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。
+
+下載原始碼
+
+git clone git://g.csail.mit.edu/xv6-labs-2022
+cd xv6-labs-2022
+
+安裝架設虛擬機的套件
+我自己是用 Debian，如果你用的是 ubuntu 的話下載步驟應該也是一樣的，至於是其他系統的使用者，可以看這裡
+
+sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu 
+
+compile程式碼並且讓他跑在虛擬機上
+
+$ make qemu
+...
+(一大串訊息)
+...
+xv6 kernel is booting
+
+hart 2 starting
+hart 1 starting
+init: starting sh
+$
+到這裡，Xv6已經成功開機了！
+
+嘗試打個指令
+
+$ ls
+.              1 1 1024
+..             1 1 1024
+README         2 2 2059
+xargstest.sh   2 3 93
+cat            2 4 24120
+echo           2 5 22944
+forktest       2 6 13184
+grep           2 7 27424
+init           2 8 23680
+kill           2 9 22904
+ln             2 10 22744
+ls             2 11 26312
+mkdir          2 12 23040
+rm             2 13 23032
+sh             2 14 41856
+stressfs       2 15 23904
+usertests      2 16 148312
+grind          2 17 38008
+wc             2 18 25232
+zombie         2 19 22280
+console        3 20 0
+沒意外的話，會出現以上的畫面">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/xv6/lab1/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/lab1/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama 的網站 (Alt + H)">Yama 的網站</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      [xv6 學習紀錄 01] Lab: Xv6 and Unix utilities
+    </h1>
+    <div class="post-meta"><span title='2025-09-24 16:13:25 +0800 CST'>September 24, 2025</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>Lab 連結: <a href="https://pdos.csail.mit.edu/6.S081/2022/labs/util.html">Lab: Xv6 and Unix utilities</a></p>
+<h2 id="boot-xv6easy">Boot xv6(Easy)<a hidden class="anchor" aria-hidden="true" href="#boot-xv6easy">#</a></h2>
+<p>這部份的詳細內容都寫在 <a href="https://pdos.csail.mit.edu/6.S081/2022/labs/util.html">lab util</a> 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。</p>
+<ol>
+<li>下載原始碼</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>git clone git://g.csail.mit.edu/xv6-labs-2022
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd xv6-labs-2022
+</span></span></code></pre></div><ol start="2">
+<li>安裝架設虛擬機的套件
+我自己是用 Debian，如果你用的是 ubuntu 的話下載步驟應該也是一樣的，至於是其他系統的使用者，可以看<a href="https://pdos.csail.mit.edu/6.S081/2022/tools.html">這裡</a></li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu 
+</span></span></code></pre></div><ol start="3">
+<li>compile程式碼並且讓他跑在虛擬機上</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ make qemu
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>一大串訊息<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>xv6 kernel is booting
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>hart <span style="color:#ae81ff">2</span> starting
+</span></span><span style="display:flex;"><span>hart <span style="color:#ae81ff">1</span> starting
+</span></span><span style="display:flex;"><span>init: starting sh
+</span></span><span style="display:flex;"><span>$
+</span></span></code></pre></div><p>到這裡，Xv6已經成功開機了！</p>
+<ol start="4">
+<li>嘗試打個指令</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ ls
+</span></span><span style="display:flex;"><span>.              <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">1024</span>
+</span></span><span style="display:flex;"><span>..             <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">1024</span>
+</span></span><span style="display:flex;"><span>README         <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">2059</span>
+</span></span><span style="display:flex;"><span>xargstest.sh   <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">93</span>
+</span></span><span style="display:flex;"><span>cat            <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">4</span> <span style="color:#ae81ff">24120</span>
+</span></span><span style="display:flex;"><span>echo           <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">5</span> <span style="color:#ae81ff">22944</span>
+</span></span><span style="display:flex;"><span>forktest       <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">6</span> <span style="color:#ae81ff">13184</span>
+</span></span><span style="display:flex;"><span>grep           <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">7</span> <span style="color:#ae81ff">27424</span>
+</span></span><span style="display:flex;"><span>init           <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">8</span> <span style="color:#ae81ff">23680</span>
+</span></span><span style="display:flex;"><span>kill           <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">9</span> <span style="color:#ae81ff">22904</span>
+</span></span><span style="display:flex;"><span>ln             <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">10</span> <span style="color:#ae81ff">22744</span>
+</span></span><span style="display:flex;"><span>ls             <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">11</span> <span style="color:#ae81ff">26312</span>
+</span></span><span style="display:flex;"><span>mkdir          <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">12</span> <span style="color:#ae81ff">23040</span>
+</span></span><span style="display:flex;"><span>rm             <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">13</span> <span style="color:#ae81ff">23032</span>
+</span></span><span style="display:flex;"><span>sh             <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">14</span> <span style="color:#ae81ff">41856</span>
+</span></span><span style="display:flex;"><span>stressfs       <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">15</span> <span style="color:#ae81ff">23904</span>
+</span></span><span style="display:flex;"><span>usertests      <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">16</span> <span style="color:#ae81ff">148312</span>
+</span></span><span style="display:flex;"><span>grind          <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">17</span> <span style="color:#ae81ff">38008</span>
+</span></span><span style="display:flex;"><span>wc             <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">18</span> <span style="color:#ae81ff">25232</span>
+</span></span><span style="display:flex;"><span>zombie         <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">19</span> <span style="color:#ae81ff">22280</span>
+</span></span><span style="display:flex;"><span>console        <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">20</span> <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>沒意外的話，會出現以上的畫面</p>
+<ol start="5">
+<li>離開虛擬機
+按下<code>ctrl+a</code>放開這兩個鍵之後，再按下<code>x</code></li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ QEMU: Terminated
+</span></span></code></pre></div><p>這樣就關機了</p>
+<h2 id="sleep-easy">sleep (easy)<a hidden class="anchor" aria-hidden="true" href="#sleep-easy">#</a></h2>
+<blockquote>
+<p>Implement the UNIX program sleep for xv6; your sleep should pause for a user-specified number of ticks. A tick is a notion of time defined by the xv6 kernel, namely the time between two interrupts from the timer chip. Your solution should be in the file user/sleep.c.</p></blockquote>
+<p>這題的大意是在說把 <code>sleep</code> 實做出來，主要是想要讓我們知道這些 program 是如何使用 system call 的</p>
+<h3 id="題目分析">題目分析<a hidden class="anchor" aria-hidden="true" href="#題目分析">#</a></h3>
+<p>觀察其他在 <code>user/</code> 中的程式如何使用 system call</p>
+<ul>
+<li><code>user/echo.c</code>:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/types.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/stat.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;user/user.h&#34;    // 等等可以先來看看這裡 include 了些什麼東西</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> i;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; i <span style="color:#f92672">&lt;</span> argc; i<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">write</span>(<span style="color:#ae81ff">1</span>, argv[i], <span style="color:#a6e22e">strlen</span>(argv[i])); <span style="color:#75715e">// 像是這裡
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;</span> argc){
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">write</span>(<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#34; &#34;</span>, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">write</span>(<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>user/user.h</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> stat;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// system calls
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">fork</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">exit</span>(<span style="color:#66d9ef">int</span>) <span style="color:#a6e22e">__attribute__</span>((noreturn));
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">wait</span>(<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">pipe</span>(<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">write</span>(<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">read</span>(<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">close</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">kill</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">exec</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">char</span><span style="color:#f92672">**</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">open</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">mknod</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">short</span>, <span style="color:#66d9ef">short</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">unlink</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">fstat</span>(<span style="color:#66d9ef">int</span> fd, <span style="color:#66d9ef">struct</span> stat<span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">link</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">mkdir</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">chdir</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">dup</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getpid</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> <span style="color:#a6e22e">sbrk</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">sleep</span>(<span style="color:#66d9ef">int</span>);  <span style="color:#75715e">// 我們可以使用這個呼叫 system call
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">uptime</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// ulib.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">stat</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">struct</span> stat<span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> <span style="color:#a6e22e">strcpy</span>(<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">memmove</span>(<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> <span style="color:#a6e22e">strchr</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">char</span> c);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">strcmp</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">fprintf</span>(<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, ...);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">printf</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, ...);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> <span style="color:#a6e22e">gets</span>(<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">int</span> max);
+</span></span><span style="display:flex;"><span>uint <span style="color:#a6e22e">strlen</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span><span style="color:#f92672">*</span> <span style="color:#a6e22e">memset</span>(<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">int</span>, uint);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span><span style="color:#f92672">*</span> <span style="color:#a6e22e">malloc</span>(uint);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">free</span>(<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">atoi</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>); <span style="color:#75715e">// 這是個好用的 function (把 string 轉成 int) 等等會用到
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">memcmp</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>, uint);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">memcpy</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>, uint);
+</span></span></code></pre></div><p>首先我們先知道了 program <code>echo</code> 的檔案名稱為 <code>user/echo.c</code>，可以想見等等我們的 <code>sleep</code> 會被命名為 <code>user/sleep.c</code>。</p>
+<p>透過觀察這個檔案，我們可以了解到 <code>user/echo.c</code> 是如何使用 system call 的，他利用 <code>user/user.h</code> 所宣告的 function 使用 system call, 像是 <code>user/echo.c</code> 使用了 <code>write()</code>，等等我們的 <code>user/sleep.c</code> 也可以使用 <code>user/user.h</code> 所宣告的 <code>sleep()</code>。</p>
+<p>至於 <code>sleep()</code> 實際上實做在哪裡？<br>
+<code>sleep()</code> 實做在 <code>kernel/sysproc.c</code> 跳到這裡的機制在之後的 Lab2 會觀察到，這裡我們可以先看一下實做的地方就好</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_sleep</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>  uint ticks0;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>n);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>tickslock);
+</span></span><span style="display:flex;"><span>  ticks0 <span style="color:#f92672">=</span> ticks;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span>(ticks <span style="color:#f92672">-</span> ticks0 <span style="color:#f92672">&lt;</span> n){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">killed</span>(<span style="color:#a6e22e">myproc</span>())){
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>tickslock);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">sleep</span>(<span style="color:#f92672">&amp;</span>ticks, <span style="color:#f92672">&amp;</span>tickslock);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>tickslock);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>有了 <code>sleep()</code> 可以使用，接下來只剩下如何把 command-line argument (<code>string</code>) 轉換成 <code>int</code>，如同先前在 <code>user/user.h</code> 中所看見的，我們有 <code>atoi()</code> 可以使用，使用的例子在 <code>user/kill.c</code> 中有出現過。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/types.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/stat.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;user/user.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> i;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(argc <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;usage: kill pid...</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(i<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>; i<span style="color:#f92672">&lt;</span>argc; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kill</span>(<span style="color:#a6e22e">atoi</span>(argv[i]));
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="程式實做">程式實做<a hidden class="anchor" aria-hidden="true" href="#程式實做">#</a></h3>
+<p>有了前面的分析，就可以拼湊出我們要的程式了：</p>
+<ul>
+<li><code>user/sleep.c</code>:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/types.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;user/user.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (argc <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;Usage: sleep &lt;ticks&gt;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">sleep</span>(<span style="color:#a6e22e">atoi</span>(argv[<span style="color:#ae81ff">0</span>]));
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>Makefile</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>UPROGS<span style="color:#f92672">=</span><span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_cat<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_echo<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_forktest<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_grep<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_init<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_kill<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_ln<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_ls<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_mkdir<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_rm<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_sh<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_sleep<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_stressfs<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_usertests<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_grind<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_wc<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>	$U/_zombie<span style="color:#ae81ff">\
+</span></span></span></code></pre></div><p>接著用 <code>./grade-lab-util</code> 驗證就行了</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>./grade-lab-util           <span style="color:#f92672">(</span>base<span style="color:#f92672">)</span>  2025-09-24 19:17:06
+</span></span><span style="display:flex;"><span>make: <span style="color:#e6db74">&#39;kernel/kernel&#39;</span> is up to date.
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span> Test sleep, no arguments <span style="color:#f92672">==</span> sleep, no arguments: OK <span style="color:#f92672">(</span>1.2s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span> Test sleep, returns <span style="color:#f92672">==</span> sleep, returns: OK <span style="color:#f92672">(</span>1.1s<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==</span> Test sleep, makes syscall <span style="color:#f92672">==</span> sleep, makes syscall: OK <span style="color:#f92672">(</span>1.0s<span style="color:#f92672">)</span>
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">Yama 的網站</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -20,5 +20,12 @@ theme = 'PaperMod'
   url = "/leetcode/"
   weight = 2
 
+[[menu.main]]
+  identifier = "xv6"
+  name = "xv6 學習紀錄"
+  url = "/xv6/"
+  weight = 3
+
 [params]
-  mainSections = ["posts", "dev-log", "leetcode"]
+  mainSections = ["posts", "dev-log", "leetcode", "xv6"]
+  ShowCodeCopyButtons = true
