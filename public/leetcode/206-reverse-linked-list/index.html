@@ -5,9 +5,33 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>[LeetCode 解題] 206. Reverse Linked List | Yama 的網站</title>
+<title>[LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C&#43;&#43;) | Yama 的網站</title>
 <meta name="keywords" content="">
-<meta name="description" content="/**
+<meta name="description" content="題目連結：206. Reverse Linked List
+解題思路
+這題還蠻直接的，把 Linked List 給掃過一遍，並且一個一個的把指標顛倒過來。
+剛開始的時候我用了這個寫法：
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        if (!head) 
+            return head;
+        ListNode *slow = head;
+        ListNode *fast = head-&gt;next;
+        while (fast != nullptr) {
+            ListNode *nextNode = fast-&gt;next;
+            fast-&gt;next = slow;
+            slow = fast;
+            fast = nextNode;
+        }
+        slow-&gt;next = nullptr;
+        return slow;
+    }
+};
+但這個寫法是錯誤的，因為 slow 從 head 開始的話，最一開始的 head 沒有指向 nullptr，所以需要把 slow 從 nullptr 開始會比較好。
+我學到的是面對到 Edge Case 時，要特別小心注意才行。
+程式碼
+/**
  * Definition for singly-linked list.
  * struct ListNode {
  *     int val;
@@ -141,13 +165,37 @@ public:
   <header class="post-header">
     
     <h1 class="post-title entry-hint-parent">
-      [LeetCode 解題] 206. Reverse Linked List
+      [LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C&#43;&#43;)
     </h1>
     <div class="post-meta"><span title='2025-09-23 20:31:28 +0800 CST'>September 23, 2025</span>
 
 </div>
   </header> 
-  <div class="post-content"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#75715e">/**
+  <div class="post-content"><p>題目連結：<a href="https://leetcode.com/problems/reverse-linked-list/">206. Reverse Linked List</a></p>
+<h2 id="解題思路">解題思路<a hidden class="anchor" aria-hidden="true" href="#解題思路">#</a></h2>
+<p>這題還蠻直接的，把 Linked List 給掃過一遍，並且一個一個的把指標顛倒過來。</p>
+<p>剛開始的時候我用了這個寫法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span> {
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    ListNode<span style="color:#f92672">*</span> reverseList(ListNode<span style="color:#f92672">*</span> head) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>head) 
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> head;
+</span></span><span style="display:flex;"><span>        ListNode <span style="color:#f92672">*</span>slow <span style="color:#f92672">=</span> head;
+</span></span><span style="display:flex;"><span>        ListNode <span style="color:#f92672">*</span>fast <span style="color:#f92672">=</span> head<span style="color:#f92672">-&gt;</span>next;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (fast <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nullptr</span>) {
+</span></span><span style="display:flex;"><span>            ListNode <span style="color:#f92672">*</span>nextNode <span style="color:#f92672">=</span> fast<span style="color:#f92672">-&gt;</span>next;
+</span></span><span style="display:flex;"><span>            fast<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> slow;
+</span></span><span style="display:flex;"><span>            slow <span style="color:#f92672">=</span> fast;
+</span></span><span style="display:flex;"><span>            fast <span style="color:#f92672">=</span> nextNode;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        slow<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> <span style="color:#66d9ef">nullptr</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> slow;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>但這個寫法是錯誤的，因為 <code>slow</code> 從 <code>head</code> 開始的話，最一開始的 <code>head</code> 沒有指向 <code>nullptr</code>，所以需要把 <code>slow</code> 從 <code>nullptr</code> 開始會比較好。</p>
+<p>我學到的是面對到 Edge Case 時，要特別小心注意才行。</p>
+<h2 id="程式碼">程式碼<a hidden class="anchor" aria-hidden="true" href="#程式碼">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#75715e">/**
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * Definition for singly-linked list.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * struct ListNode {
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *     int val;
