@@ -7,7 +7,10 @@
 <meta name="robots" content="noindex, nofollow">
 <title>[這個網站的誕生: 03] 使用 Hugo 產生網站 | Yama 的網站</title>
 <meta name="keywords" content="">
-<meta name="description" content="安裝套件
+<meta name="description" content="當我們設定好 vm 之後，先回到我們工作用的電腦，以我自己來說，這會是我的筆電。
+我們的網站編輯與開發都會在這台筆電上，下一篇文章才會說明如何把網站內容部署到 vm 中，
+總之，這篇文章的內容都在個人的筆電（或 PC）上操作。
+安裝套件
 sudo apt update &amp;&amp; sudo apt upgrade -y
 sudo apt install nginx git -y
 wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb
@@ -25,22 +28,7 @@ git commit -m &#34;Init commit&#34;
 hugo new content posts/hello-world.md
 vim content/posts/hello-world.md
 設定 theme
-這裡可先在 Hugo Themes 看看，再決定自己要用的主題
-git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke
-git submodule add https://github.com/jimfrenette/hugo-starter.git themes/starter
-git submodule add https://github.com/lukeorth/poison.git themes/poison
-git submodule add https://github.com/adityatelange/hugo-PaperMod themes/PaperMod
-git submodule update --init --recursive
-vim hugo.toml
-baseURL = &#39;https://yamatrail.com/&#39;
-languageCode = &#39;zh-tw&#39;
-title = &#39;My New Hugo Site&#39;
-theme = &#39;PaperMod&#39;
-# -D 或 --buildDrafts 參數是告訴 Hugo 把草稿也顯示出來
-hugo server -D
-建立網站部署流程
-總流程概覽
-我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。">
+這裡可先在 Hugo Themes 看看，再決定自己要用的主題，我自己用的是 PaperMod">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/dev-log/how-to-use-hugo/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
@@ -161,7 +149,10 @@ hugo server -D
 
 </div>
   </header> 
-  <div class="post-content"><h3 id="安裝套件">安裝套件<a hidden class="anchor" aria-hidden="true" href="#安裝套件">#</a></h3>
+  <div class="post-content"><p>當我們設定好 vm 之後，先回到我們工作用的電腦，以我自己來說，這會是我的筆電。
+我們的網站編輯與開發都會在這台筆電上，下一篇文章才會說明如何把網站內容部署到 vm 中，</p>
+<p>總之，這篇文章的內容都在個人的筆電（或 PC）上操作。</p>
+<h3 id="安裝套件">安裝套件<a hidden class="anchor" aria-hidden="true" href="#安裝套件">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt update <span style="color:#f92672">&amp;&amp;</span> sudo apt upgrade -y
 </span></span><span style="display:flex;"><span>sudo apt install nginx git -y
 </span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb
@@ -179,89 +170,26 @@ hugo server -D
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>hugo new content posts/hello-world.md
 </span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>vim content/posts/hello-world.md
 </span></span></code></pre></div><h3 id="設定-theme">設定 theme<a hidden class="anchor" aria-hidden="true" href="#設定-theme">#</a></h3>
-<p>這裡可先在 <a href="https://themes.gohugo.io/">Hugo Themes</a> 看看，再決定自己要用的主題</p>
+<p>這裡可先在 <a href="https://themes.gohugo.io/">Hugo Themes</a> 看看，再決定自己要用的主題，我自己用的是 <a href="https://themes.gohugo.io/themes/hugo-papermod/">PaperMod</a></p>
+<p>例如可以用類似下面這幾個命令新增可使用的 theme:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke
 </span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git submodule add https://github.com/jimfrenette/hugo-starter.git themes/starter
 </span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git submodule add https://github.com/lukeorth/poison.git themes/poison
 </span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git submodule add https://github.com/adityatelange/hugo-PaperMod themes/PaperMod
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git submodule update --init --recursive
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>vim hugo.toml
+</span></span></code></pre></div><p>使用下列的命令之後，才可以把 submodule 中的 source code 放到我們的專案中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git submodule update --init --recursive
+</span></span></code></pre></div><p><code>hugo.toml</code> 是網站的設定檔，每一個 theme 的設定檔都有一些些的不同，需要讀每個 theme 的 documents</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>vim hugo.toml
 </span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>baseURL <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;https://yamatrail.com/&#39;</span>
 </span></span><span style="display:flex;"><span>languageCode <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;zh-tw&#39;</span>
 </span></span><span style="display:flex;"><span>title <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;My New Hugo Site&#39;</span>
 </span></span><span style="display:flex;"><span>theme <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;PaperMod&#39;</span>
+</span></span></code></pre></div><p>在我的筆電上，可以使用下列指定檢查網站的內容</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 預設的方式是不會顯示草稿</span>
+</span></span><span style="display:flex;"><span>hugo server
 </span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># -D 或 --buildDrafts 參數是告訴 Hugo 把草稿也顯示出來</span>
 </span></span><span style="display:flex;"><span>hugo server -D
-</span></span></code></pre></div><h2 id="建立網站部署流程">建立網站部署流程<a hidden class="anchor" aria-hidden="true" href="#建立網站部署流程">#</a></h2>
-<h3 id="總流程概覽">總流程概覽<a hidden class="anchor" aria-hidden="true" href="#總流程概覽">#</a></h3>
-<p>我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。</p>
-<ol>
-<li><strong>ssh key 的準備</strong>：在<strong>筆電</strong>和 <strong>VM</strong> 之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 才有權限可以登入 vm 中。</li>
-<li><strong>設定 GitHub Repo</strong>：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 github repo 中的 Secrets 中。</li>
-<li><strong>建立 GitHub Actions Workflow</strong>：撰寫 <code>.github/workflows/deploy.yaml </code> 設定檔，這會告訴 github 該做些什麼把網站內容放到 vm 中。</li>
-<li><strong>觸發與驗證</strong>：將程式碼 <code>git push</code> 到 GitHub，觸發自動化流程，檢查流程是否正確。</li>
-</ol>
-<h3 id="階段一準備工作---建立-ssh-信任關係">階段一：準備工作 - 建立 SSH 信任關係<a hidden class="anchor" aria-hidden="true" href="#階段一準備工作---建立-ssh-信任關係">#</a></h3>
-<p>步驟 1：「筆電」上產生一對 SSH Key</p>
-<p>在筆電上：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># -t ed25519: 使用更現代、更安全的加密演算法</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># -C &#34;...&#34; : 註解，方便你辨識這對 Key 的用途</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰</span>
-</span></span><span style="display:flex;"><span>ssh-keygen -t ed25519 -C <span style="color:#e6db74">&#34;GitHub Actions for yamatrail.com&#34;</span> -f ~/.ssh/hugo_deploy_key
-</span></span></code></pre></div><p>執行之後，會在 <code>~/.ssh/</code> 中產生公鑰與私鑰</p>
-<ul>
-<li><code>hugo_deploy_key</code></li>
-<li><code>hugo_deploy_key.pub</code></li>
-</ul>
-<p>步驟 2：在你的「GCP VM」上設定公鑰</p>
-<p>在筆電上使用：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cat ~/.ssh/hugo_deploy_key.pub
-</span></span></code></pre></div><p>把公鑰內容複製下來，貼到 vm 上的</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 使用 vim 編輯器打開檔案</span>
-</span></span><span style="display:flex;"><span>vim ~/.ssh/authorized_keys
-</span></span></code></pre></div><p>加在最後一行就可以了</p>
-<h3 id="階段二設定-github-repo---存放你的秘密">階段二：設定 GitHub Repo - 存放你的秘密<a hidden class="anchor" aria-hidden="true" href="#階段二設定-github-repo---存放你的秘密">#</a></h3>
-<p>在 github 的 Secret and variables &gt; Actions &gt;</p>
-<ul>
-<li>
-<p>SSH_PRIVATE_KEY</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cat ~/.ssh/hugo_deploy_key
-</span></span></code></pre></div></li>
-<li>
-<p>SERVER_HOST</p>
-</li>
-<li>
-<p>SERVER_USER</p>
-<ul>
-<li>填寫筆電的使用者，因為就我的情況來說，產生金鑰與登入 vm 的使用者是跟我的筆電使用者一樣的，github action 要魔你的是這個使用者登入 vm 的行為。</li>
-</ul>
-</li>
-<li>
-<p>TARGET_DIR</p>
-<ul>
-<li>告訴 github action 這個網站要放在哪裡。</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>/var/www/yamatrail.com/
-</span></span></code></pre></div></li>
-</ul>
-<h3 id="階段三建立-github-actions-workflow">階段三：建立 GitHub Actions Workflow<a hidden class="anchor" aria-hidden="true" href="#階段三建立-github-actions-workflow">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir -p .github/workflows
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>vim .github/workflows/deploy.yaml
-</span></span></code></pre></div><p>在 vm 上要設定路徑的使用者跟我們存放 SSH key 的帳號一樣，這裡一樣使用筆電的使用者用 ssh 登入 vm，並且執行以下指令更改</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 使用我的筆電登入之後，執行</span>
-</span></span><span style="display:flex;"><span>sudo chown -R $USER:$USER /var/www/yamatrail.com
-</span></span></code></pre></div><p>另外，vm 上也要安裝 <code>rsync</code> 因為 github action 在操作時會需要用到這個指令</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt update
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 安裝 rsync</span>
-</span></span><span style="display:flex;"><span>sudo apt install rsync
-</span></span></code></pre></div><h3 id="階段四觸發與驗證">階段四：觸發與驗證<a hidden class="anchor" aria-hidden="true" href="#階段四觸發與驗證">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git add .
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>git commit -m <span style="color:#e6db74">&#34;feat: Add GitHub Actions workflow for automatic deployment&#34;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>git push origin main
-</span></span></code></pre></div><p>沒意外的話，網站上的內容就會自動更新了。</p>
+</span></span></code></pre></div><p>之後可經由 <a href="http://localhost:1313/">http://localhost:1313/</a> 觀看網站的輸出結果，此外我們在編輯文章或是設定檔的同時，<code>hugo server</code> 會即時的更新網站內容，這是我個人覺得非常方便的一點。</p>
 
 
   </div>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>[這個網站的誕生: 04] Github Actions 建立自動部署 | Yama 的網站</title>
+<meta name="keywords" content="">
+<meta name="description" content="建立網站部署流程
+總流程概覽
+我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。
+
+ssh key 的準備：在筆電和 VM 之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 才有權限可以登入 vm 中。
+設定 GitHub Repo：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 github repo 中的 Secrets 中。
+建立 GitHub Actions Workflow：撰寫 .github/workflows/deploy.yaml  設定檔，這會告訴 github 該做些什麼把網站內容放到 vm 中。
+觸發與驗證：將程式碼 git push 到 GitHub，觸發自動化流程，檢查流程是否正確。
+
+階段一：準備工作 - 建立 SSH 信任關係
+步驟 1：「筆電」上產生一對 SSH Key
+在筆電上：
+# -t ed25519: 使用更現代、更安全的加密演算法
+# -C &#34;...&#34; : 註解，方便你辨識這對 Key 的用途
+# -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰
+ssh-keygen -t ed25519 -C &#34;GitHub Actions for yamatrail.com&#34; -f ~/.ssh/hugo_deploy_key
+執行之後，會在 ~/.ssh/ 中產生公鑰與私鑰">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/dev-log/github-actions/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/dev-log/github-actions/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama 的網站 (Alt + H)">Yama 的網站</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      [這個網站的誕生: 04] Github Actions 建立自動部署
+    </h1>
+    <div class="post-meta"><span title='2025-09-25 12:16:16 +0800 CST'>September 25, 2025</span>
+
+</div>
+  </header> 
+  <div class="post-content"><h2 id="建立網站部署流程">建立網站部署流程<a hidden class="anchor" aria-hidden="true" href="#建立網站部署流程">#</a></h2>
+<h3 id="總流程概覽">總流程概覽<a hidden class="anchor" aria-hidden="true" href="#總流程概覽">#</a></h3>
+<p>我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。</p>
+<ol>
+<li><strong>ssh key 的準備</strong>：在<strong>筆電</strong>和 <strong>VM</strong> 之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 才有權限可以登入 vm 中。</li>
+<li><strong>設定 GitHub Repo</strong>：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 github repo 中的 Secrets 中。</li>
+<li><strong>建立 GitHub Actions Workflow</strong>：撰寫 <code>.github/workflows/deploy.yaml </code> 設定檔，這會告訴 github 該做些什麼把網站內容放到 vm 中。</li>
+<li><strong>觸發與驗證</strong>：將程式碼 <code>git push</code> 到 GitHub，觸發自動化流程，檢查流程是否正確。</li>
+</ol>
+<h3 id="階段一準備工作---建立-ssh-信任關係">階段一：準備工作 - 建立 SSH 信任關係<a hidden class="anchor" aria-hidden="true" href="#階段一準備工作---建立-ssh-信任關係">#</a></h3>
+<p>步驟 1：「筆電」上產生一對 SSH Key</p>
+<p>在筆電上：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># -t ed25519: 使用更現代、更安全的加密演算法</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># -C &#34;...&#34; : 註解，方便你辨識這對 Key 的用途</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰</span>
+</span></span><span style="display:flex;"><span>ssh-keygen -t ed25519 -C <span style="color:#e6db74">&#34;GitHub Actions for yamatrail.com&#34;</span> -f ~/.ssh/hugo_deploy_key
+</span></span></code></pre></div><p>執行之後，會在 <code>~/.ssh/</code> 中產生公鑰與私鑰</p>
+<ul>
+<li><code>hugo_deploy_key</code></li>
+<li><code>hugo_deploy_key.pub</code></li>
+</ul>
+<p>步驟 2：在你的「GCP VM」上設定公鑰</p>
+<p>在筆電上使用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cat ~/.ssh/hugo_deploy_key.pub
+</span></span></code></pre></div><p>把公鑰內容複製下來，貼到 vm 上的</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 這個在 vm 上執行</span>
+</span></span><span style="display:flex;"><span>vim ~/.ssh/authorized_keys
+</span></span></code></pre></div><p>加在最後一行就可以了</p>
+<h3 id="階段二設定-github-repo">階段二：設定 GitHub Repo<a hidden class="anchor" aria-hidden="true" href="#階段二設定-github-repo">#</a></h3>
+<p>在 github 的 Secret and variables &gt; Actions &gt;</p>
+<ul>
+<li>
+<p>SSH_PRIVATE_KEY</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cat ~/.ssh/hugo_deploy_key
+</span></span></code></pre></div></li>
+<li>
+<p>SERVER_HOST</p>
+</li>
+<li>
+<p>SERVER_USER</p>
+<ul>
+<li>填寫筆電的使用者，因為就我的情況來說，產生金鑰與登入 vm 的使用者是跟我的筆電使用者一樣的，github action 要魔你的是這個使用者登入 vm 的行為。</li>
+</ul>
+</li>
+<li>
+<p>TARGET_DIR</p>
+<ul>
+<li>告訴 github action 這個網站要放在哪裡。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>/var/www/yamatrail.com/
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="階段三建立-github-actions-workflow">階段三：建立 GitHub Actions Workflow<a hidden class="anchor" aria-hidden="true" href="#階段三建立-github-actions-workflow">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir -p .github/workflows
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>vim .github/workflows/deploy.yaml
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e"># 工作流程的名稱，會顯示在 GitHub Actions 頁面上</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy Hugo Site to GCP VM</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 觸發條件：當 main 分支收到 push 時執行</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">on</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">push</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">branches</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 定義要執行的任務</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">jobs</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">build-and-deploy</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 執行任務的虛擬環境類型</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">runs-on</span>: <span style="color:#ae81ff">ubuntu-latest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 任務包含的步驟</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">steps</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e"># 步驟一：拉取你的 GitHub Repo 原始碼</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Checkout repository</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">actions/checkout@v4</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">with</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">submodules</span>: <span style="color:#66d9ef">true</span>  <span style="color:#75715e"># 如果你的佈景主題 (theme) 是用 git submodule 方式引入的，這行很重要</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e"># 步驟二：安裝並設定 Hugo 環境</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Setup Hugo</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">peaceiris/actions-hugo@v2</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">with</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">hugo-version</span>: <span style="color:#e6db74">&#39;latest&#39;</span> <span style="color:#75715e"># 使用最新版的 Hugo</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">extended</span>: <span style="color:#66d9ef">true</span>         <span style="color:#75715e"># 如果你的佈景主題需要 Sass/SCSS 支援</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e"># 步驟三：執行 Hugo 指令來編譯網站</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e"># --minify 會壓縮 HTML/CSS/JS，讓網站載入更快</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Build static site</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">run</span>: <span style="color:#ae81ff">hugo --minify</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e"># 步驟四：將編譯好的網站成品 (public/ 目錄) 部署到你的 VM</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy to server</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">easingthemes/ssh-deploy@v5.0.0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">with</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#75715e"># 從 GitHub Secrets 讀取 SSH 私鑰</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">SSH_PRIVATE_KEY</span>: <span style="color:#ae81ff">${{ secrets.SSH_PRIVATE_KEY }}</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#75715e"># 遠端伺服器 IP</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">REMOTE_HOST</span>: <span style="color:#ae81ff">${{ secrets.SERVER_HOST }}</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#75715e"># 遠端伺服器使用者</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">REMOTE_USER</span>: <span style="color:#ae81ff">${{ secrets.SERVER_USER }}</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#75715e"># 要上傳的來源目錄 (Hugo 編譯後的成品)</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">SOURCE</span>: <span style="color:#e6db74">&#34;public/&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#75715e"># 要部署到遠端伺服器的目標目錄</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">TARGET</span>: <span style="color:#ae81ff">${{ secrets.TARGET_DIR }}</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#75715e"># 使用 rsync 的參數，-avz 是標準用法，--delete 會刪除伺服器上多餘的舊檔案</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">ARGS</span>: <span style="color:#e6db74">&#34;-avz --delete&#34;</span>
+</span></span></code></pre></div><p>在 vm 上要設定路徑的使用者跟我們存放 SSH key 的帳號一樣，這裡一樣使用筆電的使用者用 ssh 登入 vm，並且執行以下指令更改</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 使用我的筆電登入之後，執行</span>
+</span></span><span style="display:flex;"><span>sudo chown -R $USER:$USER /var/www/yamatrail.com
+</span></span></code></pre></div><p>另外，vm 上也要安裝 <code>rsync</code> 因為 github action 在操作時會需要用到這個指令</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt update
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 安裝 rsync</span>
+</span></span><span style="display:flex;"><span>sudo apt install rsync
+</span></span></code></pre></div><h3 id="階段四觸發與驗證">階段四：觸發與驗證<a hidden class="anchor" aria-hidden="true" href="#階段四觸發與驗證">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git add .
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>git commit -m <span style="color:#e6db74">&#34;feat: Add GitHub Actions workflow for automatic deployment&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>git push origin main
+</span></span></code></pre></div><p>沒意外的話，網站上的內容就會自動更新了。</p>
+<blockquote>
+<p>github action 失敗時，如果發現是 vm 設定或是 github 設定上的問題 (並非 hugo 設定或文章內容有誤)，可以按 <code>github repo</code> &gt; <code>actions</code> &gt; <code>點選出錯的 Action</code> &gt; <code>Re-run all jobs</code> 就可以不經由 <code>git push</code> 直接重跑一次我們所設定的 action</p></blockquote>
+<p>至此，我們的工作流程就會是：</p>
+<ol>
+<li>在筆電上使用 <code>hugo server</code>、瀏覽器連上 <a href="http://localhost:1313/">http://localhost:1313/</a></li>
+<li>編輯文章內容與設定檔，同時瀏覽器上可檢查內容與效果</li>
+<li>內容沒問題之後 <code>git commit</code> 以及 <code>git push</code>，之後我們的網站就會經由 github action 更新了</li>
+<li>最後檢查 <a href="https://yamatrail.com/">https://yamatrail.com/</a> 的內容是否更新成功。</li>
+</ol>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">Yama 的網站</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

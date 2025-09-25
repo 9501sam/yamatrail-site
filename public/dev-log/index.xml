@@ -6,47 +6,32 @@
     <description>Recent content in 這個網站的誕生 on Yama 的網站</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Tue, 23 Sep 2025 19:35:47 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 25 Sep 2025 12:16:16 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/dev-log/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>[這個網站的誕生: 03] 使用 Hugo 產生網站</title>
-      <link>http://localhost:1313/dev-log/how-to-use-hugo/</link>
-      <pubDate>Tue, 23 Sep 2025 19:35:47 +0800</pubDate>
-      <guid>http://localhost:1313/dev-log/how-to-use-hugo/</guid>
-      <description>&lt;h3 id=&#34;安裝套件&#34;&gt;安裝套件&lt;/h3&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt update &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo apt upgrade -y
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt install nginx git -y
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo dpkg -i hugo_extended_0.146.0_linux-amd64.deb
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo version
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在筆電上先使用 hugo 建立一個 repo 出來，並且使用 git 做版控，然後推到自己的 github 上&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo new site yamatrail-site
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd yamatrail-site
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git init
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git add .
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git commit -m &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Init commit&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用這個指令可以新增一篇文章:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo new content posts/hello-world.md
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vim content/posts/hello-world.md
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;設定-theme&#34;&gt;設定 theme&lt;/h3&gt;
-&lt;p&gt;這裡可先在 &lt;a href=&#34;https://themes.gohugo.io/&#34;&gt;Hugo Themes&lt;/a&gt; 看看，再決定自己要用的主題&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule add https://github.com/jimfrenette/hugo-starter.git themes/starter
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule add https://github.com/lukeorth/poison.git themes/poison
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule add https://github.com/adityatelange/hugo-PaperMod themes/PaperMod
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git submodule update --init --recursive
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vim hugo.toml
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;baseURL &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;https://yamatrail.com/&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;languageCode &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;zh-tw&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;title &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;My New Hugo Site&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;theme &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;PaperMod&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# -D 或 --buildDrafts 參數是告訴 Hugo 把草稿也顯示出來&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo server -D
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;建立網站部署流程&#34;&gt;建立網站部署流程&lt;/h2&gt;
-&lt;h3 id=&#34;總流程概覽&#34;&gt;總流程概覽&lt;/h3&gt;
-&lt;p&gt;我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。&lt;/p&gt;</description>
+      <title>[這個網站的誕生: 01] 建立一個免費的 vm</title>
+      <link>http://localhost:1313/dev-log/vm-creation/</link>
+      <pubDate>Sun, 21 Sep 2025 12:33:40 +0800</pubDate>
+      <guid>http://localhost:1313/dev-log/vm-creation/</guid>
+      <description>&lt;h3 id=&#34;如何建立一個免費的-vm&#34;&gt;如何建立一個免費的 vm&lt;/h3&gt;
+&lt;p&gt;根據 google cloud 的說明&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://cloud.google.com/free?hl=en&#34;&gt;https://cloud.google.com/free?hl=en&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;滿足以下條件的 vm 是可以不用收錢的&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;1 non-preemptible &lt;code&gt;e2-micro&lt;/code&gt; VM instance per month in one of the following US regions:
+&lt;ul&gt;
+&lt;li&gt;Oregon: &lt;code&gt;us-west1&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Iowa: &lt;code&gt;us-central1&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;South Carolina: &lt;code&gt;us-east1&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;30 GB-months standard persistent disk&lt;/li&gt;
+&lt;li&gt;1 GB of outbound data transfer from North America to all region destinations (excluding China and Australia) per month&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;因此等等在建立 vm 時，按照上面的條件建立，並且要注意的是建立兩個以上的 vm 還是要收錢的，免費的只有第一個&lt;/p&gt;
+&lt;h3 id=&#34;建立-vm-步驟&#34;&gt;建立 vm 步驟&lt;/h3&gt;
+&lt;p&gt;首先你會先需要建立一個 google cloud 帳號&lt;/p&gt;
+&lt;p&gt;在 compute engin 中，點選上方的 “Create Instance”&lt;/p&gt;</description>
     </item>
     <item>
       <title>[這個網站的誕生: 02] 在 vm 上建立 nginx server</title>
@@ -83,29 +68,55 @@
 &lt;p&gt;之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線&lt;/p&gt;</description>
     </item>
     <item>
-      <title>[這個網站的誕生: 01] 建立一個免費的 vm</title>
-      <link>http://localhost:1313/dev-log/vm-creation/</link>
-      <pubDate>Sun, 21 Sep 2025 12:33:40 +0800</pubDate>
-      <guid>http://localhost:1313/dev-log/vm-creation/</guid>
-      <description>&lt;h3 id=&#34;如何建立一個免費的-vm&#34;&gt;如何建立一個免費的 vm&lt;/h3&gt;
-&lt;p&gt;根據 google cloud 的說明&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://cloud.google.com/free?hl=en&#34;&gt;https://cloud.google.com/free?hl=en&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;滿足以下條件的 vm 是可以不用收錢的&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;1 non-preemptible &lt;code&gt;e2-micro&lt;/code&gt; VM instance per month in one of the following US regions:
-&lt;ul&gt;
-&lt;li&gt;Oregon: &lt;code&gt;us-west1&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Iowa: &lt;code&gt;us-central1&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;South Carolina: &lt;code&gt;us-east1&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;30 GB-months standard persistent disk&lt;/li&gt;
-&lt;li&gt;1 GB of outbound data transfer from North America to all region destinations (excluding China and Australia) per month&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;因此等等在建立 vm 時，按照上面的條件建立，並且要注意的是建立兩個以上的 vm 還是要收錢的，免費的只有第一個&lt;/p&gt;
-&lt;h3 id=&#34;建立-vm-步驟&#34;&gt;建立 vm 步驟&lt;/h3&gt;
-&lt;p&gt;首先你會先需要建立一個 google cloud 帳號&lt;/p&gt;
-&lt;p&gt;在 compute engin 中，點選上方的 “Create Instance”&lt;/p&gt;</description>
+      <title>[這個網站的誕生: 03] 使用 Hugo 產生網站</title>
+      <link>http://localhost:1313/dev-log/how-to-use-hugo/</link>
+      <pubDate>Tue, 23 Sep 2025 19:35:47 +0800</pubDate>
+      <guid>http://localhost:1313/dev-log/how-to-use-hugo/</guid>
+      <description>&lt;p&gt;當我們設定好 vm 之後，先回到我們工作用的電腦，以我自己來說，這會是我的筆電。
+我們的網站編輯與開發都會在這台筆電上，下一篇文章才會說明如何把網站內容部署到 vm 中，&lt;/p&gt;
+&lt;p&gt;總之，這篇文章的內容都在個人的筆電（或 PC）上操作。&lt;/p&gt;
+&lt;h3 id=&#34;安裝套件&#34;&gt;安裝套件&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt update &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; sudo apt upgrade -y
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo apt install nginx git -y
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo dpkg -i hugo_extended_0.146.0_linux-amd64.deb
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo version
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在筆電上先使用 hugo 建立一個 repo 出來，並且使用 git 做版控，然後推到自己的 github 上&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo new site yamatrail-site
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd yamatrail-site
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git init
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git add .
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;git commit -m &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Init commit&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用這個指令可以新增一篇文章:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;hugo new content posts/hello-world.md
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vim content/posts/hello-world.md
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;設定-theme&#34;&gt;設定 theme&lt;/h3&gt;
+&lt;p&gt;這裡可先在 &lt;a href=&#34;https://themes.gohugo.io/&#34;&gt;Hugo Themes&lt;/a&gt; 看看，再決定自己要用的主題，我自己用的是 &lt;a href=&#34;https://themes.gohugo.io/themes/hugo-papermod/&#34;&gt;PaperMod&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[這個網站的誕生: 04] Github Actions 建立自動部署</title>
+      <link>http://localhost:1313/dev-log/github-actions/</link>
+      <pubDate>Thu, 25 Sep 2025 12:16:16 +0800</pubDate>
+      <guid>http://localhost:1313/dev-log/github-actions/</guid>
+      <description>&lt;h2 id=&#34;建立網站部署流程&#34;&gt;建立網站部署流程&lt;/h2&gt;
+&lt;h3 id=&#34;總流程概覽&#34;&gt;總流程概覽&lt;/h3&gt;
+&lt;p&gt;我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;ssh key 的準備&lt;/strong&gt;：在&lt;strong&gt;筆電&lt;/strong&gt;和 &lt;strong&gt;VM&lt;/strong&gt; 之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 才有權限可以登入 vm 中。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;設定 GitHub Repo&lt;/strong&gt;：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 github repo 中的 Secrets 中。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;建立 GitHub Actions Workflow&lt;/strong&gt;：撰寫 &lt;code&gt;.github/workflows/deploy.yaml &lt;/code&gt; 設定檔，這會告訴 github 該做些什麼把網站內容放到 vm 中。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;觸發與驗證&lt;/strong&gt;：將程式碼 &lt;code&gt;git push&lt;/code&gt; 到 GitHub，觸發自動化流程，檢查流程是否正確。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;階段一準備工作---建立-ssh-信任關係&#34;&gt;階段一：準備工作 - 建立 SSH 信任關係&lt;/h3&gt;
+&lt;p&gt;步驟 1：「筆電」上產生一對 SSH Key&lt;/p&gt;
+&lt;p&gt;在筆電上：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# -t ed25519: 使用更現代、更安全的加密演算法&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# -C &amp;#34;...&amp;#34; : 註解，方便你辨識這對 Key 的用途&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ssh-keygen -t ed25519 -C &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;GitHub Actions for yamatrail.com&amp;#34;&lt;/span&gt; -f ~/.ssh/hugo_deploy_key
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;執行之後，會在 &lt;code&gt;~/.ssh/&lt;/code&gt; 中產生公鑰與私鑰&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
