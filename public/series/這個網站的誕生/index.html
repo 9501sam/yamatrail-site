@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>這個網站的誕生 | Yama 的網站</title>
+<title>這個網站的誕生 | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
 <meta name="description" content="">
 <meta name="author" content="">
@@ -74,7 +74,7 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="Yama 的網站 (Alt + H)">Yama 的網站</a>
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
             <div class="logo-switches">
                 <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
@@ -126,18 +126,20 @@
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[這個網站的誕生: 03] 使用 Hugo 產生網站
+    <h2 class="entry-hint-parent">[這個網站的誕生: 01] 建立一個免費的 vm
     </h2>
   </header>
   <div class="entry-content">
-    <p>安裝套件 sudo apt update &amp;&amp; sudo apt upgrade -y sudo apt install nginx git -y wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb sudo dpkg -i hugo_extended_0.146.0_linux-amd64.deb hugo version 在筆電上先使用 hugo 建立一個 repo 出來，並且使用 git 做版控，然後推到自己的 github 上
-hugo new site yamatrail-site cd yamatrail-site git init git add . git commit -m &#34;Init commit&#34; 使用這個指令可以新增一篇文章:
-hugo new content posts/hello-world.md vim content/posts/hello-world.md 設定 theme 這裡可先在 Hugo Themes 看看，再決定自己要用的主題
-git submodule add https://github.com/theNewDynamic/gohugo-theme-ananke.git themes/ananke git submodule add https://github.com/jimfrenette/hugo-starter.git themes/starter git submodule add https://github.com/lukeorth/poison.git themes/poison git submodule add https://github.com/adityatelange/hugo-PaperMod themes/PaperMod git submodule update --init --recursive vim hugo.toml baseURL = &#39;https://yamatrail.com/&#39; languageCode = &#39;zh-tw&#39; title = &#39;My New Hugo Site&#39; theme = &#39;PaperMod&#39; # -D 或 --buildDrafts 參數是告訴 Hugo 把草稿也顯示出來 hugo server -D 建立網站部署流程 總流程概覽 我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。
+    <p>如何建立一個免費的 vm 根據 google cloud 的說明
+https://cloud.google.com/free?hl=en
+滿足以下條件的 vm 是可以不用收錢的
+1 non-preemptible e2-micro VM instance per month in one of the following US regions: Oregon: us-west1 Iowa: us-central1 South Carolina: us-east1 30 GB-months standard persistent disk 1 GB of outbound data transfer from North America to all region destinations (excluding China and Australia) per month 因此等等在建立 vm 時，按照上面的條件建立，並且要注意的是建立兩個以上的 vm 還是要收錢的，免費的只有第一個
+建立 vm 步驟 首先你會先需要建立一個 google cloud 帳號
+在 compute engin 中，點選上方的 “Create Instance”
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-09-23 19:35:47 +0800 CST'>September 23, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [這個網站的誕生: 03] 使用 Hugo 產生網站" href="http://localhost:1313/dev-log/how-to-use-hugo/"></a>
+  <footer class="entry-footer"><span title='2025-09-21 12:33:40 +0800 CST'>September 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [這個網站的誕生: 01] 建立一個免費的 vm" href="http://localhost:1313/dev-log/vm-creation/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
@@ -158,25 +160,40 @@ Type: A name: yamatrail.com IPv4 Address: 填入 vm 的 IP (在 google cloud 上
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[這個網站的誕生: 01] 建立一個免費的 vm
+    <h2 class="entry-hint-parent">[這個網站的誕生: 03] 使用 Hugo 產生網站
     </h2>
   </header>
   <div class="entry-content">
-    <p>如何建立一個免費的 vm 根據 google cloud 的說明
-https://cloud.google.com/free?hl=en
-滿足以下條件的 vm 是可以不用收錢的
-1 non-preemptible e2-micro VM instance per month in one of the following US regions: Oregon: us-west1 Iowa: us-central1 South Carolina: us-east1 30 GB-months standard persistent disk 1 GB of outbound data transfer from North America to all region destinations (excluding China and Australia) per month 因此等等在建立 vm 時，按照上面的條件建立，並且要注意的是建立兩個以上的 vm 還是要收錢的，免費的只有第一個
-建立 vm 步驟 首先你會先需要建立一個 google cloud 帳號
-在 compute engin 中，點選上方的 “Create Instance”
+    <p>當我們設定好 vm 之後，先回到我們工作用的電腦，以我自己來說，這會是我的筆電。 我們的網站編輯與開發都會在這台筆電上，下一篇文章才會說明如何把網站內容部署到 vm 中，
+總之，這篇文章的內容都在個人的筆電（或 PC）上操作。
+安裝套件 sudo apt update &amp;&amp; sudo apt upgrade -y sudo apt install nginx git -y wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb sudo dpkg -i hugo_extended_0.146.0_linux-amd64.deb hugo version 在筆電上先使用 hugo 建立一個 repo 出來，並且使用 git 做版控，然後推到自己的 github 上
+hugo new site yamatrail-site cd yamatrail-site git init git add . git commit -m &#34;Init commit&#34; 使用這個指令可以新增一篇文章:
+hugo new content posts/hello-world.md vim content/posts/hello-world.md 設定 theme 這裡可先在 Hugo Themes 看看，再決定自己要用的主題，我自己用的是 PaperMod
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-09-21 12:33:40 +0800 CST'>September 21, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [這個網站的誕生: 01] 建立一個免費的 vm" href="http://localhost:1313/dev-log/vm-creation/"></a>
+  <footer class="entry-footer"><span title='2025-09-23 19:35:47 +0800 CST'>September 23, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [這個網站的誕生: 03] 使用 Hugo 產生網站" href="http://localhost:1313/dev-log/how-to-use-hugo/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[這個網站的誕生: 04] Github Actions 建立自動部署
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>建立網站部署流程 總流程概覽 我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。
+ssh key 的準備：在筆電和 VM 之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 才有權限可以登入 vm 中。 設定 GitHub Repo：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 github repo 中的 Secrets 中。 建立 GitHub Actions Workflow：撰寫 .github/workflows/deploy.yaml 設定檔，這會告訴 github 該做些什麼把網站內容放到 vm 中。 觸發與驗證：將程式碼 git push 到 GitHub，觸發自動化流程，檢查流程是否正確。 階段一：準備工作 - 建立 SSH 信任關係 步驟 1：「筆電」上產生一對 SSH Key
+在筆電上：
+# -t ed25519: 使用更現代、更安全的加密演算法 # -C &#34;...&#34; : 註解，方便你辨識這對 Key 的用途 # -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰 ssh-keygen -t ed25519 -C &#34;GitHub Actions for yamatrail.com&#34; -f ~/.ssh/hugo_deploy_key 執行之後，會在 ~/.ssh/ 中產生公鑰與私鑰
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-25 12:16:16 +0800 CST'>September 25, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [這個網站的誕生: 04] Github Actions 建立自動部署" href="http://localhost:1313/dev-log/github-actions/"></a>
 </article>
     </main>
     
 <footer class="footer">
-        <span>&copy; 2025 <a href="http://localhost:1313/">Yama 的網站</a></span> · 
+        <span>&copy; 2025 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
 
     <span>
         Powered by

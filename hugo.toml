@@ -1,6 +1,6 @@
 baseURL = 'https://yamatrail.com/'
 languageCode = 'zh-tw'
-title = "Yama 的網站"
+title = "Yama's Trail"
 theme = 'PaperMod'
 
 [taxonomies]

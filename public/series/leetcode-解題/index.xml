@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>LeetCode 解題 on Yama 的網站</title>
+    <title>LeetCode 解題 on Yama&#39;s Trail</title>
     <link>http://localhost:1313/series/leetcode-%E8%A7%A3%E9%A1%8C/</link>
-    <description>Recent content in LeetCode 解題 on Yama 的網站</description>
+    <description>Recent content in LeetCode 解題 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
     <lastBuildDate>Tue, 23 Sep 2025 20:31:28 +0800</lastBuildDate>

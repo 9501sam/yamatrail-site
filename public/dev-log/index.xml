@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>這個網站的誕生 on Yama 的網站</title>
+    <title>這個網站的誕生 on Yama&#39;s Trail</title>
     <link>http://localhost:1313/dev-log/</link>
-    <description>Recent content in 這個網站的誕生 on Yama 的網站</description>
+    <description>Recent content in 這個網站的誕生 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
     <lastBuildDate>Thu, 25 Sep 2025 12:16:16 +0800</lastBuildDate>
