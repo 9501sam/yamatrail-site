@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>架設 Kubernetes cluster | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+https://stackoverflow.com/questions/52893111/no-endpoints-available-for-service-kubernetes-dashboard
+nodes:
+https://120.108.205.137:9999/ui/
+192.168.1.115
+ssh k1 # ssh user@192.168.1.11
+ssh k2 # ssh user@192.168.1.12 
+ssh k3 # ssh user@192.168.1.13
+ssh k4 # ssh user@192.168.1.14
+sudo vim /etc/hosts
+# /etc/hosts
+192.168.1.115 asus
+192.168.1.11 k1
+192.168.1.12 k2
+192.168.1.13 k3
+192.168.1.14 k4
+# for cluster on virtualbox
+192.168.56.1 thinkpad 	# my thinkpad
+192.168.56.101 node1 	# vm on virtualbox sudo systemctl restart systemd-resolved
+docker installation
+
+https://docs.docker.com/engine/install/ubuntu/
+
+CRI (container runtime interface) 是 container 用來互相溝通的 API">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/k8s/setup-cluster/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/k8s/setup-cluster/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      架設 Kubernetes cluster
+    </h1>
+    <div class="post-meta"><span title='2025-09-27 00:00:40 +0800 CST'>September 27, 2025</span>
+
+</div>
+  </header> 
+  <div class="post-content"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo apt-get update
+</span></span><span style="display:flex;"><span>sudo apt-get install -y kubelet kubeadm kubectl
+</span></span><span style="display:flex;"><span>sudo apt-mark hold kubelet kubeadm kubectl
+</span></span></code></pre></div><p><a href="https://stackoverflow.com/questions/52893111/no-endpoints-available-for-service-kubernetes-dashboard">https://stackoverflow.com/questions/52893111/no-endpoints-available-for-service-kubernetes-dashboard</a></p>
+<h3 id="nodes">nodes:<a hidden class="anchor" aria-hidden="true" href="#nodes">#</a></h3>
+<p>https://120.108.205.137:9999/ui/</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>192.168.1.115
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ssh k1 <span style="color:#75715e"># ssh user@192.168.1.11</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ssh k2 <span style="color:#75715e"># ssh user@192.168.1.12 </span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ssh k3 <span style="color:#75715e"># ssh user@192.168.1.13</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ssh k4 <span style="color:#75715e"># ssh user@192.168.1.14</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo vim /etc/hosts
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-docker" data-lang="docker"><span style="display:flex;"><span><span style="color:#75715e"># /etc/hosts</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>192.168.1.115 asus<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>192.168.1.11 k1<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>192.168.1.12 k2<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>192.168.1.13 k3<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>192.168.1.14 k4<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e"># for cluster on virtualbox</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">192.168.56.1</span> <span style="color:#ae81ff">thinkpad 	# my thinkpad</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">192.168.56.101</span> <span style="color:#ae81ff">node1 	# vm on virtualbox sudo systemctl restart systemd-resolved</span>
+</span></span></code></pre></div><h3 id="docker-installation">docker installation<a hidden class="anchor" aria-hidden="true" href="#docker-installation">#</a></h3>
+<ul>
+<li><a href="https://docs.docker.com/engine/install/ubuntu/">https://docs.docker.com/engine/install/ubuntu/</a></li>
+</ul>
+<p>CRI (container runtime interface) 是 container 用來互相溝通的 API</p>
+<p>也可以想成是 kubernetes 跟 container runtime 溝通的 API
+docker 預設是使用 <code>containerd</code>, 所以載完 docker 後可以用</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo systemctl status containerd.service
+</span></span></code></pre></div><p>看到 <code>containerd</code> 的存在</p>
+<ul>
+<li>
+<p>cri-dockerd dependency</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt install make 
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo snap install go --classic
+</span></span></code></pre></div></li>
+</ul>
+<p>可是 k8s 這裡要使用 <code>cri-dockerd</code>(<a href="https://github.com/Mirantis/cri-dockerd">https://github.com/Mirantis/cri-dockerd</a>) 來跟 docker 做溝通，照著 github 上面的指示可以安裝後，這時就可以用</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo systemctl status cri-docker.service
+</span></span></code></pre></div><p>看到 <code>cri-docker.service</code> 的存在，現在有了 <code>containerd</code> 跟 <code>cri-dockerd</code> 這兩種 container runtime interface 同時使用，所以在下一些指令的時候會需要多加</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>--cri-socket<span style="color:#f92672">=</span>unix:///var/run/cri-dockerd.sock
+</span></span></code></pre></div><p>這個 flag</p>
+<p>如果覺得每次都要加這個 flag 覺得很麻煩了話，去修改 <code>kubelet</code> 的設定檔，就不用每次都要自己加 <code>--cri-socket=unix:///var/run/cri-dockerd.sock</code> 了</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo vim /var/lib/kubelet/kubeadm-flags.env
+</span></span></code></pre></div><h3 id="kubernetes-installation">kubernetes installation<a hidden class="anchor" aria-hidden="true" href="#kubernetes-installation">#</a></h3>
+<ul>
+<li>
+<p>go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo snap install go --classic
+</span></span></code></pre></div></li>
+<li>
+<p><a href="https://docs.docker.com/engine/install/ubuntu/">https://docs.docker.com/engine/install/ubuntu/</a> install docker</p>
+</li>
+<li>
+<p><a href="https://github.com/Mirantis/cri-dockerd">https://github.com/Mirantis/cri-dockerd</a> install <code>cri-dockerd</code> (release/0.3) (<code>00fe8f2013317dbed8308e8171c83fc4f51d640a</code>)
+This adapter provides a shim for Docker Engine that lets you control Docker via the Kubernetes Container Runtime Interface.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>ARCH<span style="color:#f92672">=</span>amd64 make cri-dockerd
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Run these commands as root</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>cd cri-dockerd
+</span></span><span style="display:flex;"><span>mkdir -p /usr/local/bin
+</span></span><span style="display:flex;"><span>install -o root -g root -m <span style="color:#ae81ff">0755</span> cri-dockerd /usr/local/bin/cri-dockerd
+</span></span><span style="display:flex;"><span>install packaging/systemd/* /etc/systemd/system
+</span></span><span style="display:flex;"><span>sed -i -e <span style="color:#e6db74">&#39;s,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,&#39;</span> /etc/systemd/system/cri-docker.service
+</span></span><span style="display:flex;"><span>systemctl daemon-reload
+</span></span><span style="display:flex;"><span>systemctl enable --now cri-docker.socket
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo systemctl status cri-docker.service
+</span></span></code></pre></div></li>
+<li>
+<p><code>kubectl</code> <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/">https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/</a></p>
+</li>
+<li>
+<p><code>kubeadm</code> <a href="https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/">https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/</a></p>
+</li>
+</ul>
+<h3 id="set-up-cgroup-driver">set up cgroup driver<a hidden class="anchor" aria-hidden="true" href="#set-up-cgroup-driver">#</a></h3>
+<p>cgroup driver (control group driver) 是 Linux kernel 用來分配資源的一個元件，有 <code>cgroupfs</code> 跟 <code>systemd</code> 兩種選擇，這裡選擇用 <code>systemd</code> 記得 kubernetes 跟 docker 都要做設定</p>
+<p><a href="https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/">https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/</a></p>
+<ul>
+<li>
+<p>kubelet</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo vim /var/lib/kubelet/config.yaml <span style="color:#75715e"># might be empty first</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterConfiguration</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">kubeadm.k8s.io/v1beta3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kubernetesVersion</span>: <span style="color:#ae81ff">v1.21.0</span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">KubeletConfiguration</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">kubelet.config.k8s.io/v1beta1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">cgroupDriver</span>: <span style="color:#ae81ff">systemd</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo systemctl restart kubelet.service
+</span></span></code></pre></div></li>
+<li>
+<p>docker</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#ae81ff">sudo vim /etc/docker/daemon.json</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&#34;exec-opts&#34;: </span>[<span style="color:#e6db74">&#34;native.cgroupdriver=systemd&#34;</span>]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo systemctl restart docker
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker info | grep <span style="color:#e6db74">&#34;Cgroup Driver&#34;</span>
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="initialize-control-plane">initialize control plane<a hidden class="anchor" aria-hidden="true" href="#initialize-control-plane">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span> sudo kubeadm init --apiserver-advertise-address<span style="color:#f92672">=</span>192.168.50.250 --pod-network-cidr<span style="color:#f92672">=</span>192.168.0.0/16 --cri-socket<span style="color:#f92672">=</span>unix:///var/run/cri-dockerd.sock
+</span></span></code></pre></div><ul>
+<li>120.108.204.5</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span> sudo kubeadm init --apiserver-advertise-address<span style="color:#f92672">=</span>120.108.204.5 --pod-network-cidr<span style="color:#f92672">=</span>192.168.0.0/16 --cri-socket<span style="color:#f92672">=</span>unix:///var/run/cri-dockerd.sock
+</span></span></code></pre></div><ul>
+<li>192.168.0.101</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span> sudo kubeadm init --apiserver-advertise-address<span style="color:#f92672">=</span>192.168.0.101 --pod-network-cidr<span style="color:#f92672">=</span>192.168.0.0/16 --cri-socket<span style="color:#f92672">=</span>unix:///var/run/cri-dockerd.sock
+</span></span></code></pre></div><p>上面的指令中</p>
+<ul>
+<li><code>--apiserver-advertise-address=192.168.1.115</code>: 說明了 API 的位置，這裡設在 master node</li>
+<li><code>--cri-socket=unix:///var/run/cri-dockerd.sock</code> : 用來指定要用 <code>cri-dockerd</code> 作為 CRI</li>
+<li><code>--pod-network-cidr=&lt;ip-of-container-network-interface&gt;</code> : 這裡設為 cluster 所使用的網域，以我的例子來說是 <code>192.168.0.0/16</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">mkdir</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">p</span> <span style="color:#a6e22e">$HOME</span><span style="color:#f92672">/</span>.<span style="color:#a6e22e">kube</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sudo</span> <span style="color:#a6e22e">cp</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">i</span> <span style="color:#f92672">/</span><span style="color:#a6e22e">etc</span><span style="color:#f92672">/</span><span style="color:#a6e22e">kubernetes</span><span style="color:#f92672">/</span><span style="color:#a6e22e">admin</span>.<span style="color:#a6e22e">conf</span> <span style="color:#a6e22e">$HOME</span><span style="color:#f92672">/</span>.<span style="color:#a6e22e">kube</span><span style="color:#f92672">/</span><span style="color:#a6e22e">config</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sudo</span> <span style="color:#a6e22e">chown</span> <span style="color:#a6e22e">$</span>(<span style="color:#a6e22e">id</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">u</span>)<span style="color:#f92672">:</span><span style="color:#a6e22e">$</span>(<span style="color:#a6e22e">id</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">g</span>) <span style="color:#a6e22e">$HOME</span><span style="color:#f92672">/</span>.<span style="color:#a6e22e">kube</span><span style="color:#f92672">/</span><span style="color:#a6e22e">config</span>
+</span></span></code></pre></div><ul>
+<li>
+<p>result</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-docker" data-lang="docker"><span style="display:flex;"><span>$ kubectl get pod -A -o wide                                                                                                                                           1557ms<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>NAMESPACE     NAME                           READY   STATUS              RESTARTS   AGE     IP              NODE   NOMINATED NODE   READINESS GATES<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   coredns-5dd5756b68-hbsrs       0/1     ContainerCreating   <span style="color:#ae81ff">0</span>          4m25s   &lt;none&gt;          asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   coredns-5dd5756b68-t2598       0/1     ContainerCreating   <span style="color:#ae81ff">0</span>          4m25s   &lt;none&gt;          asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   etcd-asus                      1/1     Running             <span style="color:#ae81ff">0</span>          4m37s   192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-apiserver-asus            1/1     Running             <span style="color:#ae81ff">0</span>          4m40s   192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-controller-manager-asus   1/1     Running             <span style="color:#ae81ff">0</span>          4m37s   192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-proxy-qc5zv               1/1     Running             <span style="color:#ae81ff">0</span>          4m25s   192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-scheduler-asus            1/1     Running             <span style="color:#ae81ff">0</span>          4m37s   192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>$ kubectl get node <span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>NAME   STATUS   ROLES           AGE     VERSION<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>asus   Ready    control-plane   4m50s   v1.28.2<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div></li>
+</ul>
+<h3 id="join-user-plane">join user plane<a hidden class="anchor" aria-hidden="true" href="#join-user-plane">#</a></h3>
+<ul>
+<li>
+<p>print command from master first</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubeadm token create --print-join-command
+</span></span></code></pre></div></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo kubeadm join 192.168.56.1:6443 --token uglng4.n0uc7ux5kbl7dijs <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        --discovery-token-ca-cert-hash sha256:5eecc5904cb3595cebfc9374252bcef31084bdc3885203d32e271a8021262464 <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> --cri-socket<span style="color:#f92672">=</span>unix:///var/run/cri-dockerd.sock 
+</span></span></code></pre></div><h3 id="cni-plugin-calico">cni plugin (calico)<a hidden class="anchor" aria-hidden="true" href="#cni-plugin-calico">#</a></h3>
+<ul>
+<li><a href="https://ithelp.ithome.com.tw/articles/10295266">https://ithelp.ithome.com.tw/articles/10295266</a> <strong>(use Calico)</strong></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wget https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/calico.yaml
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl apply -f calico.yaml
+</span></span></code></pre></div><ul>
+<li>
+<p>result</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-docker" data-lang="docker"><span style="display:flex;"><span>$ kubectl get pod -A -o wide<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>NAMESPACE     NAME                                      READY   STATUS              RESTARTS   AGE     IP              NODE   NOMINATED NODE   READINESS GATES<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   calico-kube-controllers-9d57d8f49-lpmmb   0/1     ContainerCreating   <span style="color:#ae81ff">0</span>          12s     &lt;none&gt;          asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   calico-node-2rhsg                         0/1     Init:1/3            <span style="color:#ae81ff">0</span>          12s     192.168.1.12    k2     &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   calico-node-5smzc                         1/1     Running             <span style="color:#ae81ff">0</span>          12s     192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   calico-node-nwg87                         0/1     Init:1/3            <span style="color:#ae81ff">0</span>          12s     192.168.1.11    k1     &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   coredns-5dd5756b68-hbsrs                  1/1     Running             <span style="color:#ae81ff">0</span>          16m     192.168.1.129   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   coredns-5dd5756b68-t2598                  0/1     Terminating         <span style="color:#ae81ff">0</span>          16m     &lt;none&gt;          asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   coredns-766bcb9968-dpdv7                  0/1     ContainerCreating   <span style="color:#ae81ff">0</span>          2m25s   &lt;none&gt;          k1     &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   coredns-766bcb9968-s76jr                  0/1     ContainerCreating   <span style="color:#ae81ff">0</span>          2m25s   &lt;none&gt;          k2     &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   etcd-asus                                 1/1     Running             <span style="color:#ae81ff">0</span>          16m     192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-apiserver-asus                       1/1     Running             <span style="color:#ae81ff">0</span>          16m     192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-controller-manager-asus              1/1     Running             <span style="color:#ae81ff">0</span>          16m     192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-proxy-9wspp                          1/1     Running             <span style="color:#ae81ff">0</span>          9m29s   192.168.1.11    k1     &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-proxy-b7bsr                          1/1     Running             <span style="color:#ae81ff">0</span>          8m37s   192.168.1.12    k2     &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-proxy-qc5zv                          1/1     Running             <span style="color:#ae81ff">0</span>          16m     192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kube-system   kube-scheduler-asus                       1/1     Running             <span style="color:#ae81ff">0</span>          16m     192.168.1.115   asus   &lt;none&gt;           &lt;none&gt;<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>在 namespace <code>kube-system</code> 中，新增了以 <code>calico-</code> 為開頭的一些 pod</p>
+</li>
+</ul>
+<h3 id="cni-plugin-flannel">CNI plugin (flannel)<a hidden class="anchor" aria-hidden="true" href="#cni-plugin-flannel">#</a></h3>
+<p><a href="https://hackmd.io/@Momentary/rkd1MlSci#2K8S%E5%BB%BA%E7%BD%AE-1x%E6%AD%A5%E9%A9%9F">https://hackmd.io/@Momentary/rkd1MlSci#2K8S建置-1x步驟</a></p>
+<h3 id="kubernetes-dashboard">Kubernetes Dashboard<a hidden class="anchor" aria-hidden="true" href="#kubernetes-dashboard">#</a></h3>
+<ul>
+<li>
+<p>apply kubernetes dashboard</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">kubectl</span> <span style="color:#a6e22e">apply</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">f</span> <span style="color:#a6e22e">https</span><span style="color:#f92672">:</span><span style="color:#75715e">//raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">kubectl</span> <span style="color:#66d9ef">delete</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">f</span> <span style="color:#a6e22e">https</span><span style="color:#f92672">:</span><span style="color:#75715e">//raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+</span></span></span></code></pre></div></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">kubectl</span> <span style="color:#a6e22e">proxy</span> 
+</span></span></code></pre></div><p><code>kubectl proxy</code> 之後可以用以下連結連上 dashboard</p>
+<p>http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login</p>
+<ul>
+<li>
+<p>token</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">kubectl</span> <span style="color:#a6e22e">apply</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">f</span> <span style="color:#f92672">-</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#a6e22e">EOF</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">kind</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">ClusterRoleBinding</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">apiVersion</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">rbac</span>.<span style="color:#a6e22e">authorization</span>.<span style="color:#a6e22e">k8s</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#a6e22e">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">metadata</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">admin</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">annotations</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rbac</span>.<span style="color:#a6e22e">authorization</span>.<span style="color:#a6e22e">kubernetes</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#a6e22e">autoupdate</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">roleRef</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">kind</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">ClusterRole</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">cluster</span><span style="color:#f92672">-</span><span style="color:#a6e22e">admin</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">apiGroup</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">rbac</span>.<span style="color:#a6e22e">authorization</span>.<span style="color:#a6e22e">k8s</span>.<span style="color:#a6e22e">io</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">subjects</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">-</span> <span style="color:#a6e22e">kind</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">ServiceAccount</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">admin</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">namespace</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">kube</span><span style="color:#f92672">-</span><span style="color:#a6e22e">system</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">---</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">apiVersion</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">kind</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">ServiceAccount</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">metadata</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">admin</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">namespace</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">kube</span><span style="color:#f92672">-</span><span style="color:#a6e22e">system</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">labels</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kubernetes</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#a6e22e">cluster</span><span style="color:#f92672">-</span><span style="color:#a6e22e">service</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">addonmanager</span>.<span style="color:#a6e22e">kubernetes</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#a6e22e">mode</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">Reconcile</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">---</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">apiVersion</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">v1</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">kind</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">Secret</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">metadata</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">admin</span><span style="color:#f92672">-</span><span style="color:#a6e22e">token</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">namespace</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">kube</span><span style="color:#f92672">-</span><span style="color:#a6e22e">system</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">annotations</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kubernetes</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#a6e22e">service</span><span style="color:#f92672">-</span><span style="color:#a6e22e">account</span>.<span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;admin&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">type</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">kubernetes</span>.<span style="color:#a6e22e">io</span><span style="color:#f92672">/</span><span style="color:#a6e22e">service</span><span style="color:#f92672">-</span><span style="color:#a6e22e">account</span><span style="color:#f92672">-</span><span style="color:#a6e22e">token</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">EOF</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">kubectl</span> <span style="color:#a6e22e">describe</span> <span style="color:#a6e22e">secret</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">n</span> <span style="color:#a6e22e">kube</span><span style="color:#f92672">-</span><span style="color:#a6e22e">system</span> <span style="color:#a6e22e">admin</span><span style="color:#f92672">-</span><span style="color:#a6e22e">token</span>
+</span></span></code></pre></div></li>
+</ul>
+<hr>
+<p>bugs:</p>
+<ul>
+<li>
+<p>firewall setting</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ufw status
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ufw allow 8001/tcp
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ufw reload
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ufw disable
+</span></span></code></pre></div></li>
+<li>
+<p>proxy 遇到問題</p>
+<ul>
+<li>
+<p><code>docker0</code> is DOWN (後來發現這應該不是問題</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ip -c a
+</span></span><span style="display:flex;"><span>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">65536</span> qdisc noqueue state UNKNOWN group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span></span><span style="display:flex;"><span>    inet 127.0.0.1/8 scope host lo
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>    inet6 ::1/128 scope host
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>2: enp3s0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc fq_codel state UP group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/ether 04:7c:16:cc:fd:3d brd ff:ff:ff:ff:ff:ff
+</span></span><span style="display:flex;"><span>    inet 192.168.1.115/24 brd 192.168.1.255 scope global dynamic noprefixroute enp3s0
+</span></span><span style="display:flex;"><span>       valid_lft 65759sec preferred_lft 65759sec
+</span></span><span style="display:flex;"><span>    inet6 fe80::ace0:c102:f096:7b5c/64 scope link noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>3: br-free5gc: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc noqueue state DOWN group default
+</span></span><span style="display:flex;"><span>    link/ether 02:42:31:ee:58:0c brd ff:ff:ff:ff:ff:ff
+</span></span><span style="display:flex;"><span>    inet 10.100.200.1/24 brd 10.100.200.255 scope global br-free5gc
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>4: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc noqueue state DOWN group default
+</span></span><span style="display:flex;"><span>    link/ether 02:42:f9:f2:60:d3 brd ff:ff:ff:ff:ff:ff
+</span></span><span style="display:flex;"><span>    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>6: cali5fd577e8f5d@if3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1480</span> qdisc noqueue state UP group default
+</span></span><span style="display:flex;"><span>    link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netnsid <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>7: cali0d056499591@if3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1480</span> qdisc noqueue state UP group default
+</span></span><span style="display:flex;"><span>    link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netnsid <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>8: calib4ed37b0593@if3: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1480</span> qdisc noqueue state UP group default
+</span></span><span style="display:flex;"><span>    link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netnsid <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>9: tunl0@NONE: &lt;NOARP,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1480</span> qdisc noqueue state UNKNOWN group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/ipip 0.0.0.0 brd 0.0.0.0
+</span></span><span style="display:flex;"><span>    inet 172.18.155.0/32 scope global tunl0
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span></code></pre></div></li>
+</ul>
+<p><a href="https://stackoverflow.com/questions/52893111/no-endpoints-available-for-service-kubernetes-dashboard">https://stackoverflow.com/questions/52893111/no-endpoints-available-for-service-kubernetes-dashboard</a></p>
+</li>
+</ul>
+<h3 id="kubeflow">KubeFlow<a hidden class="anchor" aria-hidden="true" href="#kubeflow">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">kubectl</span> <span style="color:#a6e22e">apply</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">k</span> <span style="color:#e6db74">&#34;github.com/kubeflow/training-operator/manifests/overlays/standalone?ref=v1.5.0&#34;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">git</span> <span style="color:#a6e22e">clone</span> <span style="color:#a6e22e">https</span><span style="color:#f92672">:</span><span style="color:#75715e">//github.com/kubeflow/training-operator.git
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cd ~/training-operator/examples/tensorflow/dist-mnist
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#a6e22e">dockerfile</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">FROM</span> <span style="color:#a6e22e">tensorflow</span><span style="color:#f92672">/</span><span style="color:#a6e22e">tensorflow</span><span style="color:#f92672">:</span><span style="color:#ae81ff">1.5.0</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ADD</span> . <span style="color:#f92672">/</span><span style="color:#66d9ef">var</span><span style="color:#960050;background-color:#1e0010">/tf_dist_mnist</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ENTRYPOINT</span> [<span style="color:#e6db74">&#34;python&#34;</span>, <span style="color:#e6db74">&#34;/var/tf_dist_mnist/dist_mnist.py&#34;</span>]
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">docker</span> <span style="color:#a6e22e">build</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">f</span> <span style="color:#a6e22e">Dockerfile</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">t</span> <span style="color:#a6e22e">kubeflow</span><span style="color:#f92672">/</span><span style="color:#a6e22e">tf</span><span style="color:#f92672">-</span><span style="color:#a6e22e">dist</span><span style="color:#f92672">-</span><span style="color:#a6e22e">mnist</span><span style="color:#f92672">-</span><span style="color:#a6e22e">test</span><span style="color:#f92672">:</span><span style="color:#ae81ff">1.0</span> .<span style="color:#f92672">/</span>
+</span></span></code></pre></div><ul>
+<li>
+<p>push the image to docker hub</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 先把想要 push 上去的 image 的 repository 改成自己的帳號</span>
+</span></span><span style="display:flex;"><span>docker images
+</span></span><span style="display:flex;"><span>docker tag 2c7731561d8e 9501sam/tf-dist-mnist-test
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 登入 docker 之後就可以把本機上的 image push 到自己的 docker hub 上</span>
+</span></span><span style="display:flex;"><span>docker login
+</span></span><span style="display:flex;"><span>docker push 9501sam/tf-dist-mnist-test
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 把 yaml file 中的 image 給指定到自己帳號的 repo, 並且限定一定要 pull</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 注意後面的 version 要從 1.0 改成 latest</span>
+</span></span><span style="display:flex;"><span>vim tf_job_mnist.yaml
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-docker" data-lang="docker"><span style="display:flex;"><span>apiVersion: <span style="color:#e6db74">&#34;kubeflow.org/v1&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>kind: <span style="color:#e6db74">&#34;TFJob&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>metadata:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  name: <span style="color:#e6db74">&#34;dist-mnist-for-e2e-test&#34;</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>spec:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  tfReplicaSpecs:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    PS:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>      replicas: <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>      restartPolicy: Always<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>      template:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>        spec:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>          containers:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>            - name: tensorflow<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>              image: 9501sam/tf-dist-mnist-test:latest<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    Worker:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>      replicas: <span style="color:#ae81ff">1</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>      restartPolicy: Always<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>      template:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>        spec:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>          containers:<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>            - name: tensorflow<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>              image: 9501sam/tf-dist-mnist-test:latest<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">kubectl</span> <span style="color:#a6e22e">apply</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">f</span> .<span style="color:#f92672">/</span><span style="color:#a6e22e">tf_job_mnist</span>.<span style="color:#a6e22e">yaml</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-jsx" data-lang="jsx"><span style="display:flex;"><span><span style="color:#a6e22e">kubectl</span> <span style="color:#a6e22e">get</span> <span style="color:#a6e22e">pod</span> <span style="color:#f92672">-</span><span style="color:#a6e22e">A</span>
+</span></span></code></pre></div><p><img alt="Untitled" loading="lazy" src="https://prod-files-secure.s3.us-west-2.amazonaws.com/affc92d5-39d7-4c69-8d6f-04de07b427d7/f79e150e-d224-43a0-a24e-d0ef8dfd897e/Untitled.png"></p>
+<hr>
+<h1 id="useful-tricks">🔧useful tricks<a hidden class="anchor" aria-hidden="true" href="#useful-tricks">#</a></h1>
+<ul>
+<li>
+<p>reset k8s</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo kubeadm reset --cri-socket<span style="color:#f92672">=</span>unix:///var/run/cri-dockerd.sock
+</span></span><span style="display:flex;"><span>sudo rm -rf $HOME/.kube/config
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo kubeadm token delete ettz10.pp7nk6qvpw6lhxcv
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubeadm token create --print-join-commandcordon node
+</span></span></code></pre></div></li>
+<li>
+<p>cordon</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl cordon NODE_NAME
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl uncordon NODE_NAME
+</span></span></code></pre></div></li>
+<li>
+<p>預設 control-pane 不是一個 worker node 這裡讓 control-pane 變成 worker node</p>
+<ul>
+<li>
+<p>gpt</p>
+<p>To configure your node (<code>ws690t</code>) as both a <strong>control-plane</strong> node and a <strong>worker node</strong>, you simply need to allow the node to schedule workloads in addition to running control-plane services. This is done by removing the taint that restricts regular workloads from being scheduled on control-plane nodes.</p>
+<p>Here&rsquo;s how you can make your control-plane node (<code>ws690t</code>) also act as a worker node:</p>
+<h3 id="steps">Steps:<a hidden class="anchor" aria-hidden="true" href="#steps">#</a></h3>
+<ol>
+<li>
+<p><strong>Check the current taints on the node</strong>:
+First, let’s check if your node has the default taints that prevent workloads from being scheduled:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl describe node ws690t | grep Taints
+</span></span></code></pre></div><p>The default taint usually looks like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>node-role.kubernetes.io/control-plane:NoSchedule
+</span></span></code></pre></div></li>
+<li>
+<p><strong>Remove the control-plane taint</strong>:
+To allow the node to accept worker workloads, remove the <code>NoSchedule</code> taint with the following command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl taint nodes ws690t node-role.kubernetes.io/control-plane:NoSchedule-
+</span></span></code></pre></div><p>This will allow regular workloads to be scheduled on the node, while it continues running control-plane services.</p>
+</li>
+<li>
+<p><strong>(Optional) Assign a worker role label</strong>:
+You can also label the node as both <code>control-plane</code> and <code>worker</code>, though this is not required for it to function as a worker. The labels are purely for categorization and organization:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl label node ws690t node-role.kubernetes.io/worker<span style="color:#f92672">=</span>
+</span></span></code></pre></div></li>
+</ol>
+<h3 id="verify">Verify:<a hidden class="anchor" aria-hidden="true" href="#verify">#</a></h3>
+<ul>
+<li>
+<p>After these steps, verify that workloads are being scheduled on the node:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl get nodes -o wide
+</span></span></code></pre></div></li>
+</ul>
+<p>Now your <code>ws690t</code> node will act as both a control-plane node and a worker node, scheduling and running workloads while still functioning as part of the control plane.</p>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl taint nodes ws690t node-role.kubernetes.io/control-plane:NoSchedule-
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl label node ws690t node-role.kubernetes.io/worker<span style="color:#f92672">=</span>
+</span></span></code></pre></div><p>The output shows that the node <code>ws690t</code> is currently tainted with <code>node.kubernetes.io/disk-pressure:NoSchedule</code>. This means Kubernetes will not schedule new pods on this node due to disk pressure.</p>
+<p>To make the node act as both a <strong>control-plane</strong> and a <strong>worker node</strong>, you need to resolve the disk pressure issue (since it&rsquo;s blocking pod scheduling), and there is no <code>control-plane</code> taint present that would otherwise need to be removed.</p>
+<h3 id="steps-to-proceed">Steps to proceed:<a hidden class="anchor" aria-hidden="true" href="#steps-to-proceed">#</a></h3>
+<ol>
+<li>
+<p><strong>Check Disk Usage</strong>:
+First, inspect the disk space usage on the node to see if there&rsquo;s indeed a disk pressure issue:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>df -h
+</span></span></code></pre></div><ul>
+<li>If a particular mount is running out of space, clean up any unnecessary files, logs, or containers that are consuming disk space.</li>
+</ul>
+</li>
+<li>
+<p><strong>Clear the <code>disk-pressure</code> Taint</strong>:
+Once you’ve resolved the disk space issue, you can manually remove the <code>disk-pressure</code> taint to allow new workloads to be scheduled:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl taint nodes ws690t node.kubernetes.io/disk-pressure:NoSchedule-
+</span></span></code></pre></div></li>
+<li>
+<p><strong>Verify</strong>:
+After removing the taint, verify the node status and make sure it can schedule workloads:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl get nodes -o wide
+</span></span></code></pre></div></li>
+</ol>
+<p>Once the <code>disk-pressure</code> condition is cleared and the taint is removed, the node should be able to act as both a control-plane and worker node.</p>
+</li>
+<li>
+<p>docker clear storage</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker system prune --all --volumes
+</span></span></code></pre></div></li>
+<li>
+<p>卡在 Terminating</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl delete pod &lt;pod-name&gt; -n skywalking-showcase --force --grace-period<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> pod in <span style="color:#66d9ef">$(</span>kubectl get pods -n skywalking-showcase | grep Terminating | awk <span style="color:#e6db74">&#39;{print $1}&#39;</span><span style="color:#66d9ef">)</span>; <span style="color:#66d9ef">do</span>
+</span></span><span style="display:flex;"><span>    kubectl delete pod $pod -n skywalking-showcase --force --grace-period<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">done</span>
+</span></span></code></pre></div></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-docker" data-lang="docker"><span style="display:flex;"><span>--cri-socket<span style="color:#f92672">=</span>unix:///var/run/cri-dockerd.sock<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><hr>
+<h3 id="bug">bug<a hidden class="anchor" aria-hidden="true" href="#bug">#</a></h3>
+<ul>
+<li>
+<p>couldn&rsquo;t get current server API group list</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ kubectl get node                                                                                                                                                                                                                        414ms
+</span></span><span style="display:flex;"><span>E0927 00:00:45.897876  <span style="color:#ae81ff">898352</span> memcache.go:265<span style="color:#f92672">]</span> couldn<span style="color:#e6db74">&#39;t get current server API group list: Get &#34;http://localhost:8080/api?timeout=32s&#34;: dial tcp 127.0.0.1:8080: connect: connection refused
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">E0927 00:00:45.898033  898352 memcache.go:265] couldn&#39;</span>t get current server API group list: Get <span style="color:#e6db74">&#34;http://localhost:8080/api?timeout=32s&#34;</span>: dial tcp 127.0.0.1:8080: connect: connection refused
+</span></span><span style="display:flex;"><span>E0927 00:00:45.899185  <span style="color:#ae81ff">898352</span> memcache.go:265<span style="color:#f92672">]</span> couldn<span style="color:#e6db74">&#39;t get current server API group list: Get &#34;http://localhost:8080/api?timeout=32s&#34;: dial tcp 127.0.0.1:8080: connect: connection refused
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">E0927 00:00:45.900304  898352 memcache.go:265] couldn&#39;</span>t get current server API group list: Get <span style="color:#e6db74">&#34;http://localhost:8080/api?timeout=32s&#34;</span>: dial tcp 127.0.0.1:8080: connect: connection refused
+</span></span><span style="display:flex;"><span>E0927 00:00:45.901847  <span style="color:#ae81ff">898352</span> memcache.go:265<span style="color:#f92672">]</span> couldn<span style="color:#960050;background-color:#1e0010">&#39;</span>t get current server API group list: Get <span style="color:#e6db74">&#34;http://localhost:8080/api?timeout=32s&#34;</span>: dial tcp 127.0.0.1:8080: connect: connection refused
+</span></span><span style="display:flex;"><span>The connection to the server localhost:8080 was refused - did you specify the right host or port?
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir -p $HOME/.kube
+</span></span><span style="display:flex;"><span>sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+</span></span><span style="display:flex;"><span>sudo chown <span style="color:#66d9ef">$(</span>id -u<span style="color:#66d9ef">)</span>:<span style="color:#66d9ef">$(</span>id -g<span style="color:#66d9ef">)</span> $HOME/.kube/config
+</span></span></code></pre></div></li>
+<li>
+<p>stuck on <code>kubeadm join</code></p>
+<ul>
+<li>
+<p>token issue:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubeadm token create
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2&gt;/dev/null | openssl dgst -sha256 -hex | sed <span style="color:#e6db74">&#39;s/^.* //&#39;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubeadm token create --print-join-command
+</span></span></code></pre></div></li>
+<li>
+<p>open port 6443 to firewall</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ufw enable
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ufw allow 6443/tcp
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ufw status <span style="color:#75715e"># list opened portstatus</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ufw reload
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo systemctl restart ufw
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>telnet your_server_ip <span style="color:#ae81ff">6443</span> <span style="color:#75715e"># check port status </span>
+</span></span></code></pre></div></li>
+</ul>
+</li>
+<li>
+<p>cri-docker <code>00fe8f2013317dbed8308e8171c83fc4f51d640a</code></p>
+<p>我實驗室電腦用的是</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>00fe8f2013317dbed8308e8171c83fc4f51d640a
+</span></span></code></pre></div></li>
+<li>
+<p><strong>calico/node is not ready: BIRD is not ready: BGP not established with</strong></p>
+<p>我自己的解法：reset cluster, apply calico before join the worker node</p>
+<p><a href="https://blog.csdn.net/qq_19734597/article/details/128083040">https://blog.csdn.net/qq_19734597/article/details/128083040</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">65536</span> qdisc noqueue state UNKNOWN group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span></span><span style="display:flex;"><span>    inet 127.0.0.1/8 scope host lo
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>    inet6 ::1/128 scope host
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>2: enp5s0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc mq state DOWN group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/ether d4:5d:64:3f:e6:6d brd ff:ff:ff:ff:ff:ff
+</span></span><span style="display:flex;"><span>3: eno1: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc fq_codel state UP group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/ether d4:5d:64:3f:e6:6c brd ff:ff:ff:ff:ff:ff
+</span></span><span style="display:flex;"><span>    altname enp0s31f6
+</span></span><span style="display:flex;"><span>    inet 192.168.0.101/24 brd 192.168.0.255 scope global noprefixroute eno1
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>    inet6 fe80::24d8:e2d5:bfd:f732/64 scope link noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>4: docker0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc noqueue state DOWN group default
+</span></span><span style="display:flex;"><span>    link/ether 02:42:21:09:61:f8 brd ff:ff:ff:ff:ff:ff
+</span></span><span style="display:flex;"><span>    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>6: virbr0: &lt;NO-CARRIER,BROADCAST,MULTICAST,UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc noqueue state DOWN group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/ether 52:54:00:b7:37:09 brd ff:ff:ff:ff:ff:ff
+</span></span><span style="display:flex;"><span>    inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>15: wlx3c52a124ce8b: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1500</span> qdisc mq state UP group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/ether 3c:52:a1:24:ce:8b brd ff:ff:ff:ff:ff:ff
+</span></span><span style="display:flex;"><span>    inet 192.168.50.250/24 brd 192.168.50.255 scope global dynamic noprefixroute wlx3c52a124ce8b
+</span></span><span style="display:flex;"><span>       valid_lft 77934sec preferred_lft 77934sec
+</span></span><span style="display:flex;"><span>    inet6 fe80::3f72:d59c:8366:e53b/64 scope link noprefixroute
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>16: tunl0@NONE: &lt;NOARP,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1480</span> qdisc noqueue state UNKNOWN group default qlen <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>    link/ipip 0.0.0.0 brd 0.0.0.0
+</span></span><span style="display:flex;"><span>    inet 192.168.29.128/32 scope global tunl0
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>182: calib9cd446acbc@if4: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1480</span> qdisc noqueue state UP group default
+</span></span><span style="display:flex;"><span>    link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netnsid <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span><span style="display:flex;"><span>183: cali06c7719c614@if4: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu <span style="color:#ae81ff">1480</span> qdisc noqueue state UP group default
+</span></span><span style="display:flex;"><span>    link/ether ee:ee:ee:ee:ee:ee brd ff:ff:ff:ff:ff:ff link-netnsid <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>    inet6 fe80::ecee:eeff:feee:eeee/64 scope link
+</span></span><span style="display:flex;"><span>       valid_lft forever preferred_lft forever
+</span></span></code></pre></div></li>
+</ul>
+<hr>
+<h3 id="todo">todo<a hidden class="anchor" aria-hidden="true" href="#todo">#</a></h3>
+<ul>
+<li>train master</li>
+</ul>
+<hr>
+<h2 id="references">references<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h2>
+<p><a href="https://github.com/9501sam/yunikorn-note/blob/main/yunikorn.md">https://github.com/9501sam/yunikorn-note/blob/main/yunikorn.md</a></p>
+<p><a href="https://chat.openai.com/c/9cbe4d67-7561-4b24-a42b-4ceac7fea53b">https://chat.openai.com/c/9cbe4d67-7561-4b24-a42b-4ceac7fea53b</a></p>
+<p><a href="https://cwiki.apache.org/confluence/display/PAIMON/Paimon">https://cwiki.apache.org/confluence/display/PAIMON/Paimon</a></p>
+<p><a href="https://linuxconfig.org/how-to-disable-enable-gui-in-ubuntu-22-04-jammy-jellyfish-linux-desktop">https://linuxconfig.org/how-to-disable-enable-gui-in-ubuntu-22-04-jammy-jellyfish-linux-desktop</a></p>
+<p><a href="https://ithelp.ithome.com.tw/articles/10294103">https://ithelp.ithome.com.tw/articles/10294103</a> (解決 <code>Found multiple CRI endpoints on the host.</code> 的問題)</p>
+<p><a href="https://ithelp.ithome.com.tw/articles/10235069">https://ithelp.ithome.com.tw/articles/10235069</a> (【從題目中學習k8s】-【Day3】建立K8s Cluster環境-以kubeadm為例)</p>
+<p><a href="https://ithelp.ithome.com.tw/articles/10295266">https://ithelp.ithome.com.tw/articles/10295266</a> <strong>(use Calico)</strong></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
