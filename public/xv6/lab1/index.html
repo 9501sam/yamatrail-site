@@ -9,6 +9,7 @@
 <meta name="keywords" content="">
 <meta name="description" content="Lab 連結: Lab: Xv6 and Unix utilities
 Boot xv6(Easy)
+題目敘述：
 這部份的詳細內容都寫在 lab util 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。
 
 下載原始碼
@@ -182,7 +183,8 @@ console        3 20 0
   </header> 
   <div class="post-content"><p>Lab 連結: <a href="https://pdos.csail.mit.edu/6.S081/2022/labs/util.html">Lab: Xv6 and Unix utilities</a></p>
 <h2 id="boot-xv6easy">Boot xv6(Easy)<a hidden class="anchor" aria-hidden="true" href="#boot-xv6easy">#</a></h2>
-<p>這部份的詳細內容都寫在 <a href="https://pdos.csail.mit.edu/6.S081/2022/labs/util.html">lab util</a> 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。</p>
+<p>題目敘述：
+這部份的詳細內容都寫在 <a href="https://pdos.csail.mit.edu/6.S081/2022/labs/util.html">lab util</a> 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。</p>
 <ol>
 <li>下載原始碼</li>
 </ol>
@@ -240,6 +242,7 @@ console        3 20 0
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ QEMU: Terminated
 </span></span></code></pre></div><p>這樣就關機了</p>
 <h2 id="sleep-easy">sleep (easy)<a hidden class="anchor" aria-hidden="true" href="#sleep-easy">#</a></h2>
+<p>題目敘述：</p>
 <blockquote>
 <p>Implement the UNIX program sleep for xv6; your sleep should pause for a user-specified number of ticks. A tick is a notion of time defined by the xv6 kernel, namely the time between two interrupts from the timer chip. Your solution should be in the file user/sleep.c.</p></blockquote>
 <p>這題的大意是在說把 <code>sleep</code> 實做出來，主要是想要讓我們知道這些 program 是如何使用 system call 的</p>
@@ -395,6 +398,173 @@ console        3 20 0
 </span></span><span style="display:flex;"><span><span style="color:#f92672">==</span> Test sleep, no arguments <span style="color:#f92672">==</span> sleep, no arguments: OK <span style="color:#f92672">(</span>1.2s<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">==</span> Test sleep, returns <span style="color:#f92672">==</span> sleep, returns: OK <span style="color:#f92672">(</span>1.1s<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">==</span> Test sleep, makes syscall <span style="color:#f92672">==</span> sleep, makes syscall: OK <span style="color:#f92672">(</span>1.0s<span style="color:#f92672">)</span>
+</span></span></code></pre></div><h2 id="pingpong-easy">pingpong (easy)<a hidden class="anchor" aria-hidden="true" href="#pingpong-easy">#</a></h2>
+<p>題目敘述：</p>
+<blockquote>
+<p>Write a program that uses UNIX system calls to &lsquo;&lsquo;ping-pong&rsquo;&rsquo; a byte between two processes over a pair of pipes, one for each direction. The parent should send a byte to the child; the child should print &ldquo;<!-- raw HTML omitted -->: received ping&rdquo;, where <!-- raw HTML omitted --> is its process ID, write the byte on the pipe to the parent, and exit; the parent should read the byte from the child, print &ldquo;<!-- raw HTML omitted -->: received pong&rdquo;, and exit. Your solution should be in the file user/pingpong.c. '</p></blockquote>
+<p>這題的背後要我們學習的有兩個重點：<code>pipe()</code> 與 <code>fork()</code>, 這些在 <a href="https://pdos.csail.mit.edu/6.S081/2022/xv6/book-riscv-rev3.pdf">xv6 book</a> 的第一章都有提及，我們先來看他們如何運行。</p>
+<h3 id="fork-的用法"><code>fork()</code> 的用法<a hidden class="anchor" aria-hidden="true" href="#fork-的用法">#</a></h3>
+<p>用這個程式碼片段應該就能了解 <code>fork()</code> 的基本用法了，</p>
+<ul>
+<li><code>pid == 0</code> 的這個是 child</li>
+<li><code>pid == &lt;child pid&gt;</code> 的這個是 parent</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">fork</span>();
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;parent: child=%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pid);	<span style="color:#75715e">// parent 會拿到 child pid
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">wait</span>((<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>) <span style="color:#ae81ff">0</span>);				<span style="color:#75715e">// 先等 child 執行結束
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;child %d is done</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pid);
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {					<span style="color:#75715e">// child 拿到 pid == 0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;child: exiting</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;fork error</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="pipe-的用法"><code>pipe()</code> 的用法<a hidden class="anchor" aria-hidden="true" href="#pipe-的用法">#</a></h3>
+<ul>
+<li><code>p[0]</code>: 可以從 pipe read 	(input)</li>
+<li><code>p[1]</code>: 可以從 pipe write (output)</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/types.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;user/user.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> p[<span style="color:#ae81ff">2</span>]; <span style="color:#75715e">// p[0] is the read end; p[1] is the write end
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">char</span> buffer[<span style="color:#ae81ff">100</span>];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>message <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Hello, pipe!&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">pipe</span>(p) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;fork error</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 1. Write the message to the write end of the pipe.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#34;Writing message &#39;%s&#39; into the pipe...</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, message);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">write</span>(p[<span style="color:#ae81ff">1</span>], message, <span style="color:#a6e22e">strlen</span>(message));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> bytes_read <span style="color:#f92672">=</span> <span style="color:#a6e22e">read</span>(p[<span style="color:#ae81ff">0</span>], buffer, <span style="color:#66d9ef">sizeof</span>(buffer));
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#34;Read %d bytes from the pipe.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, bytes_read);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 3. Null-terminate the string we read from the pipe.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  buffer[bytes_read] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;\0&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Print the message that was retrieved.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#34;Message from pipe: &#39;%s&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, buffer);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 4. Close both ends of the pipe.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">close</span>(p[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">close</span>(p[<span style="color:#ae81ff">1</span>]);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="程式碼實做">程式碼實做<a hidden class="anchor" aria-hidden="true" href="#程式碼實做">#</a></h3>
+<p>結合上面兩個例子，並且照著題目的指示，就可以組合出答案了</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/types.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;user/user.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[]) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> pid;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> buffer[<span style="color:#ae81ff">2</span>];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> p[<span style="color:#ae81ff">2</span>];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">pipe</span>(p) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;pipe() error</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">fork</span>();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">read</span>(p[<span style="color:#ae81ff">1</span>], buffer, <span style="color:#ae81ff">1</span>);                    <span style="color:#75715e">// 2. child read a byte
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d: received ping</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">getpid</span>());  <span style="color:#75715e">// 3. child print message
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">write</span>(p[<span style="color:#ae81ff">0</span>], buffer, <span style="color:#ae81ff">1</span>);                   <span style="color:#75715e">// 4. write the byte back to parent
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">write</span>(p[<span style="color:#ae81ff">0</span>], <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#ae81ff">10</span>);                     <span style="color:#75715e">// 1. parent send a byte &#34;b&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">wait</span>(<span style="color:#ae81ff">0</span>);                                  <span style="color:#75715e">// wait for child finish
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">read</span>(p[<span style="color:#ae81ff">1</span>], buffer, <span style="color:#ae81ff">1</span>);                    <span style="color:#75715e">// 5. read the byte from the child
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d: received pong</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">getpid</span>());  <span style="color:#75715e">// 6. print &#34;&lt;pid&gt;: received pong&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;fork() error.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>同樣要修改 <code>Makefile</code> 中的 <code>PROGS</code> 區塊，並且最後用 <code>./grade-lab-util</code> 驗證</p>
+<h2 id="primes-moderatehard">primes (moderate)/(hard)<a hidden class="anchor" aria-hidden="true" href="#primes-moderatehard">#</a></h2>
+<p>題目敘述：</p>
+<blockquote>
+<p>Write a concurrent version of prime sieve using pipes. This idea is due to Doug McIlroy, inventor of Unix pipes. The picture halfway down <a href="https://swtch.com/~rsc/thread/">this page</a> and the surrounding text explain how to do it. Your solution should be in the file user/primes.c.</p></blockquote>
+<p>點下題目敘述中的 <a href="https://swtch.com/~rsc/thread/">this page</a> 頁面之後，可以看到這題的關鍵敘述：</p>
+<blockquote>
+<p>A generating process can feed the numbers 2, 3, 4, &hellip;, 1000 into the left end of the pipeline: the first process in the line eliminates the multiples of 2, the second eliminates the multiples of 3, the third eliminates the multiples of 5, and so on:
+<img loading="lazy" src="/xv6/lab1/sieve.gif"></p></blockquote>
+<p>我們要做的就是利用前幾題使用過的技術，把這個尋找質數的程式寫出來。</p>
+<h3 id="解題思路">解題思路<a hidden class="anchor" aria-hidden="true" href="#解題思路">#</a></h3>
+<h3 id="程式實做-1">程式實做<a hidden class="anchor" aria-hidden="true" href="#程式實做-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/types.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/stat.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;user/user.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">primes</span>(<span style="color:#66d9ef">int</span> input_fd)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> p;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">read</span>(input_fd, <span style="color:#f92672">&amp;</span>p, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(input_fd);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;prime %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> p_right[<span style="color:#ae81ff">2</span>];
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">pipe</span>(p_right);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">fork</span>();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(p_right[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">read</span>(input_fd, <span style="color:#f92672">&amp;</span>n, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>)))
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (n <span style="color:#f92672">%</span> p <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) 
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">write</span>(p_right[<span style="color:#ae81ff">1</span>], <span style="color:#f92672">&amp;</span>n, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>));
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(input_fd);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(p_right[<span style="color:#ae81ff">1</span>]);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">wait</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(input_fd);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(p_right[<span style="color:#ae81ff">1</span>]);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">primes</span>(p_right[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;primes: fork</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(input_fd);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> p[<span style="color:#ae81ff">2</span>];
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">pipe</span>(p);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">fork</span>();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(p[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>; i <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">35</span>; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">write</span>(p[<span style="color:#ae81ff">1</span>], <span style="color:#f92672">&amp;</span>i, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>)) <span style="color:#f92672">!=</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;write error</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(p[<span style="color:#ae81ff">1</span>]);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">wait</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">close</span>(p[<span style="color:#ae81ff">1</span>]);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">primes</span>(p[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;fork error</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div>
 
   </div>

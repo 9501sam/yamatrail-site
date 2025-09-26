@@ -131,7 +131,7 @@
   </header>
   <div class="entry-content">
     <p>Lab 連結: Lab: Xv6 and Unix utilities
-Boot xv6(Easy) 這部份的詳細內容都寫在 lab util 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。
+Boot xv6(Easy) 題目敘述： 這部份的詳細內容都寫在 lab util 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。
 下載原始碼 git clone git://g.csail.mit.edu/xv6-labs-2022 cd xv6-labs-2022 安裝架設虛擬機的套件 我自己是用 Debian，如果你用的是 ubuntu 的話下載步驟應該也是一樣的，至於是其他系統的使用者，可以看這裡 sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu compile程式碼並且讓他跑在虛擬機上 $ make qemu ... (一大串訊息) ... xv6 kernel is booting hart 2 starting hart 1 starting init: starting sh $ 到這裡，Xv6已經成功開機了！
 嘗試打個指令 $ ls . 1 1 1024 .. 1 1 1024 README 2 2 2059 xargstest.sh 2 3 93 cat 2 4 24120 echo 2 5 22944 forktest 2 6 13184 grep 2 7 27424 init 2 8 23680 kill 2 9 22904 ln 2 10 22744 ls 2 11 26312 mkdir 2 12 23040 rm 2 13 23032 sh 2 14 41856 stressfs 2 15 23904 usertests 2 16 148312 grind 2 17 38008 wc 2 18 25232 zombie 2 19 22280 console 3 20 0 沒意外的話，會出現以上的畫面
 ...</p>

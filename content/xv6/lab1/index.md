@@ -8,6 +8,7 @@ weight = 1
 Lab 連結: [Lab: Xv6 and Unix utilities](https://pdos.csail.mit.edu/6.S081/2022/labs/util.html)
 
 ## Boot xv6(Easy)
+題目敘述：
 這部份的詳細內容都寫在 [lab util](https://pdos.csail.mit.edu/6.S081/2022/labs/util.html) 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。
 
 1. 下載原始碼
@@ -74,6 +75,7 @@ $ QEMU: Terminated
 這樣就關機了
 
 ## sleep (easy)
+題目敘述：
 > Implement the UNIX program sleep for xv6; your sleep should pause for a user-specified number of ticks. A tick is a notion of time defined by the xv6 kernel, namely the time between two interrupts from the timer chip. Your solution should be in the file user/sleep.c. 
 
 這題的大意是在說把 `sleep` 實做出來，主要是想要讓我們知道這些 program 是如何使用 system call 的
@@ -243,4 +245,184 @@ make: 'kernel/kernel' is up to date.
 == Test sleep, no arguments == sleep, no arguments: OK (1.2s)
 == Test sleep, returns == sleep, returns: OK (1.1s)
 == Test sleep, makes syscall == sleep, makes syscall: OK (1.0s)
+```
+
+## pingpong (easy)
+題目敘述：
+> Write a program that uses UNIX system calls to ''ping-pong'' a byte between two processes over a pair of pipes, one for each direction. The parent should send a byte to the child; the child should print "<pid>: received ping", where <pid> is its process ID, write the byte on the pipe to the parent, and exit; the parent should read the byte from the child, print "<pid>: received pong", and exit. Your solution should be in the file user/pingpong.c. '
+
+這題的背後要我們學習的有兩個重點：`pipe()` 與 `fork()`, 這些在 [xv6 book](https://pdos.csail.mit.edu/6.S081/2022/xv6/book-riscv-rev3.pdf) 的第一章都有提及，我們先來看他們如何運行。
+
+### `fork()` 的用法
+用這個程式碼片段應該就能了解 `fork()` 的基本用法了，
+* `pid == 0` 的這個是 child
+* `pid == <child pid>` 的這個是 parent
+```c
+int pid = fork();
+if (pid > 0) {
+	printf("parent: child=%d\n", pid);	// parent 會拿到 child pid
+	pid = wait((int *) 0);				// 先等 child 執行結束
+	printf("child %d is done\n", pid);
+} else if (pid == 0) {					// child 拿到 pid == 0
+	printf("child: exiting\n");
+	exit(0);
+} else {
+	printf("fork error\n");
+}
+```
+
+### `pipe()` 的用法
+* `p[0]`: 可以從 pipe read 	(input)
+* `p[1]`: 可以從 pipe write (output)
+
+```c
+#include "kernel/types.h"
+#include "user/user.h"
+
+int
+main(int argc, char *argv[])
+{
+  int p[2]; // p[0] is the read end; p[1] is the write end
+  char buffer[100];
+  const char *message = "Hello, pipe!";
+
+  if (pipe(p) == -1) {
+    fprintf(2, "fork error\n");
+    exit(-1);
+  }
+
+  // 1. Write the message to the write end of the pipe.
+  fprintf(1, "Writing message '%s' into the pipe...\n", message);
+  write(p[1], message, strlen(message));
+
+  int bytes_read = read(p[0], buffer, sizeof(buffer));
+  fprintf(1, "Read %d bytes from the pipe.\n", bytes_read);
+
+  // 3. Null-terminate the string we read from the pipe.
+  buffer[bytes_read] = '\0';
+
+  // Print the message that was retrieved.
+  fprintf(1, "Message from pipe: '%s'\n", buffer);
+
+  // 4. Close both ends of the pipe.
+  close(p[0]);
+  close(p[1]);
+  return 0;
+}
+```
+
+### 程式碼實做
+結合上面兩個例子，並且照著題目的指示，就可以組合出答案了
+```c
+#include "kernel/types.h"
+#include "user/user.h"
+
+int
+main(int argc, char *argv[]) {
+  int pid;
+  char buffer[2];
+  int p[2];
+  if (pipe(p) == -1) {
+    fprintf(2, "pipe() error\n");
+    exit(-1);
+  }
+  pid = fork();
+  if (pid == 0) {
+    read(p[1], buffer, 1);                    // 2. child read a byte
+    printf("%d: received ping\n", getpid());  // 3. child print message
+    write(p[0], buffer, 1);                   // 4. write the byte back to parent
+    exit(0);
+  } else if (pid > 0) {
+    write(p[0], "b", 10);                     // 1. parent send a byte "b"
+    wait(0);                                  // wait for child finish
+    read(p[1], buffer, 1);                    // 5. read the byte from the child
+    printf("%d: received pong\n", getpid());  // 6. print "<pid>: received pong"
+  } else {
+    fprintf(2, "fork() error.\n");
+  }
+  return 0;
+}
+```
+同樣要修改 `Makefile` 中的 `PROGS` 區塊，並且最後用 `./grade-lab-util` 驗證
+
+## primes (moderate)/(hard)
+題目敘述：
+> Write a concurrent version of prime sieve using pipes. This idea is due to Doug McIlroy, inventor of Unix pipes. The picture halfway down [this page](https://swtch.com/~rsc/thread/) and the surrounding text explain how to do it. Your solution should be in the file user/primes.c.  
+
+點下題目敘述中的 [this page](https://swtch.com/~rsc/thread/) 頁面之後，可以看到這題的關鍵敘述：
+
+> A generating process can feed the numbers 2, 3, 4, ..., 1000 into the left end of the pipeline: the first process in the line eliminates the multiples of 2, the second eliminates the multiples of 3, the third eliminates the multiples of 5, and so on: 
+![](sieve.gif)
+
+我們要做的就是利用前幾題使用過的技術，把這個尋找質數的程式寫出來。
+
+### 解題思路
+
+### 程式實做
+```c
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+
+void
+primes(int input_fd)
+{
+  int p;
+  int n;
+
+  if (read(input_fd, &p, sizeof(int)) == 0) {
+    close(input_fd);
+    exit(0);
+  }
+  printf("prime %d\n", p);
+
+  int p_right[2];
+  pipe(p_right);
+  int pid = fork();
+  if (pid > 0) {
+    close(p_right[0]);
+    while (read(input_fd, &n, sizeof(int)))
+      if (n % p != 0) 
+        write(p_right[1], &n, sizeof(int));
+    close(input_fd);
+    close(p_right[1]);
+    wait(0);
+    exit(0);
+  } else if (pid == 0) {
+    close(input_fd);
+    close(p_right[1]);
+    primes(p_right[0]);
+  } else {
+    fprintf(2, "primes: fork\n");
+    close(input_fd);
+    exit(1);
+  }
+}
+
+int
+main(int argc, char **argv)
+{
+  int p[2];
+  pipe(p);
+
+  int pid = fork();
+  if (pid > 0) {
+    close(p[0]);
+    for (int i = 2; i <= 35; i++) {
+      if (write(p[1], &i, sizeof(int)) != sizeof(int)) {
+        fprintf(2, "write error\n");
+        exit(1);
+      }
+    }
+    close(p[1]);
+    wait(0);
+  } else if (pid == 0) {
+    close(p[1]);
+    primes(p[0]);
+  } else {
+    fprintf(2, "fork error\n");
+    exit(1);
+  }
+  exit(0);
+}
 ```
