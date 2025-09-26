@@ -426,3 +426,122 @@ main(int argc, char **argv)
   exit(0);
 }
 ```
+
+## find (moderate)
+題目敘述：
+> Write a simple version of the UNIX find program: find all the files in a directory tree with a specific name. Your solution should be in the file user/find.c.  
+
+這題是要把命令 `find` 實做出來
+
+
+### 解題思路
+這一題很大程度的可以參考 `user/ls.c` 的作法，我自己實做時踩到最大的坑是沒發現 `fmtname()` 做了 spaces 的 padding，直接使用會造成 `strcmp()` 的比較結果與預期不同，並且都是 space 除錯時會不容易發現。
+
+### 程式實做
+`user/find.c`
+```c
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+#include "kernel/fs.h"
+
+char*
+fmtname(char *path)
+{
+  static char buf[DIRSIZ+1];
+  char *p;
+
+  // Find first character after last slash.
+  for(p=path+strlen(path); p >= path && *p != '/'; p--)
+    ;
+  p++;
+
+  // Return blank-padded name.
+  if(strlen(p) >= DIRSIZ)
+    return p;
+  memmove(buf, p, strlen(p));
+  memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
+  buf[strlen(p)] = '\0'; // do not add spaces at end!
+  return buf;
+}
+
+void
+find(char *path, char *filename)
+{
+  char buf[512], *p;
+  int fd;
+  struct dirent de;
+  struct stat st;
+
+  if ((fd = open(path, 0)) < 0) { // 0 means read
+    fprintf(2, "find: cannot open %s\n", path);
+    return;
+  }
+  if (fstat(fd, &st) < 0) {
+    fprintf(2, "find: cannot stat %s\n", path);
+    return;
+  }
+  switch(st.type) {
+    case T_DEVICE:
+    case T_FILE:
+      if (strcmp(fmtname(path), filename) == 0) // find what we want
+        printf("%s\n", path);
+      break;
+    case T_DIR:
+      if (strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
+        printf("find: path too long\n");
+        break;
+      }
+      strcpy(buf, path);
+      p = buf + strlen(buf);
+      *p++ = '/';
+      while(read(fd, &de, sizeof(de)) == sizeof(de)){
+        if(de.inum == 0)
+          continue;
+        memmove(p, de.name, DIRSIZ);
+        p[DIRSIZ] = 0;
+        if(stat(buf, &st) < 0){
+          printf("find: cannot stat %s\n", buf);
+          continue;
+        }
+        if (strcmp(fmtname(buf), ".") && strcmp(fmtname(buf), "..")) {
+          find(buf, filename);
+        }
+      }
+      break;
+  }
+  close(fd);
+}
+
+int
+main(int argc, char *argv[])
+{
+  char *dir = argv[1];
+  char *filename = argv[2];
+  int fd;
+  struct stat st;
+  if(argc != 3){
+    fprintf(2, "usage: find <path> <file name>\n");
+  }
+
+  if ((fd = open(dir, 0)) < 0) { // 0 means read
+    fprintf(2, "main: cannot open %s\n", dir);
+    exit(1);
+  }
+  if (fstat(fd, &st) < 0) {
+    fprintf(2, "main: cannot stat %s\n", dir);
+    exit(1);
+  }
+  switch(st.type) {
+    case T_DEVICE:
+    case T_FILE:
+      fprintf(2, "main: %s is not a dir\n", dir);
+    case T_DIR:
+      close(fd);
+      find(dir, filename);
+    break;
+  }
+
+  exit(0);
+}
+```
