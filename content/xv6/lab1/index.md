@@ -545,3 +545,83 @@ main(int argc, char *argv[])
   exit(0);
 }
 ```
+
+## xargs (moderate)
+題目敘述：
+> Write a simple version of the UNIX xargs program: its arguments describe a command to run, it reads lines from the standard input, and it runs the command for each line, appending the line to the command's arguments. Your solution should be in the file user/xargs.c.
+
+```sh
+echo hello too | xargs echo bye
+```
+
+### 解題思路
+題目要求 "runs the command for each line", 所以我們會需要判斷是否換行，使用個別的 char 做處理會比較好。  
+  
+另外，我利用了 `skip_space` 這個 flag 來決定當我們讀到 `' '` 時，究竟要直接 skip 掉，還是代表我們到了新的 argument 的結尾。
+
+### 程式實做
+`user/xargs.c`
+```c
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/param.h"
+#include "user/user.h"
+
+#define BUFSIZ 512
+
+int
+main(int argc, char *argv[])
+{
+  int i;
+  char *command;
+  char *args[MAXARG];
+  char buf[BUFSIZ];
+  char c;
+  char *p;
+  int skip_space;
+  
+  if (argc < 2)
+    fprintf(2, "usage: xargs <command> <args>\n");
+  command = argv[1];
+  for (i = 0; i < argc - 1; i++)
+    args[i] = argv[i + 1];
+
+  p = buf;
+  skip_space = 1;
+  while (read(0, &c, sizeof(char) == sizeof(char))) {
+    if ((c == ' ' || c == '\n') && !skip_space) { // one arg end
+      if (i >= MAXARG) {
+        fprintf(2, "main: too many args\n");
+        exit(1);
+      }
+      *p = '\0';
+      p = buf;
+      char *new_arg = malloc(strlen(buf) + 1);
+      strcpy(new_arg, buf);
+      args[i++] = new_arg;
+      skip_space = 1;
+    } else if (c == ' ' && skip_space) {
+      continue;
+    } else {
+      skip_space = 0;
+      *p++ = c;
+      if (p - buf >= BUFSIZ) {
+        fprintf(2, "main: argument too long\n");
+        exit(1);
+      }
+    }
+    if (c == '\n') {
+      int pid = fork();
+      if (pid == 0) {
+        exec(command, args);
+        exit(0);
+      } else {
+        wait(0);
+        i = argc - 1;
+        p = buf;
+      }
+    }
+  }
+  exit(0);
+}
+```
