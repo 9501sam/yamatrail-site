@@ -6,8 +6,34 @@
     <description>Recent content in Yama 的網站 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Sat, 27 Sep 2025 00:37:29 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 27 Sep 2025 15:46:30 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>如何使用 gdb 追蹤 xv6 的 system call 過程</title>
+      <link>http://localhost:1313/xv6/gdb/</link>
+      <pubDate>Sat, 27 Sep 2025 15:46:30 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/gdb/</guid>
+      <description>&lt;p&gt;本文目標：照著以下步驟就可以看到整個 system call 的過程
+整個過程大致上都是照著&lt;a href=&#34;https://www.youtube.com/watch?v=T26UuauaxWA&#34;&gt;這個影片&lt;/a&gt;做的，但其中有幾個步驟稍稍的不同。&lt;/p&gt;
+&lt;h2 id=&#34;1-架設-xv6-的環境&#34;&gt;1. 架設 xv6 的環境&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/tools.html&#34;&gt;https://pdos.csail.mit.edu/6.S081/2022/tools.html&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;2-用-gdb-multiarch-debug-xv6-的方式&#34;&gt;2. 用 gdb-multiarch debug xv6 的方式&lt;/h2&gt;
+&lt;p&gt;這裡會需要開啟 2 個終端機，&lt;/p&gt;
+&lt;p&gt;先在其中一個終端機輸入&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-sh=&#34; data-lang=&#34;sh=&#34;&gt;make qemu-gdb #　這是被 debug 的對象
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;在另一個終端機輸入&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-sh=&#34; data-lang=&#34;sh=&#34;&gt;gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;不知道也沒關係的點：&lt;code&gt;gdb-multiarch&lt;/code&gt; 是透過 &lt;code&gt;.gdbinit&lt;/code&gt; 這個檔案找到 debug 的對象的&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-shell=&#34; data-lang=&#34;shell=&#34;&gt;# .gdbinit
+set confirm off
+set architecture riscv:rv64
+target remote 127.0.0.1:26000 # 透過這個來找到 qemu
+symbol-file kernel/kernel
+set disassemble-next-line auto
+set riscv use-compressed-breakpoints yes
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;3-追蹤-system-call-write&#34;&gt;3. 追蹤 system call: &lt;code&gt;write&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;目標：先觀察執行 &lt;code&gt;make qemu&lt;/code&gt; 後 xv6 開機時，會顯示的畫面&lt;/p&gt;</description>
+    </item>
     <item>
       <title>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</title>
       <link>http://localhost:1313/leetcode/17-letter-combinations-of-a-phone-number/</link>
@@ -190,14 +216,11 @@
 &lt;p&gt;在 compute engin 中，點選上方的 “Create Instance”&lt;/p&gt;</description>
     </item>
     <item>
-      <title>Lab2</title>
+      <title>[xv6 學習紀錄 02] Lab: Xv6 and Unix utilities</title>
       <link>http://localhost:1313/xv6/lab2/</link>
       <pubDate>Wed, 24 Sep 2025 13:07:09 +0800</pubDate>
       <guid>http://localhost:1313/xv6/lab2/</guid>
-      <description>&lt;h1 id=&#34;lab2-syscall--記錄&#34;&gt;Lab2 syscall:  記錄&lt;/h1&gt;
-&lt;p&gt;&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/schedule.html&#34;&gt;6.1810 的課程網址&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;本文紀錄課程中的作業 &lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/syscall.html&#34;&gt;Lab: system calls&lt;/a&gt; 的解題過程&lt;/p&gt;
-&lt;p&gt;關於 xv6 的環境架設，可以參考 &lt;a href=&#34;https://ithelp.ithome.com.tw/articles/10257913&#34;&gt;[MIT-6.S081-2020] OS課程&amp;mdash;-Xv6作業系統的環境架設 &lt;/a&gt; ，但是在這篇文章裡，將會使用 2022 年的版本&lt;/p&gt;
+      <description>&lt;p&gt;Lab 連結: &lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/syscall.html&#34;&gt;Lab: system calls&lt;/a&gt;&lt;/p&gt;
 &lt;h3 id=&#34;大綱&#34;&gt;大綱&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;xv6 有哪些 system call，以及他們的作用為何 ?&lt;/li&gt;

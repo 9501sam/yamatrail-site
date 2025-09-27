@@ -1,17 +1,11 @@
 +++
 date = '2025-09-24T13:07:09+08:00'
 draft = false
-title = 'Lab2'
+title = '[xv6 學習紀錄 02] Lab: Xv6 and Unix utilities'
 series = ["xv6 學習紀錄"]
 weight = 2
 +++
-
-# Lab2 syscall:  記錄
-[6.1810 的課程網址](https://pdos.csail.mit.edu/6.S081/2022/schedule.html)
-
-本文紀錄課程中的作業 [Lab: system calls](https://pdos.csail.mit.edu/6.S081/2022/labs/syscall.html) 的解題過程
-
-關於 xv6 的環境架設，可以參考 [[MIT-6.S081-2020] OS課程----Xv6作業系統的環境架設 ](https://ithelp.ithome.com.tw/articles/10257913) ，但是在這篇文章裡，將會使用 2022 年的版本
+Lab 連結: [Lab: system calls](https://pdos.csail.mit.edu/6.S081/2022/labs/syscall.html)
 
 ### 大綱
 1. xv6 有哪些 system call，以及他們的作用為何 ?
@@ -192,13 +186,12 @@ sys_read(void) // 由步驟 2 呼叫而到這裡執行
   return fileread(f, p, n);
 }
 ```
----
-## 3. Using gdb
+## Using gdb (easy)
 這個題目是 2022 年的版本才有出現的，目的在於熟悉 gdb 的操作
 #### 用 gdb-multiarch debug xv6 的方式
 這裡會需要開啟 2 個終端機
 先在其中一個終端機輸入
-```sh=
+```sh
 make qemu-gdb
 ```
 在另一個終端機輸入
@@ -210,9 +203,9 @@ gdb-multiarch
 ## 4. System call tracing
 這個 lab 只需要照著下面的 some hints 一步一步的做，就可以完成了
 
-#### 4.1. 在 ```Makefile``` 中的 ```UPROGS``` 區塊新增 ```$U/_trace```:
-之後再執行 ```make qemu``` 會發現以下的錯誤訊息：
-```
+#### 4.1. 在 `Makefile` 中的 `UPROGS` 區塊新增 `$U/_trace`:
+之後再執行 `make qemu` 會發現以下的錯誤訊息：
+```sh
 user/trace.c:17:7: error: implicit declaration of function ‘trace’ [-Werror=implicit-function-declaration]
    17 |   if (trace(atoi(argv[1])) < 0) {
       |       ^~~~~

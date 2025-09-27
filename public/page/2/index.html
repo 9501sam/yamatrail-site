@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto">
 
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<head>
+	<meta name="generator" content="Hugo 0.146.0"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>xv6 學習紀錄 | Yama&#39;s Trail</title>
-<meta name="keywords" content="">
-<meta name="description" content="xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的解題紀錄，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。">
+<title>Yama&#39;s Trail</title>
+
+<meta name="description" content="">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/xv6/">
+<link rel="canonical" href="http://localhost:1313/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
@@ -18,8 +19,8 @@
 <link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/xv6/index.xml">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/">
 <noscript>
     <style>
         #theme-toggle,
@@ -111,71 +112,43 @@
             </li>
             <li>
                 <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
-                    <span class="active">xv6 學習紀錄</span>
+                    <span>xv6 學習紀錄</span>
                 </a>
             </li>
         </ul>
     </nav>
 </header>
 <main class="main"> 
-<header class="page-header">
-  <h1>
-    xv6 學習紀錄
-  </h1>
-</header>
-<div class="post-content"><p>xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的<a href="https://hackmd.io/@xv6">解題紀錄</a>，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。</p>
+<div class="post-content"><p>你好，我是 Yama，歡迎來到我的網站。</p>
+<h3 id="contact-me">Contact Me<a hidden class="anchor" aria-hidden="true" href="#contact-me">#</a></h3>
+<ul>
+<li><strong>Email:</strong> <a href="mailto:yama.tseng@gmail.com">yama.tseng@gmail.com</a></li>
+<li><strong>GitHub:</strong> <a href="https://github.com/9501sam">@9501sam</a></li>
+</ul>
 
 
 </div>
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">如何使用 gdb 追蹤 xv6 的 system call 過程
+    <h2 class="entry-hint-parent">Hello World
     </h2>
   </header>
   <div class="entry-content">
-    <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。
-1. 架設 xv6 的環境 https://pdos.csail.mit.edu/6.S081/2022/tools.html
-2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
-先在其中一個終端機輸入
-make qemu-gdb #　這是被 debug 的對象 在另一個終端機輸入
-gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 不知道也沒關係的點：gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的
-# .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 3. 追蹤 system call: write 目標：先觀察執行 make qemu 後 xv6 開機時，會顯示的畫面
-...</p>
+    <p>This is my first article!
+所以我說那個醬汁呢？
+</p>
   </div>
-  <footer class="entry-footer"><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to 如何使用 gdb 追蹤 xv6 的 system call 過程" href="http://localhost:1313/xv6/gdb/"></a>
+  <footer class="entry-footer"><span title='2025-09-20 21:52:54 +0800 CST'>September 20, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Hello World" href="http://localhost:1313/posts/hello-world/"></a>
 </article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結: Lab: Xv6 and Unix utilities
-Boot xv6(Easy) 題目敘述： 這部份的詳細內容都寫在 lab util 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。
-下載原始碼 git clone git://g.csail.mit.edu/xv6-labs-2022 cd xv6-labs-2022 安裝架設虛擬機的套件 我自己是用 Debian，如果你用的是 ubuntu 的話下載步驟應該也是一樣的，至於是其他系統的使用者，可以看這裡 sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu compile程式碼並且讓他跑在虛擬機上 $ make qemu ... (一大串訊息) ... xv6 kernel is booting hart 2 starting hart 1 starting init: starting sh $ 到這裡，Xv6已經成功開機了！
-嘗試打個指令 $ ls . 1 1 1024 .. 1 1 1024 README 2 2 2059 xargstest.sh 2 3 93 cat 2 4 24120 echo 2 5 22944 forktest 2 6 13184 grep 2 7 27424 init 2 8 23680 kill 2 9 22904 ln 2 10 22744 ls 2 11 26312 mkdir 2 12 23040 rm 2 13 23032 sh 2 14 41856 stressfs 2 15 23904 usertests 2 16 148312 grind 2 17 38008 wc 2 18 25232 zombie 2 19 22280 console 3 20 0 沒意外的話，會出現以上的畫面
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-24 16:13:25 +0800 CST'>September 24, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 01] Lab: Xv6 and Unix utilities" href="http://localhost:1313/xv6/lab1/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 02] Lab: Xv6 and Unix utilities
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結: Lab: system calls
-大綱 xv6 有哪些 system call，以及他們的作用為何 ? 以程式碼的觀點來理解 xv6 的 system call 流程 Using gdb System call tracing 1. xv6 有哪些 system call，以及他們的作用為何 ? 0. kernel/syscall.h 定義 syste mcall 的編號 // System call numbers #define SYS_fork 1 #define SYS_exit 2 #define SYS_wait 3 #define SYS_pipe 4 #define SYS_read 5 #define SYS_kill 6 #define SYS_exec 7 #define SYS_fstat 8 #define SYS_chdir 9 #define SYS_dup 10 #define SYS_getpid 11 #define SYS_sbrk 12 #define SYS_sleep 13 #define SYS_uptime 14 #define SYS_open 15 #define SYS_write 16 #define SYS_mknod 17 #define SYS_unlink 18 #define SYS_link 19 #define SYS_mkdir 20 #define SYS_close 21 2. 以程式碼的觀點來理解 xv6 的 system call 流程 以下使用 user/cat.c 為例，來探討 xv6 的 system call 流程，流程中有 3 大步驟
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 02] Lab: Xv6 and Unix utilities" href="http://localhost:1313/xv6/lab2/"></a>
-</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="prev" href="http://localhost:1313/">
+      «&nbsp;Prev&nbsp;
+    </a>
+  </nav>
+</footer>
     </main>
     
 <footer class="footer">

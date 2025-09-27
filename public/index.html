@@ -131,6 +131,25 @@
 
 <article class="first-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">如何使用 gdb 追蹤 xv6 的 system call 過程
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。
+1. 架設 xv6 的環境 https://pdos.csail.mit.edu/6.S081/2022/tools.html
+2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
+先在其中一個終端機輸入
+make qemu-gdb #　這是被 debug 的對象 在另一個終端機輸入
+gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 不知道也沒關係的點：gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的
+# .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 3. 追蹤 system call: write 目標：先觀察執行 make qemu 後 xv6 開機時，會顯示的畫面
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to 如何使用 gdb 追蹤 xv6 的 system call 過程" href="http://localhost:1313/xv6/gdb/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義
     </h2>
   </header>
@@ -196,18 +215,16 @@ https://cloud.google.com/free?hl=en
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">Lab2
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 02] Lab: Xv6 and Unix utilities
     </h2>
   </header>
   <div class="entry-content">
-    <p>Lab2 syscall: 記錄 6.1810 的課程網址
-本文紀錄課程中的作業 Lab: system calls 的解題過程
-關於 xv6 的環境架設，可以參考 [MIT-6.S081-2020] OS課程—-Xv6作業系統的環境架設 ，但是在這篇文章裡，將會使用 2022 年的版本
+    <p>Lab 連結: Lab: system calls
 大綱 xv6 有哪些 system call，以及他們的作用為何 ? 以程式碼的觀點來理解 xv6 的 system call 流程 Using gdb System call tracing 1. xv6 有哪些 system call，以及他們的作用為何 ? 0. kernel/syscall.h 定義 syste mcall 的編號 // System call numbers #define SYS_fork 1 #define SYS_exit 2 #define SYS_wait 3 #define SYS_pipe 4 #define SYS_read 5 #define SYS_kill 6 #define SYS_exec 7 #define SYS_fstat 8 #define SYS_chdir 9 #define SYS_dup 10 #define SYS_getpid 11 #define SYS_sbrk 12 #define SYS_sleep 13 #define SYS_uptime 14 #define SYS_open 15 #define SYS_write 16 #define SYS_mknod 17 #define SYS_unlink 18 #define SYS_link 19 #define SYS_mkdir 20 #define SYS_close 21 2. 以程式碼的觀點來理解 xv6 的 system call 流程 以下使用 user/cat.c 為例，來探討 xv6 的 system call 流程，流程中有 3 大步驟
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to Lab2" href="http://localhost:1313/xv6/lab2/"></a>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 02] Lab: Xv6 and Unix utilities" href="http://localhost:1313/xv6/lab2/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -273,20 +290,12 @@ nodes: https://120.108.205.137:9999/ui/
   <footer class="entry-footer"><span title='2025-09-27 00:00:40 +0800 CST'>September 27, 2025</span></footer>
   <a class="entry-link" aria-label="post link to 架設 Kubernetes cluster" href="http://localhost:1313/k8s/setup-cluster/"></a>
 </article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Hello World
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>This is my first article!
-所以我說那個醬汁呢？
-</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-20 21:52:54 +0800 CST'>September 20, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to Hello World" href="http://localhost:1313/posts/hello-world/"></a>
-</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="http://localhost:1313/page/2/">Next&nbsp;&nbsp;»
+    </a>
+  </nav>
+</footer>
     </main>
     
 <footer class="footer">
