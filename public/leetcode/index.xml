@@ -9,12 +9,12 @@
     <lastBuildDate>Sat, 27 Sep 2025 00:37:29 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/leetcode/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AAAA</title>
+      <title>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</title>
       <link>http://localhost:1313/leetcode/17-letter-combinations-of-a-phone-number/</link>
       <pubDate>Sat, 27 Sep 2025 00:37:29 +0800</pubDate>
       <guid>http://localhost:1313/leetcode/17-letter-combinations-of-a-phone-number/</guid>
       <description>&lt;p&gt;題目連結：&lt;a href=&#34;https://leetcode.com/problems/letter-combinations-of-a-phone-number&#34;&gt;17. Letter Combinations of a Phone Number&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;title = &amp;ldquo;[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;我覺得這種 backtracking 或是 dfs 的題目都需要想清處 depth 的定義是什麼，想清楚就會好寫許多。&lt;/p&gt;
 &lt;h2 id=&#34;程式實做&#34;&gt;程式實做&lt;/h2&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Solution&lt;/span&gt; {
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;
