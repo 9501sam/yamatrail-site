@@ -45,10 +45,10 @@ System call tracing
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/xv6/lab2/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
 <link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
@@ -358,86 +358,527 @@ read:
 </code></pre><pre tabindex="0"><code class="language-gdb=" data-lang="gdb=">(gdb) backtrace
 </code></pre><blockquote>
 <p>Looking at the backtrace output, which function called syscall?</p></blockquote>
-<p>這題的答案直接看執行的結果，可得知是在 <code>usertrap() at kernel/trap.c:67</code></p>
+<p><strong>答案</strong>: 直接看執行的結果，可得知是在 <code>usertrap() at kernel/trap.c:67</code></p>
 <p><img alt="gdb_backtrace.png" loading="lazy" src="/xv6/lab2/gdb_backtrace.png"></p>
 <h3 id="p-trapframe-a7-的意義"><code>p-&gt;trapframe-&gt;a7</code> 的意義<a hidden class="anchor" aria-hidden="true" href="#p-trapframe-a7-的意義">#</a></h3>
 <blockquote>
 <p>Type n a few times to step pass <code>struct proc *p = myproc();</code> Once past this statement, type <code>p /x *p</code>, which prints the current process&rsquo;s <code>proc struct</code> (see <code>kernel/proc.h</code>) in hex. What is the value of <code>p-&gt;trapframe-&gt;a7</code> and what does that value represent? (Hint: look <code>user/initcode.S</code>, the first user program xv6 starts.)</p></blockquote>
-<p>這題照著題目的指示做，可以知道 <code>p-&gt;trapframe-&gt;a7 == 7</code> 他的意義在於</p>
-<ul>
-<li><code>#define SYS_exec    7</code><br>
-題目也提及可以用 <code>user/initcode.S</code> 回推他的意義</li>
-</ul>
-<p><img alt="myproc.png" loading="lazy" src="/xv6/lab2/myproc.png">
+<p>這題照著題目的指示做，可以知道 <code>p-&gt;trapframe-&gt;a7 == 7</code>
+(以下兩張圖可以得知目前 <code>p-&gt;trapframe-&gt;a7 == 7</code>)
+<img alt="myproc.png" loading="lazy" src="/xv6/lab2/myproc.png">
 <img alt="a7.png" loading="lazy" src="/xv6/lab2/a7.png"></p>
+<p>題目也提及可以用 <code>user/initcode.S</code> 回推他的意義</p>
+<ul>
+<li><code>user/initcode.S</code>:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#75715e"># Initial process that execs /init.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"># This code runs in user space.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#include &#34;syscall.h&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># exec(init, argv)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">.globl</span> <span style="color:#66d9ef">start</span>
+</span></span><span style="display:flex;"><span>start:
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">la</span> <span style="color:#66d9ef">a0</span>, <span style="color:#66d9ef">init</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">la</span> <span style="color:#66d9ef">a1</span>, <span style="color:#66d9ef">argv</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">li</span> <span style="color:#66d9ef">a7</span>, <span style="color:#66d9ef">SYS_exec</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ecall</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># for(;;) exit();
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>exit:
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">li</span> <span style="color:#66d9ef">a7</span>, <span style="color:#66d9ef">SYS_exit</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ecall</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">jal</span> <span style="color:#66d9ef">exit</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># char init[] = &#34;/init\0&#34;;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>init:
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">.string</span> <span style="color:#e6db74">&#34;/init\0&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># char *argv[] = { init, 0 };
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">.p2align</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>argv:
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">.long</span> <span style="color:#66d9ef">init</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">.long</span> <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p><strong>答案</strong>：從這些訊息中，我們可以得知 <code>p-&gt;trapframe-&gt;a7 == 7</code> 的意義是源自於 <code>kernel/syscall.h</code> 中所定義的 <code>#define SYS_exec 7</code>，也可以推論出 <code>p-&gt;trapframe-&gt;a7</code> 是用來放置 system call 編號的地方。</p>
 <h3 id="sstatus-的意義"><code>sstatus</code> 的意義<a hidden class="anchor" aria-hidden="true" href="#sstatus-的意義">#</a></h3>
 <blockquote>
 <p>The processor is running in kernel mode, and we can print privileged registers such as sstatus (see <a href="https://github.com/riscv/riscv-isa-manual/releases/download/Priv-v1.12/riscv-privileged-20211203.pdf">RISC-V privileged instructions</a> for a description):</p></blockquote>
 <p><img alt="sstatus_kernel.png" loading="lazy" src="/xv6/lab2/sstatus_kernel.png">
-使用 <code>p /x $sstatus</code> 可以得知現在 sstatus 的值為 <code>0x22</code></p>
+使用 <code>p /x $sstatus</code> 可以得知現在 sstatus 的值為 <code>0x22</code><br>
+查閱 <a href="https://github.com/riscv/riscv-isa-manual/releases/download/Priv-v1.12/riscv-privileged-20211203.pdf">RISC-V privileged instructions</a> 的 Figure 4.2 我們可以知道 <code>sstatus</code> 有以下幾個 bits:</p>
+<p><img alt="sstatus_bits.png" loading="lazy" src="/xv6/lab2/sstatus_bits.png"></p>
+<p>再來看看我們現在 <code>sstatus</code> 的值 <code>0x22 = 0b00000000000000000000000000100010</code> 對應到的 bits 為：</p>
+<ul>
+<li><code>SIE == 1</code>: Supervisor Interrupt Enable bit is set, 代表在 supervisor mode 的時候，是允許 interrupt 的。</li>
+<li><code>SPIE == 1</code>: Supervisor Previous Interrupt Enable bit is set, 這裡的 &ldquo;Previous&rdquo; 指的是在 trap 發生之前這個 bit 的狀態，可解讀為 trap 發生之前 <code>SIE == 1</code></li>
+<li><code>SPP == 0</code>: Supervisor Previous Privilege 為 0 代表前一個 CPU mode 為 user mode</li>
+</ul>
 <blockquote>
-<p>What was the previous mode that the CPU was in?
-觀看 <a href="https://github.com/riscv/riscv-isa-manual/releases/download/Priv-v1.12/riscv-privileged-20211203.pdf">RISC-V privileged instructions</a></p></blockquote>
-<hr>
-<h2 id="4-system-call-tracing">4. System call tracing<a hidden class="anchor" aria-hidden="true" href="#4-system-call-tracing">#</a></h2>
-<p>這個 lab 只需要照著下面的 some hints 一步一步的做，就可以完成了</p>
-<h4 id="41-在-makefile-中的-uprogs-區塊新增-u_trace">4.1. 在 <code>Makefile</code> 中的 <code>UPROGS</code> 區塊新增 <code>$U/_trace</code>:<a hidden class="anchor" aria-hidden="true" href="#41-在-makefile-中的-uprogs-區塊新增-u_trace">#</a></h4>
-<p>之後再執行 <code>make qemu</code> 會發現以下的錯誤訊息：</p>
+<p>What was the previous mode that the CPU was in?</p></blockquote>
+<p><strong>答案</strong>: 根據 <code>SPP == 0</code> 得知前一個 CPU mode 為 user mode</p>
+<h2 id="system-call-tracing-moderate">System call tracing (moderate)<a hidden class="anchor" aria-hidden="true" href="#system-call-tracing-moderate">#</a></h2>
+<p>題目敘述：</p>
+<blockquote>
+<p>In this assignment you will add a system call tracing feature that may help you when debugging later labs. You&rsquo;ll create a new trace system call that will control tracing. It should take one argument, an integer <code>mask</code>, whose bits specify which system calls to trace. For example, to trace the fork system call, a program calls <code>trace(1 &lt;&lt; SYS_fork</code>), where <code>SYS_fork</code> is a syscall number from <code>kernel/syscall.h</code>. You have to modify the xv6 kernel to print out a line when each system call is about to return, if the system call&rsquo;s number is set in the <code>mask</code>. The line should contain the process id, the name of the system call and the return value; you don&rsquo;t need to print the system call arguments. The <code>trace</code> system call should enable tracing for the process that calls it and any children that it subsequently forks, but should not affect other processes.</p></blockquote>
+<p>這個題目要我們實做出一個 system call <code>trace</code></p>
+<h3 id="在-makefile-中的-uprogs-區塊新增-u_trace">在 <code>Makefile</code> 中的 <code>UPROGS</code> 區塊新增 <code>$U/_trace</code>:<a hidden class="anchor" aria-hidden="true" href="#在-makefile-中的-uprogs-區塊新增-u_trace">#</a></h3>
+<blockquote>
+<p>Add <code>$U/_trace</code> to <code>UPROGS</code> in <code>Makefile</code></p></blockquote>
+<p>這個步驟跟前幾個 lab 一樣，這裡的 <code>user/trace.c</code> 是這個 lab 提供的範例程式，可以讓我們得知我們實做出來的 system call <code>trace</code> 最終會如何被使用。</p>
+<h3 id="讓-trace-可以被成功編譯">讓 <code>trace()</code> 可以被成功編譯<a hidden class="anchor" aria-hidden="true" href="#讓-trace-可以被成功編譯">#</a></h3>
+<blockquote>
+<p>Run make qemu and you will see that the compiler cannot compile <code>user/trace.c</code>&hellip;</p></blockquote>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>user/trace.c:17:7: error: implicit declaration of <span style="color:#66d9ef">function</span> ‘trace’ <span style="color:#f92672">[</span>-Werror<span style="color:#f92672">=</span>implicit-function-declaration<span style="color:#f92672">]</span>
 </span></span><span style="display:flex;"><span>   <span style="color:#ae81ff">17</span> |   <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>trace<span style="color:#f92672">(</span>atoi<span style="color:#f92672">(</span>argv<span style="color:#f92672">[</span>1<span style="color:#f92672">]))</span> &lt; 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
 </span></span><span style="display:flex;"><span>      |       ^~~~~
-</span></span></code></pre></div><p>這是因為 <code>trace()</code> 還沒有宣告</p>
-<h4 id="42-讓-trace-可以被成功編譯">4.2. 讓 <code>trace()</code> 可以被成功編譯<a hidden class="anchor" aria-hidden="true" href="#42-讓-trace-可以被成功編譯">#</a></h4>
-<p>先來說一下以程式碼的關點而言，我們想要的目的是：</p>
-<ol>
-<li>在 user space 的 <code>user/trace.c</code> 使用了 <code>trace()</code></li>
-</ol>
-<p>最後會呼叫到</p>
-<ol start="2">
-<li>kernel space 的 <code>kernel/sysproc.c</code>  的 <code>sys_trace()</code>(要自己加) 這個 system call</li>
-</ol>
-<p>所以我們一方面要處理 user space 的編譯問題，另一方面則是 kernel space 的問題:</p>
-<h5 id="1-user-space">1. user space:<a hidden class="anchor" aria-hidden="true" href="#1-user-space">#</a></h5>
+</span></span></code></pre></div><p>這是因為我們在 <code>trace()</code> 還沒有在 <code>user/user.h</code> 中宣告</p>
+<p>這裡先來回顧從 user program (<code>trace.c</code>) 要經過哪些步驟才可以呼叫到一個 system call (這個 lab 要實做的 <code>trace</code>):</p>
+<h4 id="1-usertracec-根據-useruserh-呼叫-trace">1. <code>user/trace.c</code> 根據 <code>user/user.h</code> 呼叫 <code>trace()</code><a hidden class="anchor" aria-hidden="true" href="#1-usertracec-根據-useruserh-呼叫-trace">#</a></h4>
 <ul>
-<li>在 <code>user/user.h</code> 多加 <code>int trace(int)</code> 這個宣告：讓 <code>user/trace.c</code> 知道 <code>trace()</code> 的 prototype</li>
-<li><code>trace()</code> 的實作(組合語言)：
-<ol>
-<li>在 <code>user/usys.pl</code> 加入 <code>entry(&quot;trace&quot;)</code></li>
-<li>在 <code>kernel/syscall.h</code> 加入　<code>#define SYS_trace 22</code></li>
-</ol>
-</li>
+<li><code>user/trace.c</code>:</li>
 </ul>
-<p>此時使用　<code>make qemu</code> 已經可以順利開機了，但是執行 <code> trace 32 grep hello README;</code> 卻會失敗，這是因為在 kernel 中，<code>sys_trace()</code> 還沒有被實作出來(根本還不存在)，因此接下來要在 kernel 中加入 <code>sys_trace()</code> 這個 function</p>
-<h5 id="2-kernel-space">2. kernel space<a hidden class="anchor" aria-hidden="true" href="#2-kernel-space">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;user/user.h&#34;    // &lt;-- declare trace()</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">trace</span>(<span style="color:#a6e22e">atoi</span>(argv[<span style="color:#ae81ff">1</span>])) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) { <span style="color:#75715e">// &lt;-- call to trace()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;%s: trace failed</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, argv[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><ul>
+<li><code>user/user.h</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// system calls
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">fork</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">exit</span>(<span style="color:#66d9ef">int</span>) <span style="color:#a6e22e">__attribute__</span>((noreturn));
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">wait</span>(<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">pipe</span>(<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">write</span>(<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">read</span>(<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">close</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">kill</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">exec</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">char</span><span style="color:#f92672">**</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">open</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">mknod</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">short</span>, <span style="color:#66d9ef">short</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">unlink</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">fstat</span>(<span style="color:#66d9ef">int</span> fd, <span style="color:#66d9ef">struct</span> stat<span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">link</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">mkdir</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">chdir</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">dup</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getpid</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> <span style="color:#a6e22e">sbrk</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">sleep</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">uptime</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">trace</span>(<span style="color:#66d9ef">int</span>);  <span style="color:#75715e">// &lt;-- add declaration
+</span></span></span></code></pre></div><p>在 user program 的這個層面上，我們要把 <code>int trace(int);</code> 加入到 <code>user.user.h</code> 中</p>
+<h4 id="2-利用組合語言-userusyss透過-userusyspl-產生-告知-trace-的位置">2. 利用組合語言 <code>user/usys.S</code>(透過 <code>user/usys.pl</code> 產生) 告知 <code>trace</code> 的位置<a hidden class="anchor" aria-hidden="true" href="#2-利用組合語言-userusyss透過-userusyspl-產生-告知-trace-的位置">#</a></h4>
+<ul>
+<li><code>user/usys.S</code> (透過 <code>user/usys.pl</code> 產生, 它會需要吃 <code>kernel/syscall.h</code>)</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#75715e">#include &#34;kernel/syscall.h&#34; &lt;-- add SYS_trace to &#34;kernel/syscall.h&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">.global</span> <span style="color:#66d9ef">fork</span>
+</span></span><span style="display:flex;"><span>fork:
+</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">li</span> <span style="color:#66d9ef">a7</span>, <span style="color:#66d9ef">SYS_fork</span>
+</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">ecall</span>
+</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">ret</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">.global</span> <span style="color:#66d9ef">exit</span>
+</span></span><span style="display:flex;"><span>exit:
+</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">li</span> <span style="color:#66d9ef">a7</span>, <span style="color:#66d9ef">SYS_exit</span>
+</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">ecall</span>
+</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">ret</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">...</span>
+</span></span></code></pre></div><ul>
+<li><code>user/usys.pl</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-perl" data-lang="perl"><span style="display:flex;"><span><span style="color:#75715e">#!/usr/bin/perl -w</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Generate usys.S, the stubs for syscalls.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">print</span> <span style="color:#e6db74">&#34;# generated by usys.pl - do not edit\n&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">print</span> <span style="color:#e6db74">&#34;#include \&#34;kernel/syscall.h\&#34;\n&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">sub</span> <span style="color:#a6e22e">entry</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">my</span> $name <span style="color:#f92672">=</span> shift;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">print</span> <span style="color:#e6db74">&#34;.global $name\n&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">print</span> <span style="color:#e6db74">&#34;${name}:\n&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">print</span> <span style="color:#e6db74">&#34; li a7, SYS_${name}\n&#34;</span>; <span style="color:#75715e"># &lt;-- should add SYS_trace to &#34;kernel/syscall.h&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">print</span> <span style="color:#e6db74">&#34; ecall\n&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">print</span> <span style="color:#e6db74">&#34; ret\n&#34;</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;fork&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;exit&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;wait&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;pipe&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;read&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;write&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;close&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;kill&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;exec&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;open&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;mknod&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;unlink&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;fstat&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;link&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;mkdir&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;chdir&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;dup&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;getpid&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;sbrk&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;sleep&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;uptime&#34;</span>);
+</span></span><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;trace&#34;</span>); <span style="color:#75715e"># &lt;-- add this entry</span>
+</span></span></code></pre></div><ul>
+<li><code>kernel/syscall.h</code>，這裡需要新增 <code>SYS_trace</code> <code>user/usys.pl</code> 在做處理的時候需要用到</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#75715e">// System call numbers
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define SYS_fork    1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_exit    2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_wait    3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_pipe    4
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_read    5
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_kill    6
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_exec    7
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_fstat   8
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_chdir   9
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_dup    10
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_getpid 11
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_sbrk   12
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_sleep  13
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_uptime 14
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_open   15
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_write  16
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_mknod  17
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_unlink 18
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_link   19
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_mkdir  20
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_close  21
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_trace  22 </span><span style="color:#75715e">// &lt;-- add this
+</span></span></span></code></pre></div><p>在這個 user program 連接到 kernel system call 的層級上，我們需要做的就是修改 <code>kernel/syscall.h</code> 與 <code>user/usys.pl</code> 接著我們在透過 <code>Makefile</code> <code>make qemu</code> 時，就會產生出 <code>user/usys.S</code> 來告知 user program 的 <code>trace()</code> 最終要跑到 kernel 的 <code>sys_trace()</code> 執行。</p>
+<p>現在已經可以使用 <code>make qemu</code> 編譯並跑起來了，但真的使用 <code>trace 32 grep hello README</code> 的時候卻會 fail，這是因為 <code>sys_trace()</code> 的定義還沒有寫出來</p>
+<h4 id="寫出-sys_trace-在-kernel-中的-definition">寫出 <code>sys_trace()</code> 在 kernel 中的 definition<a hidden class="anchor" aria-hidden="true" href="#寫出-sys_trace-在-kernel-中的-definition">#</a></h4>
 <ol>
 <li>在 <code>kernel/syscall.c</code> 中加入</li>
 </ol>
-<pre tabindex="0"><code class="language-C=" data-lang="C=">...
-extern uint64 sys_unlink(void);
-extern uint64 sys_link(void);
-extern uint64 sys_mkdir(void);
-extern uint64 sys_close(void);
-extern uint64 sys_trace(void); // 新增這個!
-
-// An array mapping syscall numbers from syscall.h
-// to the function that handles the system call.
-static uint64 (*syscalls[])(void) = {
-/* ... */
-[SYS_mkdir]   sys_mkdir,
-[SYS_close]   sys_close,
-[SYS_trace]   sys_trace, // 新增這個！
-};
-</code></pre><ol start="2">
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_unlink</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_link</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_mkdir</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_close</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_trace</span>(<span style="color:#66d9ef">void</span>); <span style="color:#75715e">// 新增這個!
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// An array mapping syscall numbers from syscall.h
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// to the function that handles the system call.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#a6e22e">uint64</span> (<span style="color:#f92672">*</span>syscalls[])(<span style="color:#66d9ef">void</span>) <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/* ... */</span>
+</span></span><span style="display:flex;"><span>[SYS_mkdir]   sys_mkdir,
+</span></span><span style="display:flex;"><span>[SYS_close]   sys_close,
+</span></span><span style="display:flex;"><span>[SYS_trace]   sys_trace, <span style="color:#75715e">// 新增這個！
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><p>順帶一題，在我先前寫過的筆記 <a href="https://ithelp.ithome.com.tw/articles/10272059">[C 語言筆記&ndash;Day14] pointer, function, array 同時出現在一行宣告時該如何解讀</a> 有提及到這裡的 <code>syscalls</code> 應該解讀為</p>
+<ol>
+<li>array of</li>
+<li>pointers to</li>
+<li>functions with no arguments</li>
+<li>returning uint64</li>
+</ol>
+<p>因解讀時的原則為:</p>
+<ul>
+<li>由內而外的解讀</li>
+<li><code>[]</code> 跟 <code>()</code> 優先於 <code>*</code></li>
+</ul>
+<ol start="2">
 <li>在 <code>kernel/sysproc.c</code> 加入 <code>sys_trace()</code> 的本體</li>
 </ol>
-<pre tabindex="0"><code class="language-C=" data-lang="C=">uint64
-sys_trace(void)
-{
-    // TODO
-    return 0;
-}
-</code></pre><p>此時使用 <code>make qemu</code> 把 xv6 開機，並且執行 <code>trace 32 grep hello README;</code> 已經不會出現 error 了，可是行為上什麼都不會發生，因為我們還沒有把 <code>sys_trace()</code> 實作完成</p>
-<h4 id="43-開始實作-sys_trace-這個-system-call">4.3. 開始實作 <code>SYS_trace</code> 這個 system call<a hidden class="anchor" aria-hidden="true" href="#43-開始實作-sys_trace-這個-system-call">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_trace</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// TODO
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>此時使用 <code>make qemu</code> 把 xv6 開機，並且執行 <code>trace 32 grep hello README;</code> 已經不會出現 error 了，可是行為上什麼都不會發生，因為我們還沒有把 <code>sys_trace()</code> 實作完成</p>
+<h3 id="實做-sys_trace">實做 <code>sys_trace()</code><a hidden class="anchor" aria-hidden="true" href="#實做-sys_trace">#</a></h3>
+<p>經過先前一大串過程，終於成功編譯 <code>sys_trace()</code> 了，接著來實做 <code>sys_trace()</code></p>
+<blockquote>
+<p>Add a <code>sys_trace()</code> function in <code>kernel/sysproc.c</code> that implements the new system call by remembering its argument in a new variable in the <code>proc</code> structure (see <code>kernel/proc.h</code>). The functions to retrieve system call arguments from user space are in <code>kernel/syscall.c</code>, and you can see examples of their use in <code>kernel/sysproc.c</code>.</p></blockquote>
+<ul>
+<li><code>kernel/proc.h</code>: 在這裡新增一個記下 mask 的地方</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Per-process state
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> proc {
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// ...                             
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint trace_mask;             <span style="color:#75715e">// for system call trace
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><ul>
+<li><code>kernel/sysproc.c</code>: 把 <code>trace()</code> 的 argiment 放入 <code>trace_mask</code> 中</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_trace</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> trace_mask;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>trace_mask);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">myproc</span>()<span style="color:#f92672">-&gt;</span>trace_mask <span style="color:#f92672">=</span> trace_mask;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><blockquote>
+<p>Modify <code>fork()</code> (see <code>kernel/proc.c</code>) to copy the trace mask from the parent to the child process.</p></blockquote>
+<ul>
+<li><code>kernel/proc.c</code>: child 要繼承 parent 的 <code>trace_mask</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fork</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">//...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  np<span style="color:#f92672">-&gt;</span>sz <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>sz;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// copy saved user registers.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#f92672">*</span>(np<span style="color:#f92672">-&gt;</span>trapframe) <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>trapframe);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Cause fork to return 0 in the child.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  np<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0 <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// copy trace_mask to new process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  np<span style="color:#f92672">-&gt;</span>trace_mask <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>trace_mask;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><blockquote>
+<p>Modify the <code>syscall()</code> function in <code>kernel/syscall.c</code> to print the trace output. You will need to add an array of <code>syscall</code> names to index into.</p></blockquote>
+<ul>
+<li><code>krenel/syscall.c</code>: 如果有 <code>p-&gt;trace_mask</code> 的標記並且與當前的 systecm call number 符合 (<code>p-&gt;trace_mask &amp; (1 &lt;&lt; num)</code>) 則 <code>printf</code> 出題目所需要的資訊</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>syscall_names[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>[SYS_fork]    <span style="color:#e6db74">&#34;fork&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_exit]    <span style="color:#e6db74">&#34;exit&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_wait]    <span style="color:#e6db74">&#34;wait&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_pipe]    <span style="color:#e6db74">&#34;pipe&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_read]    <span style="color:#e6db74">&#34;read&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_kill]    <span style="color:#e6db74">&#34;kill&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_exec]    <span style="color:#e6db74">&#34;exec&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_fstat]   <span style="color:#e6db74">&#34;fstat&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_chdir]   <span style="color:#e6db74">&#34;chdir&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_dup]     <span style="color:#e6db74">&#34;dup&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_getpid]  <span style="color:#e6db74">&#34;getpid&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_sbrk]    <span style="color:#e6db74">&#34;sbrk&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_sleep]   <span style="color:#e6db74">&#34;sleep&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_uptime]  <span style="color:#e6db74">&#34;uptime&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_open]    <span style="color:#e6db74">&#34;open&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_write]   <span style="color:#e6db74">&#34;write&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_mknod]   <span style="color:#e6db74">&#34;mknod&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_unlink]  <span style="color:#e6db74">&#34;unlink&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_link]    <span style="color:#e6db74">&#34;link&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_mkdir]   <span style="color:#e6db74">&#34;mkdir&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_close]   <span style="color:#e6db74">&#34;close&#34;</span>,
+</span></span><span style="display:flex;"><span>[SYS_trace]   <span style="color:#e6db74">&#34;trace&#34;</span>,
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">syscall</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> num;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  num <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a7;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(num <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> num <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">NELEM</span>(syscalls) <span style="color:#f92672">&amp;&amp;</span> syscalls[num]) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Use num to lookup the system call function for num, call it,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// and store its return value in p-&gt;trapframe-&gt;a0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0 <span style="color:#f92672">=</span> syscalls[num]();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>trace_mask <span style="color:#f92672">&amp;</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> num)) {
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d: syscall %s -&gt; %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, 
+</span></span><span style="display:flex;"><span>          p<span style="color:#f92672">-&gt;</span>pid, syscall_names[num], p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d %s: unknown sys call %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
+</span></span><span style="display:flex;"><span>            p<span style="color:#f92672">-&gt;</span>pid, p<span style="color:#f92672">-&gt;</span>name, num);
+</span></span><span style="display:flex;"><span>    p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0 <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="sysinfo-moderate">Sysinfo (moderate)<a hidden class="anchor" aria-hidden="true" href="#sysinfo-moderate">#</a></h2>
+<p>題目敘述：</p>
+<blockquote>
+<p>In this assignment you will add a system call, <code>sysinfo</code>, that collects information about the running system. The system call takes one argument: a pointer to a struct <code>sysinfo</code> (see <code>kernel/sysinfo.h</code>). The kernel should fill out the fields of this struct: the <code>freemem</code> field should be set to the number of bytes of free memory, and the <code>nproc</code> field should be set to the number of processes whose state is not <code>UNUSED</code>. We provide a test program <code>sysinfotest</code>; you pass this assignment if it prints &ldquo;sysinfotest: OK&rdquo;.</p></blockquote>
+<h3 id="新增-system-call-sysinfo">新增 system call <code>sysinfo</code><a hidden class="anchor" aria-hidden="true" href="#新增-system-call-sysinfo">#</a></h3>
+<p>這裡跟前一題一樣，先新增一個 system call <code>sysinfo()</code></p>
+<ul>
+<li><code>user/user.h</code>: add <code>sysinfo(struct *sysinfo)</code></li>
+<li><code>user/usys.pl</code>: add <code>entry(&quot;sysinfo&quot;);</code></li>
+<li><code>kernel/syscall.h</code>: add <code>#define SYS_sysinfo 23</code></li>
+<li><code>kernel/syscall.c</code>: add <code>SYS_sysinfo</code> to <code>syscalls</code> and <code>syscall_names</code></li>
+<li><code>kernel/sysproc.c</code>: add the definition of <code>sys_sysinfo()</code></li>
+</ul>
+<p>然後針對測試程式 <code>sysinfotest</code> 記得要修改 <code>Makefile</code> 中的 <code>UPROGS</code></p>
+<h3 id="開始實做-sys_sysinfo">開始實做 <code>sys_sysinfo()</code><a hidden class="anchor" aria-hidden="true" href="#開始實做-sys_sysinfo">#</a></h3>
+<p>首先我們可以先觀察題目所需要的 <code>sysinfo</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> sysinfo {
+</span></span><span style="display:flex;"><span>  uint64 freemem;   <span style="color:#75715e">// amount of free memory (bytes)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 nproc;     <span style="color:#75715e">// number of process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><p>包含了</p>
+<ol>
+<li><code>freemem</code>: 剩餘的 memory</li>
+<li><code>nproc</code>: 目前的 process 數量</li>
+</ol>
+<p>接下來可以用三個面向來完成：</p>
+<ol>
+<li><code>sys_sysinfo()</code> 本身</li>
+<li><code>freemem()</code>: 取得剩餘的 memory</li>
+<li><code>nproc()</code>: 取得目前的 process 數量</li>
+</ol>
+<h3 id="1-sys_sysinfo-本身">1. <code>sys_sysinfo()</code> 本身<a hidden class="anchor" aria-hidden="true" href="#1-sys_sysinfo-本身">#</a></h3>
+<p><code>sys_sysinfo()</code> 的實做較為單純，就只是把 kernel 中的 <code>kinfo</code> 複製到 user 中的 <code>uinfo</code>，這個動作可利用 <code>kernel/vm.c</code> 當中的 <code>copyout()</code> 達成</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_sysinfo</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> sysinfo <span style="color:#f92672">*</span>kinfo;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>();
+</span></span><span style="display:flex;"><span>  uint64 uinfo;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argaddr</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>uinfo);
+</span></span><span style="display:flex;"><span>  kinfo<span style="color:#f92672">-&gt;</span>freemem <span style="color:#f92672">=</span> <span style="color:#a6e22e">freemem</span>();
+</span></span><span style="display:flex;"><span>  kinfo<span style="color:#f92672">-&gt;</span>nproc <span style="color:#f92672">=</span> <span style="color:#a6e22e">nproc</span>();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">copyout</span>(p<span style="color:#f92672">-&gt;</span>pagetable, uinfo, (<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>) kinfo, <span style="color:#66d9ef">sizeof</span>(kinfo)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>接下來的重點就會在於 <code>freemem()</code> 與 <code>nproc()</code> 該如何實做出來</p>
+<h3 id="2-nproc">2. <code>nproc()</code><a hidden class="anchor" aria-hidden="true" href="#2-nproc">#</a></h3>
+<p><code>proc()</code> 需要回傳目前的</p>
+<ul>
+<li><code>kernel/proc.h</code>: 可以利用 <code>struct proc</code> 中的 <code>state</code> 得知是否為使用中 (不為 <code>UNUSED</code> 都算)</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">enum</span> procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Per-process state
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> proc {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> spinlock lock;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// p-&gt;lock must be held when using these:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">enum</span> procstate state;        <span style="color:#75715e">// Process state
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>chan;                  <span style="color:#75715e">// If non-zero, sleeping on chan
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> killed;                  <span style="color:#75715e">// If non-zero, have been killed
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> xstate;                  <span style="color:#75715e">// Exit status to be returned to parent&#39;s wait
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> pid;                     <span style="color:#75715e">// Process ID
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// wait_lock must be held when using this:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>parent;         <span style="color:#75715e">// Parent process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// these are private to the process, so p-&gt;lock need not be held.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 kstack;               <span style="color:#75715e">// Virtual address of kernel stack
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 sz;                   <span style="color:#75715e">// Size of process memory (bytes)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">pagetable_t</span> pagetable;       <span style="color:#75715e">// User page table
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> trapframe <span style="color:#f92672">*</span>trapframe; <span style="color:#75715e">// data page for trampoline.S
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> context context;      <span style="color:#75715e">// swtch() here to run process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>ofile[NOFILE];  <span style="color:#75715e">// Open files
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>cwd;           <span style="color:#75715e">// Current directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">char</span> name[<span style="color:#ae81ff">16</span>];               <span style="color:#75715e">// Process name (debugging)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  uint trace_mask;             <span style="color:#75715e">// for system call trace
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><ul>
+<li><code>kernel/proc.c</code>: 有一個用來紀錄 process 的列表 <code>proc</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;types.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;param.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;memlayout.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;riscv.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;spinlock.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;proc.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;defs.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> cpu cpus[NCPU];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> proc proc[NPROC];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// helps ensure that wakeups of wait()ing
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// parents are not lost. helps obey the
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// memory model when using p-&gt;parent.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// must be acquired before any p-&gt;lock.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> spinlock wait_lock;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
+</span></span></span></code></pre></div><p>根據以上兩個程式碼片段，我們可以檢查 <code>proc</code> 中不為 <code>UNUSED</code> 的有多少</p>
+<ul>
+<li><code>kernel/proc.c: nproc()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">nproc</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> num <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> (p <span style="color:#f92672">=</span> proc; p <span style="color:#f92672">&lt;</span> <span style="color:#f92672">&amp;</span>proc[NPROC]; p<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>state <span style="color:#f92672">!=</span> UNUSED)
+</span></span><span style="display:flex;"><span>      num<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> num;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="3-freemem">3. <code>freemem()</code><a hidden class="anchor" aria-hidden="true" href="#3-freemem">#</a></h3>
+<p>這裡要看 <code>kernel/kalloc.c</code> 畢竟 memory allocation 的時候都是要經過這裡處理，我們也可以利用類似於 <code>kalloc()</code> 的程式碼片段</p>
+<ul>
+<li><code>kernel/kalloc.c</code>:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> spinlock lock;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>freelist;
+</span></span><span style="display:flex;"><span>} kmem;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">kalloc</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>r;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>kmem.lock);
+</span></span><span style="display:flex;"><span>  r <span style="color:#f92672">=</span> kmem.freelist;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(r)
+</span></span><span style="display:flex;"><span>    kmem.freelist <span style="color:#f92672">=</span> r<span style="color:#f92672">-&gt;</span>next;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>kmem.lock);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(r)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memset</span>((<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>)r, <span style="color:#ae81ff">5</span>, PGSIZE); <span style="color:#75715e">// fill with junk
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> (<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>)r;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>另外要注意的事情是 <code>kmem.freelist</code> 中，每一個 node 指到的是一個 page 所以最後還要考慮到一個 page 的大小，定義於 <code>kernel/riscv.h</code> 中的 <code>PGSIZE</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">freemem</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> npage <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>r;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>kmem.lock);
+</span></span><span style="display:flex;"><span>  r <span style="color:#f92672">=</span> kmem.freelist;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span> (r) {
+</span></span><span style="display:flex;"><span>    npage<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    r <span style="color:#f92672">=</span> r<span style="color:#f92672">-&gt;</span>next;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>kmem.lock);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> npage <span style="color:#f92672">*</span> PGSIZE;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>最後要再 <code>kernel/defs.h</code> 宣告 <code>nproc()</code> 與 <code>freemem()</code></p>
+<ul>
+<li><code>kernel/defs.h</code>:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// kalloc.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>uint64          <span style="color:#a6e22e">freemem</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// proc.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>uint64          <span style="color:#a6e22e">nproc</span>(<span style="color:#66d9ef">void</span>);
+</span></span></code></pre></div><p>最後使用 <code>sysinfotest</code> 做驗證，沒意外的話就完成這個 lab 了</p>
 
 
   </div>
