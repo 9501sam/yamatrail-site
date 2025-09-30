@@ -15,8 +15,6 @@
       <guid>http://localhost:1313/xv6/gdb/</guid>
       <description>&lt;p&gt;本文目標：照著以下步驟就可以看到整個 system call 的過程
 整個過程大致上都是照著&lt;a href=&#34;https://www.youtube.com/watch?v=T26UuauaxWA&#34;&gt;這個影片&lt;/a&gt;做的，但其中有幾個步驟稍稍的不同。&lt;/p&gt;
-&lt;h2 id=&#34;1-架設-xv6-的環境&#34;&gt;1. 架設 xv6 的環境&lt;/h2&gt;
-&lt;p&gt;&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/tools.html&#34;&gt;https://pdos.csail.mit.edu/6.S081/2022/tools.html&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;2-用-gdb-multiarch-debug-xv6-的方式&#34;&gt;2. 用 gdb-multiarch debug xv6 的方式&lt;/h2&gt;
 &lt;p&gt;這裡會需要開啟 2 個終端機，&lt;/p&gt;
 &lt;p&gt;先在其中一個終端機輸入&lt;/p&gt;
@@ -31,8 +29,15 @@ target remote 127.0.0.1:26000 # 透過這個來找到 qemu
 symbol-file kernel/kernel
 set disassemble-next-line auto
 set riscv use-compressed-breakpoints yes
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;3-追蹤-system-call-write&#34;&gt;3. 追蹤 system call: &lt;code&gt;write&lt;/code&gt;&lt;/h2&gt;
-&lt;p&gt;目標：先觀察執行 &lt;code&gt;make qemu&lt;/code&gt; 後 xv6 開機時，會顯示的畫面&lt;/p&gt;</description>
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;動機-的出現&#34;&gt;動機：&lt;code&gt;$&lt;/code&gt; 的出現&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;make qemu&lt;/code&gt; 後 xv6 開機時，會顯示的畫面&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-sh=&#34; data-lang=&#34;sh=&#34;&gt;xv6 kernel is booting
+
+hart 1 starting
+hart 2 starting
+init: starting sh
+$ 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;xv6 第一個執行的程式是 &lt;code&gt;sh&lt;/code&gt;，它最一開始會 print 出字元 &lt;code&gt;$&lt;/code&gt; print 的過程需要使用 system call &lt;code&gt;write&lt;/code&gt;。&lt;/p&gt;</description>
     </item>
     <item>
       <title>[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities</title>
@@ -95,7 +100,7 @@ set riscv use-compressed-breakpoints yes
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;沒意外的話，會出現以上的畫面&lt;/p&gt;</description>
     </item>
     <item>
-      <title>[xv6 學習紀錄 02] Lab: Xv6 and Unix utilities</title>
+      <title>[xv6 學習紀錄 02] Lab: system calls</title>
       <link>http://localhost:1313/xv6/lab2/</link>
       <pubDate>Wed, 24 Sep 2025 13:07:09 +0800</pubDate>
       <guid>http://localhost:1313/xv6/lab2/</guid>

@@ -1,7 +1,7 @@
 +++
 date = '2025-09-24T13:07:09+08:00'
 draft = false
-title = '[xv6 學習紀錄 02] Lab: Xv6 and Unix utilities'
+title = '[xv6 學習紀錄 02] Lab: system calls'
 series = ["xv6 學習紀錄"]
 weight = 2
 +++
@@ -191,14 +191,61 @@ sys_read(void) // 由步驟 2 呼叫而到這裡執行
 #### 用 gdb-multiarch debug xv6 的方式
 這裡會需要開啟 2 個終端機
 先在其中一個終端機輸入
-```sh
+```sh=
 make qemu-gdb
 ```
 在另一個終端機輸入
-```sh
+```sh=
 gdb-multiarch
 ```
+第一次執行 `gdb-multiarch` 時，可能會出現
+```sh
+To enable execution of this file add
+        add-auto-load-safe-path <path>/xv6-labs-2022/.gdbinit
+line to your configuration file "<home path>/.gdbinit".
+```
+就照著他的指示修改你的 `~/.gdbinit` 接著在重新 `make qemu-gdb` 與 `gdb-multiarch` 就可以了。
 
+### 呼叫到 `syscall()` 的 function
+
+在 `gdb-multiarch` 的終端機中，執行：
+```gdb=
+(gdb) b syscall
+```
+```gdb=
+(gdb) c
+```
+```gdb=
+(gdb) layout src
+```
+```gdb=
+(gdb) backtrace
+```
+
+> Looking at the backtrace output, which function called syscall?   
+  
+這題的答案直接看執行的結果，可得知是在 `usertrap() at kernel/trap.c:67`
+
+![gdb_backtrace.png](gdb_backtrace.png)
+
+### `p->trapframe->a7` 的意義
+>  Type n a few times to step pass `struct proc *p = myproc();` Once past this statement, type `p /x *p`, which prints the current process's `proc struct` (see `kernel/proc.h`) in hex. What is the value of `p->trapframe->a7` and what does that value represent? (Hint: look `user/initcode.S`, the first user program xv6 starts.)  
+
+這題照著題目的指示做，可以知道 `p->trapframe->a7 == 7` 他的意義在於 
+* `#define SYS_exec    7`  
+題目也提及可以用 `user/initcode.S` 回推他的意義
+  
+![myproc.png](myproc.png)
+![a7.png](a7.png)
+
+### `sstatus` 的意義
+> The processor is running in kernel mode, and we can print privileged registers such as sstatus (see [RISC-V privileged instructions](https://github.com/riscv/riscv-isa-manual/releases/download/Priv-v1.12/riscv-privileged-20211203.pdf) for a description): 
+
+![sstatus_kernel.png](sstatus_kernel.png)
+使用 `p /x $sstatus` 可以得知現在 sstatus 的值為 `0x22`
+
+> What was the previous mode that the CPU was in? 
+觀看 [RISC-V privileged instructions](https://github.com/riscv/riscv-isa-manual/releases/download/Priv-v1.12/riscv-privileged-20211203.pdf)
 ---
 ## 4. System call tracing
 這個 lab 只需要照著下面的 some hints 一步一步的做，就可以完成了

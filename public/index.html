@@ -136,12 +136,12 @@
   </header>
   <div class="entry-content">
     <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。
-1. 架設 xv6 的環境 https://pdos.csail.mit.edu/6.S081/2022/tools.html
 2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
 先在其中一個終端機輸入
 make qemu-gdb #　這是被 debug 的對象 在另一個終端機輸入
 gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 不知道也沒關係的點：gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的
-# .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 3. 追蹤 system call: write 目標：先觀察執行 make qemu 後 xv6 開機時，會顯示的畫面
+# .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 動機：$ 的出現 make qemu 後 xv6 開機時，會顯示的畫面
+xv6 kernel is booting hart 1 starting hart 2 starting init: starting sh $ xv6 第一個執行的程式是 sh，它最一開始會 print 出字元 $ print 的過程需要使用 system call write。
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer>
@@ -215,7 +215,7 @@ https://cloud.google.com/free?hl=en
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 02] Lab: Xv6 and Unix utilities
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 02] Lab: system calls
     </h2>
   </header>
   <div class="entry-content">
@@ -224,7 +224,7 @@ https://cloud.google.com/free?hl=en
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 02] Lab: Xv6 and Unix utilities" href="http://localhost:1313/xv6/lab2/"></a>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 02] Lab: system calls" href="http://localhost:1313/xv6/lab2/"></a>
 </article>
 
 <article class="post-entry"> 

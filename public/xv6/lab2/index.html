@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>[xv6 學習紀錄 02] Lab: Xv6 and Unix utilities | Yama&#39;s Trail</title>
+<title>[xv6 學習紀錄 02] Lab: system calls | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
 <meta name="description" content="Lab 連結: Lab: system calls
 大綱
@@ -156,7 +156,7 @@ System call tracing
   <header class="post-header">
     
     <h1 class="post-title entry-hint-parent">
-      [xv6 學習紀錄 02] Lab: Xv6 and Unix utilities
+      [xv6 學習紀錄 02] Lab: system calls
     </h1>
     <div class="post-meta"><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span>
 
@@ -342,10 +342,43 @@ read:
 <h4 id="用-gdb-multiarch-debug-xv6-的方式">用 gdb-multiarch debug xv6 的方式<a hidden class="anchor" aria-hidden="true" href="#用-gdb-multiarch-debug-xv6-的方式">#</a></h4>
 <p>這裡會需要開啟 2 個終端機
 先在其中一個終端機輸入</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make qemu-gdb
-</span></span></code></pre></div><p>在另一個終端機輸入</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>gdb-multiarch
-</span></span></code></pre></div><hr>
+<pre tabindex="0"><code class="language-sh=" data-lang="sh=">make qemu-gdb
+</code></pre><p>在另一個終端機輸入</p>
+<pre tabindex="0"><code class="language-sh=" data-lang="sh=">gdb-multiarch
+</code></pre><p>第一次執行 <code>gdb-multiarch</code> 時，可能會出現</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>To enable execution of this file add
+</span></span><span style="display:flex;"><span>        add-auto-load-safe-path &lt;path&gt;/xv6-labs-2022/.gdbinit
+</span></span><span style="display:flex;"><span>line to your configuration file <span style="color:#e6db74">&#34;&lt;home path&gt;/.gdbinit&#34;</span>.
+</span></span></code></pre></div><p>就照著他的指示修改你的 <code>~/.gdbinit</code> 接著在重新 <code>make qemu-gdb</code> 與 <code>gdb-multiarch</code> 就可以了。</p>
+<h3 id="呼叫到-syscall-的-function">呼叫到 <code>syscall()</code> 的 function<a hidden class="anchor" aria-hidden="true" href="#呼叫到-syscall-的-function">#</a></h3>
+<p>在 <code>gdb-multiarch</code> 的終端機中，執行：</p>
+<pre tabindex="0"><code class="language-gdb=" data-lang="gdb=">(gdb) b syscall
+</code></pre><pre tabindex="0"><code class="language-gdb=" data-lang="gdb=">(gdb) c
+</code></pre><pre tabindex="0"><code class="language-gdb=" data-lang="gdb=">(gdb) layout src
+</code></pre><pre tabindex="0"><code class="language-gdb=" data-lang="gdb=">(gdb) backtrace
+</code></pre><blockquote>
+<p>Looking at the backtrace output, which function called syscall?</p></blockquote>
+<p>這題的答案直接看執行的結果，可得知是在 <code>usertrap() at kernel/trap.c:67</code></p>
+<p><img alt="gdb_backtrace.png" loading="lazy" src="/xv6/lab2/gdb_backtrace.png"></p>
+<h3 id="p-trapframe-a7-的意義"><code>p-&gt;trapframe-&gt;a7</code> 的意義<a hidden class="anchor" aria-hidden="true" href="#p-trapframe-a7-的意義">#</a></h3>
+<blockquote>
+<p>Type n a few times to step pass <code>struct proc *p = myproc();</code> Once past this statement, type <code>p /x *p</code>, which prints the current process&rsquo;s <code>proc struct</code> (see <code>kernel/proc.h</code>) in hex. What is the value of <code>p-&gt;trapframe-&gt;a7</code> and what does that value represent? (Hint: look <code>user/initcode.S</code>, the first user program xv6 starts.)</p></blockquote>
+<p>這題照著題目的指示做，可以知道 <code>p-&gt;trapframe-&gt;a7 == 7</code> 他的意義在於</p>
+<ul>
+<li><code>#define SYS_exec    7</code><br>
+題目也提及可以用 <code>user/initcode.S</code> 回推他的意義</li>
+</ul>
+<p><img alt="myproc.png" loading="lazy" src="/xv6/lab2/myproc.png">
+<img alt="a7.png" loading="lazy" src="/xv6/lab2/a7.png"></p>
+<h3 id="sstatus-的意義"><code>sstatus</code> 的意義<a hidden class="anchor" aria-hidden="true" href="#sstatus-的意義">#</a></h3>
+<blockquote>
+<p>The processor is running in kernel mode, and we can print privileged registers such as sstatus (see <a href="https://github.com/riscv/riscv-isa-manual/releases/download/Priv-v1.12/riscv-privileged-20211203.pdf">RISC-V privileged instructions</a> for a description):</p></blockquote>
+<p><img alt="sstatus_kernel.png" loading="lazy" src="/xv6/lab2/sstatus_kernel.png">
+使用 <code>p /x $sstatus</code> 可以得知現在 sstatus 的值為 <code>0x22</code></p>
+<blockquote>
+<p>What was the previous mode that the CPU was in?
+觀看 <a href="https://github.com/riscv/riscv-isa-manual/releases/download/Priv-v1.12/riscv-privileged-20211203.pdf">RISC-V privileged instructions</a></p></blockquote>
+<hr>
 <h2 id="4-system-call-tracing">4. System call tracing<a hidden class="anchor" aria-hidden="true" href="#4-system-call-tracing">#</a></h2>
 <p>這個 lab 只需要照著下面的 some hints 一步一步的做，就可以完成了</p>
 <h4 id="41-在-makefile-中的-uprogs-區塊新增-u_trace">4.1. 在 <code>Makefile</code> 中的 <code>UPROGS</code> 區塊新增 <code>$U/_trace</code>:<a hidden class="anchor" aria-hidden="true" href="#41-在-makefile-中的-uprogs-區塊新增-u_trace">#</a></h4>
