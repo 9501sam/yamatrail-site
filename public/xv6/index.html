@@ -7,7 +7,8 @@
 <meta name="robots" content="noindex, nofollow">
 <title>xv6 學習紀錄 | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
-<meta name="description" content="xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的解題紀錄，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。">
+<meta name="description" content="xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的解題紀錄，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。
+課程連結">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/xv6/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
@@ -124,6 +125,7 @@
   </h1>
 </header>
 <div class="post-content"><p>xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的<a href="https://hackmd.io/@xv6">解題紀錄</a>，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。</p>
+<p><a href="https://pdos.csail.mit.edu/6.S081/2022/schedule.html">課程連結</a></p>
 
 
 </div>
@@ -175,6 +177,21 @@ Boot xv6(Easy) 題目敘述： 這部份的詳細內容都寫在 lab util 中，
   </div>
   <footer class="entry-footer"><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 02] Lab: system calls" href="http://localhost:1313/xv6/lab2/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 03] Lab: page tables
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: lab pgtbl
+xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
+MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 所以最大的 virtual address MAXVA也就是 0b111111111111111111111111111111111111111(39 1s): // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) Direct Mapping 的區域：KERNBASE ~ PHYSTOP 這一段 0x80000000 ~ 0x88000000 是作為一般的 memory 空間使用，並且在 kernel 這一段的 mapping 中，是使用 Direct Mapping 的方式，也就是 virtual address == physical address 的意思，這麼做的好處在於 kernel 可以直接使用 physical address 對 memory 進行操作
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href="http://localhost:1313/xv6/lab3/"></a>
 </article>
     </main>
     

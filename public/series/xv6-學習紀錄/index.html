@@ -172,6 +172,23 @@ Boot xv6(Easy) 題目敘述： 這部份的詳細內容都寫在 lab util 中，
   <footer class="entry-footer"><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 02] Lab: system calls" href="http://localhost:1313/xv6/lab2/"></a>
 </article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 03] Lab: page tables
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: lab pgtbl
+xv6 中的 virtual memory 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 程式碼解析 在理解 virtual memory 的概念之後，題目建議我們先閱讀以下三個檔案：
+kernel/memlayout.h, which captures the layout of memory. kernel/vm.c, which contains most virtual memory (VM) code. kernel/kalloc.c, which contains code for allocating and freeing physical memory. 這讓我們可以清楚的知道圖片上的概念要如何與程式碼做連結
+資料結構 pagetable_t, pte_t 那讓我們先從先前看過幾次的 page table 開始，
+typedef uint64 pte_t; typedef uint64 *pagetable_t; // 512 PTEs page table 對應到的是一個 pagetable_t，並且可以把它想成是 array of PTE(pte_t)，這也相當合理，如同先前的圖片所示，page table 本身也就只是用來紀錄 512 個 PTE 的資料結構。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href="http://localhost:1313/xv6/lab3/"></a>
+</article>
     </main>
     
 <footer class="footer">

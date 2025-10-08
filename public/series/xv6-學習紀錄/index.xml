@@ -6,7 +6,7 @@
     <description>Recent content in Xv6 學習紀錄 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Sat, 27 Sep 2025 15:46:30 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 02 Oct 2025 13:09:35 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>如何使用 gdb 追蹤 xv6 的 system call 過程</title>
@@ -139,6 +139,34 @@ $
 #define SYS_close  21
 &lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;2-以程式碼的觀點來理解-xv6-的-system-call-流程&#34;&gt;2. 以程式碼的觀點來理解 xv6 的 system call 流程&lt;/h2&gt;
 &lt;p&gt;以下使用 &lt;code&gt;user/cat.c&lt;/code&gt; 為例，來探討 xv6 的 system call 流程，流程中有 3 大步驟&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 03] Lab: page tables</title>
+      <link>http://localhost:1313/xv6/lab3/</link>
+      <pubDate>Thu, 02 Oct 2025 13:09:35 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab3/</guid>
+      <description>&lt;p&gt;Lab 連結: &lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/pgtbl.html&#34;&gt;lab pgtbl&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;xv6-中的-virtual-memory&#34;&gt;xv6 中的 virtual memory&lt;/h2&gt;
+&lt;p&gt;&lt;img alt=&#34;page_table.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3/page_table.png&#34;&gt;
+&lt;img alt=&#34;3levels_page_table.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3/3levels_page_table.png&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table&lt;/li&gt;
+&lt;li&gt;一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;程式碼解析&#34;&gt;程式碼解析&lt;/h2&gt;
+&lt;p&gt;在理解 virtual memory 的概念之後，題目建議我們先閱讀以下三個檔案：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;kernel/memlayout.h&lt;/code&gt;, which captures the layout of memory.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kernel/vm.c&lt;/code&gt;, which contains most virtual memory (VM) code.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kernel/kalloc.c&lt;/code&gt;, which contains code for allocating and freeing physical memory.&lt;/li&gt;
+&lt;/ul&gt;&lt;/blockquote&gt;
+&lt;p&gt;這讓我們可以清楚的知道圖片上的概念要如何與程式碼做連結&lt;/p&gt;
+&lt;h3 id=&#34;資料結構-pagetable_t-pte_t&#34;&gt;資料結構 &lt;code&gt;pagetable_t&lt;/code&gt;, &lt;code&gt;pte_t&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;那讓我們先從先前看過幾次的 page table 開始，&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C&#34; data-lang=&#34;C&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; uint64 &lt;span style=&#34;color:#66d9ef&#34;&gt;pte_t&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; uint64 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;pagetable_t&lt;/span&gt;; &lt;span style=&#34;color:#75715e&#34;&gt;// 512 PTEs
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;page table 對應到的是一個 &lt;code&gt;pagetable_t&lt;/code&gt;，並且可以把它想成是 array of PTE(&lt;code&gt;pte_t&lt;/code&gt;)，這也相當合理，如同先前的圖片所示，page table 本身也就只是用來紀錄 512 個 PTE 的資料結構。&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

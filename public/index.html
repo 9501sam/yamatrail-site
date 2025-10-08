@@ -245,6 +245,21 @@ Type: A name: yamatrail.com IPv4 Address: 填入 vm 的 IP (在 google cloud 上
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 03] Lab: page tables
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: lab pgtbl
+xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
+MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 所以最大的 virtual address MAXVA也就是 0b111111111111111111111111111111111111111(39 1s): // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) Direct Mapping 的區域：KERNBASE ~ PHYSTOP 這一段 0x80000000 ~ 0x88000000 是作為一般的 memory 空間使用，並且在 kernel 這一段的 mapping 中，是使用 Direct Mapping 的方式，也就是 virtual address == physical address 的意思，這麼做的好處在於 kernel 可以直接使用 physical address 對 memory 進行操作
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href="http://localhost:1313/xv6/lab3/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[這個網站的誕生: 03] 使用 Hugo 產生網站
     </h2>
   </header>
@@ -274,22 +289,6 @@ ssh key 的準備：在筆電和 VM 之間建立一對專門用於自動化部�
   </div>
   <footer class="entry-footer"><span title='2025-09-25 12:16:16 +0800 CST'>September 25, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [這個網站的誕生: 04] Github Actions 建立自動部署" href="http://localhost:1313/dev-log/github-actions/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>題目連結：334. Increasing Triplet Subsequence
-解題思路 這題我剛開始是朝著先找出 i 與 k 之後再檢查 j 是否存在，想了幾遍都覺得有些瑕疵，後來發現依照 i, j, k 的順序尋找會比較合理一些，可以用很 greedy 的方式去尋找。
-如果再來一次的話，我應該會先列出以下兩種可能：
-先找出最大最小的 i 與 k, 再找出中間的 j 依照順序尋找 i, j, k 評估之後挑選較有可能的順序，並且保持另一個方案的可能性。
-程式碼 class Solution { public: bool increasingTriplet(vector&lt;int&gt;&amp; nums) { if (nums.size() &lt; 3) return false; int i = 0; int j = -1; for (int l = 1; l &lt; nums.size(); l&#43;&#43;) { if (nums[l] &lt; nums[i]) { i = l; } else if (j &gt; 0 &amp;&amp; nums[l] &gt; nums[j]) { return true; } else if (nums[l] &gt; nums[i]) { j = l; } } return false; } }; </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-30 11:13:47 +0800 CST'>September 30, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)" href="http://localhost:1313/leetcode/334-increasing-triplet-subsequence/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">
