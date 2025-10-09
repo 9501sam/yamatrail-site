@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>[xv6 學習紀錄 04-1] 使用 GDB 追蹤 user program 以了解 RISC-V 的 Calling Convention 與 Stack Frames | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="課程影片連結：
+
+6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 
+
+這篇文章目的在於整理這個影片的重點，主要有以下的重點
+
+
+如何用 GDB 追蹤 user program
+
+
+RISC-V 的 Calling Convention
+
+RISC-V 的 register (Caller and Callee saved)
+RISC-V 的 Stack Frame
+
+
+
+kernel/defs.h
+
+
+// demos.c
+void            demo1(void);
+void            demo2(void);
+void            demo3(void);
+void            demo4(void);
+void            demo5(void);
+void            demo6(void);
+void            demo7(void);
+
+// asmdemo.S
+int             sum_to(int);
+int             sum_then_double(int);
+
+kernel/demos.c
+
+#include &#34;types.h&#34;
+#include &#34;riscv.h&#34;
+#include &#34;defs.h&#34;
+#include &#34;date.h&#34;
+#include &#34;param.h&#34;
+#include &#34;memlayout.h&#34;
+#include &#34;spinlock.h&#34;
+#include &#34;proc.h&#34;
+#include &#34;sysinfo.h&#34;
+
+void demo1()
+{
+	printf(&#34;Result: %d\n&#34;, sum_to(5));
+}
+
+void demo2()
+{
+	printf(&#34;Tesult: %d\n&#34;, sum_ten_double(5));
+}
+
+void _demo3(char a, char b, char c, char d, char e, char f, char g, char h, char i, char j)
+{
+	printf(&#34;%d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n&#34;, a, b, c, d, e, f, g, h, i, j);
+}
+
+void demo3()
+{
+	_demo3(&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;, &#39;h&#39;, &#39;i&#39;, &#39;j&#39;);
+}
+
+int dummymain(int argc, char *argv[])
+{
+	int i = 0;
+	for (; i &lt; argc; i&#43;&#43;)
+	{
+		printf(&#34;Argument %d: %s\n&#34;, i, argv[i]);
+	}
+	return 0;
+}
+
+void demo4()
+{
+	char *args[] = {&#34;foo&#34;, &#34;bar&#34;, &#34;baz&#34;};
+	int result = dummymain(sizeof(args)/sizeof(args[0]), args);
+	if (result &lt; 0)
+		panic(&#34;Demo 4&#34;);
+}
+
+int _dummy(int n)
+{
+	int div = 5;
+	int sum = 0;
+	for (int i=0; i &lt; n; i&#43;&#43;)
+	{
+		if (i % div == 0) sum &#43;= i;
+	}
+	return sum;
+}
+
+void demo5()
+{
+	printf(&#34;Demo\n&#34;);
+	int top = 50;
+	int result = _dummy(top);
+	printf(&#34;Result: %d\n&#34;, result);
+}
+
+void demo6()
+{
+	int sum = 0;
+	for (int i = 1; i &lt; 10; i&#43;&#43;)
+	{
+		sum &#43;= 3 *i;
+		printf(&#34;%d\n&#34;, sum_to(i));
+	}
+	printf(&#34;Sum: %d\n&#34;, sum);
+}
+
+struct Person {
+	int id;
+	int age;
+	// char *name;
+};
+
+void printPerson(struct Person *p)
+{
+	printf(&#34;Person %d (%d)\n&#34;, p-&gt;id, p-&gt;age);
+	// printf(&#34;Name:%s: %d (%d)\n&#34;, p-&gt;name, p-&gt;id, p-&gt;age);
+}
+
+void demo7()
+{
+	// Structs
+	struct Person p;
+	p.id = 1215;
+	p.age = 22;
+	// p.name = &#34;Nick&#34;;
+	printPerson(&amp;p);
+}
+
+kernel/asmdemo.S
+
+
+Makefile
+
+OBJS = \
+  $K/entry.o \
+  $K/kalloc.o \
+  $K/string.o \
+  ...
+  $K/plic.o \
+  $K/virtio_disk.o \
+  $K/demos.o \
+  $K/asmdemo.o
+新增 system call demo()
+
+
+user/usys.pl 加上 entry(demo);">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/xv6/lab4.1/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/lab4.1/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      [xv6 學習紀錄 04-1] 使用 GDB 追蹤 user program 以了解 RISC-V 的 Calling Convention 與 Stack Frames
+    </h1>
+    <div class="post-meta"><span title='2025-10-09 19:09:13 +0800 CST'>October 9, 2025</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>課程影片連結：</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=s-Z5t_yTyTM">6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames </a></li>
+</ul>
+<p>這篇文章目的在於整理這個影片的重點，主要有以下的重點</p>
+<ul>
+<li>
+<p>如何用 <code>GDB</code> 追蹤 user program</p>
+</li>
+<li>
+<p>RISC-V 的 Calling Convention</p>
+<ul>
+<li>RISC-V 的 register (Caller and Callee saved)</li>
+<li>RISC-V 的 Stack Frame</li>
+</ul>
+</li>
+<li>
+<p><code>kernel/defs.h</code></p>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// demos.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>            <span style="color:#a6e22e">demo1</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>            <span style="color:#a6e22e">demo2</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>            <span style="color:#a6e22e">demo3</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>            <span style="color:#a6e22e">demo4</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>            <span style="color:#a6e22e">demo5</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>            <span style="color:#a6e22e">demo6</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>            <span style="color:#a6e22e">demo7</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// asmdemo.S
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>             <span style="color:#a6e22e">sum_to</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>             <span style="color:#a6e22e">sum_then_double</span>(<span style="color:#66d9ef">int</span>);
+</span></span></code></pre></div><ul>
+<li><code>kernel/demos.c</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;types.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;riscv.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;defs.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;date.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;param.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;memlayout.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;spinlock.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;proc.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;sysinfo.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">demo1</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Result: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">sum_to</span>(<span style="color:#ae81ff">5</span>));
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">demo2</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Tesult: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">sum_ten_double</span>(<span style="color:#ae81ff">5</span>));
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">_demo3</span>(<span style="color:#66d9ef">char</span> a, <span style="color:#66d9ef">char</span> b, <span style="color:#66d9ef">char</span> c, <span style="color:#66d9ef">char</span> d, <span style="color:#66d9ef">char</span> e, <span style="color:#66d9ef">char</span> f, <span style="color:#66d9ef">char</span> g, <span style="color:#66d9ef">char</span> h, <span style="color:#66d9ef">char</span> i, <span style="color:#66d9ef">char</span> j)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d, %d, %d, %d, %d, %d, %d, %d, %d, %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, a, b, c, d, e, f, g, h, i, j);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">demo3</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">_demo3</span>(<span style="color:#e6db74">&#39;a&#39;</span>, <span style="color:#e6db74">&#39;b&#39;</span>, <span style="color:#e6db74">&#39;c&#39;</span>, <span style="color:#e6db74">&#39;d&#39;</span>, <span style="color:#e6db74">&#39;e&#39;</span>, <span style="color:#e6db74">&#39;f&#39;</span>, <span style="color:#e6db74">&#39;g&#39;</span>, <span style="color:#e6db74">&#39;h&#39;</span>, <span style="color:#e6db74">&#39;i&#39;</span>, <span style="color:#e6db74">&#39;j&#39;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">dummymain</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> (; i <span style="color:#f92672">&lt;</span> argc; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Argument %d: %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, i, argv[i]);
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">demo4</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>args[] <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;foo&#34;</span>, <span style="color:#e6db74">&#34;bar&#34;</span>, <span style="color:#e6db74">&#34;baz&#34;</span>};
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> result <span style="color:#f92672">=</span> <span style="color:#a6e22e">dummymain</span>(<span style="color:#66d9ef">sizeof</span>(args)<span style="color:#f92672">/</span><span style="color:#66d9ef">sizeof</span>(args[<span style="color:#ae81ff">0</span>]), args);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> (result <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;Demo 4&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_dummy</span>(<span style="color:#66d9ef">int</span> n)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> div <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> (i <span style="color:#f92672">%</span> div <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) sum <span style="color:#f92672">+=</span> i;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> sum;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">demo5</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Demo</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> top <span style="color:#f92672">=</span> <span style="color:#ae81ff">50</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> result <span style="color:#f92672">=</span> <span style="color:#a6e22e">_dummy</span>(top);
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Result: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, result);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">demo6</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">10</span>; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>	{
+</span></span><span style="display:flex;"><span>		sum <span style="color:#f92672">+=</span> <span style="color:#ae81ff">3</span> <span style="color:#f92672">*</span>i;
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">sum_to</span>(i));
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Sum: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, sum);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> Person {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> id;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> age;
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// char *name;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">printPerson</span>(<span style="color:#66d9ef">struct</span> Person <span style="color:#f92672">*</span>p)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Person %d (%d)</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p<span style="color:#f92672">-&gt;</span>id, p<span style="color:#f92672">-&gt;</span>age);
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// printf(&#34;Name:%s: %d (%d)\n&#34;, p-&gt;name, p-&gt;id, p-&gt;age);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">demo7</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Structs
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">struct</span> Person p;
+</span></span><span style="display:flex;"><span>	p.id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1215</span>;
+</span></span><span style="display:flex;"><span>	p.age <span style="color:#f92672">=</span> <span style="color:#ae81ff">22</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// p.name = &#34;Nick&#34;;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">printPerson</span>(<span style="color:#f92672">&amp;</span>p);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>kernel/asmdemo.S</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"></code></pre></div><ul>
+<li><code>Makefile</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>OBJS <span style="color:#f92672">=</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  $K/entry.o <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  $K/kalloc.o <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  $K/string.o <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  ...
+</span></span><span style="display:flex;"><span>  $K/plic.o <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  $K/virtio_disk.o <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  $K/demos.o <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  $K/asmdemo.o
+</span></span></code></pre></div><h4 id="新增-system-call-demo">新增 system call <code>demo()</code><a hidden class="anchor" aria-hidden="true" href="#新增-system-call-demo">#</a></h4>
+<ul>
+<li>
+<p><code>user/usys.pl</code> 加上 <code>entry(demo);</code></p>
+</li>
+<li>
+<p><code>user/user.h</code> 加上 <code>int demo(int);</code></p>
+</li>
+<li>
+<p><code>kernel/syscall.h</code> 加上 <code>#define SYS_demo 22</code></p>
+</li>
+<li>
+<p><code>kernel/syscall.c</code> 加上</p>
+<ul>
+<li><code>extern uint64 sys_demo(void);</code></li>
+<li><code>[SYS_demo]    sys_demo,</code></li>
+</ul>
+</li>
+<li>
+<p><code>kernel/sysproc.c</code>: 實做 <code>sys_demo</code></p>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_demo</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>n);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;=</span> n <span style="color:#f92672">&amp;&amp;</span> n <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">7</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">switch</span>(n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">demo1</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">demo2</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">3</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">demo3</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">4</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">demo4</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">5</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">demo5</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">6</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">demo6</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#ae81ff">7</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">demo7</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>user/demo.c</code>: 使用 system call <code>demo()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/types.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;kernel/stat.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;user/user.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (argc <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;usage: demo &lt;1 ~ 7&gt;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  n <span style="color:#f92672">=</span> argv[<span style="color:#ae81ff">1</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">-</span> <span style="color:#e6db74">&#39;0&#39;</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;=</span> n <span style="color:#f92672">&amp;&amp;</span> n <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">7</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">demo</span>(n);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fprintf</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;usage: demo &lt;1 ~ 7&gt;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="從-c-language-到-assembly-以及用-gdb-追蹤">從 C language 到 Assembly, 以及用 <code>GDB</code> 追蹤<a hidden class="anchor" aria-hidden="true" href="#從-c-language-到-assembly-以及用-gdb-追蹤">#</a></h2>
+<h2 id="caller-saved-與-callee-saved-registers">Caller Saved 與 Callee Saved Registers<a hidden class="anchor" aria-hidden="true" href="#caller-saved-與-callee-saved-registers">#</a></h2>
+<h2 id="stack-frames">Stack Frames<a hidden class="anchor" aria-hidden="true" href="#stack-frames">#</a></h2>
+<h2 id="如果打破-convention-會發生什麼事情">如果打破 Convention 會發生什麼事情<a hidden class="anchor" aria-hidden="true" href="#如果打破-convention-會發生什麼事情">#</a></h2>
+<h2 id="好用的-gdb-指令">好用的 <code>GDB</code> 指令<a hidden class="anchor" aria-hidden="true" href="#好用的-gdb-指令">#</a></h2>
+<h3 id="break-at-userdemoc">break at <code>user/demo.c</code><a hidden class="anchor" aria-hidden="true" href="#break-at-userdemoc">#</a></h3>
+<pre tabindex="0"><code class="language-gdb" data-lang="gdb">(gdb) add-symbol-file user/_demo
+</code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">(gdb) b user/demo.c:10
+</code></pre><h3 id="執行一行-c-code">執行一行 c code<a hidden class="anchor" aria-hidden="true" href="#執行一行-c-code">#</a></h3>
+<pre tabindex="0"><code class="language-gdb" data-lang="gdb">next
+</code></pre><h2 id="附錄gdb-cheat-list">附錄：<code>GDB</code> Cheat List<a hidden class="anchor" aria-hidden="true" href="#附錄gdb-cheat-list">#</a></h2>
+<ul>
+<li><code>delete</code>: delete all the breakpoints</li>
+</ul>
+<pre tabindex="0"><code class="language-gdb" data-lang="gdb">p *argv@argc
+</code></pre>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

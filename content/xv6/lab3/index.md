@@ -3,7 +3,7 @@ date = '2025-10-02T13:09:35+08:00'
 draft = false
 title = '[xv6 學習紀錄 03] Lab: page tables'
 series = ["xv6 學習紀錄"]
-weight = 3
+weight = 30
 +++
 Lab 連結: [lab pgtbl](https://pdos.csail.mit.edu/6.S081/2022/labs/pgtbl.html)
 

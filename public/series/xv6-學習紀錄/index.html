@@ -180,14 +180,41 @@ Boot xv6(Easy) 題目敘述： 這部份的詳細內容都寫在 lab util 中，
   </header>
   <div class="entry-content">
     <p>Lab 連結: lab pgtbl
-xv6 中的 virtual memory 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 程式碼解析 在理解 virtual memory 的概念之後，題目建議我們先閱讀以下三個檔案：
-kernel/memlayout.h, which captures the layout of memory. kernel/vm.c, which contains most virtual memory (VM) code. kernel/kalloc.c, which contains code for allocating and freeing physical memory. 這讓我們可以清楚的知道圖片上的概念要如何與程式碼做連結
-資料結構 pagetable_t, pte_t 那讓我們先從先前看過幾次的 page table 開始，
-typedef uint64 pte_t; typedef uint64 *pagetable_t; // 512 PTEs page table 對應到的是一個 pagetable_t，並且可以把它想成是 array of PTE(pte_t)，這也相當合理，如同先前的圖片所示，page table 本身也就只是用來紀錄 512 個 PTE 的資料結構。
+xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
+MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 所以最大的 virtual address MAXVA也就是 0b111111111111111111111111111111111111111(39 1s): // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) Direct Mapping 的區域：KERNBASE ~ PHYSTOP 這一段 0x80000000 ~ 0x88000000 是作為一般的 memory 空間使用，並且在 kernel 這一段的 mapping 中，是使用 Direct Mapping 的方式，也就是 virtual address == physical address 的意思，這麼做的好處在於 kernel 可以直接使用 physical address 對 memory 進行操作
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href="http://localhost:1313/xv6/lab3/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 04-1] 使用 GDB 追蹤 user program 以了解 RISC-V 的 Calling Convention 與 Stack Frames
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>asdfasdfasdf
+</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-09 19:09:13 +0800 CST'>October 9, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 04-1] 使用 GDB 追蹤 user program 以了解 RISC-V 的 Calling Convention 與 Stack Frames" href="http://localhost:1313/xv6/lab4.1/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 04] Lab: Traps
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: lab traps
+課程影片連結：
+6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 6.S081 Fall 2020 Lecture 6: Isolation &amp; System Call Entry/Exit Lecture 5: RISC-V Calling Convention and Stack Frames What is a user process? layout asm layout src focus reg focus asm si info breakpoints b sum_to
+RISC-V assembly (easy) It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file user/call.c in your xv6 repo. make fs.img compiles it and also produces a readable assembly version of the program in user/call.asm. Read the code in call.asm for the functions g, f, and main. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file answers-traps.txt):
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-09 11:31:37 +0800 CST'>October 9, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 04] Lab: Traps" href="http://localhost:1313/xv6/lab4/"></a>
 </article>
     </main>
     

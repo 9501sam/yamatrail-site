@@ -1,9 +1,9 @@
 +++
 date = '2025-09-27T15:46:30+08:00'
 draft = false
-title = '如何使用 gdb 追蹤 xv6 的 system call 過程'
+title = '[xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程'
 series = ["xv6 學習紀錄"]
-weight = 1
+weight = 42
 +++
 本文目標：照著以下步驟就可以看到整個 system call 的過程
 整個過程大致上都是照著[這個影片](https://www.youtube.com/watch?v=T26UuauaxWA)做的，但其中有幾個步驟稍稍的不同。

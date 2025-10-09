@@ -6,7 +6,7 @@
     <description>Recent content in Yama 的網站 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Thu, 02 Oct 2025 13:09:35 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 09 Oct 2025 19:09:13 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>如何使用 gdb 追蹤 xv6 的 system call 過程</title>
@@ -355,6 +355,38 @@ $
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vim content/posts/hello-world.md
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;設定-theme&#34;&gt;設定 theme&lt;/h3&gt;
 &lt;p&gt;這裡可先在 &lt;a href=&#34;https://themes.gohugo.io/&#34;&gt;Hugo Themes&lt;/a&gt; 看看，再決定自己要用的主題，我自己用的是 &lt;a href=&#34;https://themes.gohugo.io/themes/hugo-papermod/&#34;&gt;PaperMod&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 04-1] 使用 GDB 追蹤 user program 以了解 RISC-V 的 Calling Convention 與 Stack Frames</title>
+      <link>http://localhost:1313/xv6/lab4.1/</link>
+      <pubDate>Thu, 09 Oct 2025 19:09:13 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab4.1/</guid>
+      <description>&lt;p&gt;asdfasdfasdf&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 04] Lab: Traps</title>
+      <link>http://localhost:1313/xv6/lab4/</link>
+      <pubDate>Thu, 09 Oct 2025 11:31:37 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab4/</guid>
+      <description>&lt;p&gt;Lab 連結: &lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/traps.html&#34;&gt;lab traps&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;課程影片連結：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=s-Z5t_yTyTM&#34;&gt;6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=T26UuauaxWA&#34;&gt;6.S081 Fall 2020 Lecture 6: Isolation &amp;amp; System Call Entry/Exit&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;lecture-5-risc-v-calling-convention-and-stack-frames&#34;&gt;Lecture 5: RISC-V Calling Convention and Stack Frames&lt;/h2&gt;
+&lt;p&gt;What is a user process?
+&lt;code&gt;layout asm&lt;/code&gt;
+&lt;code&gt;layout src&lt;/code&gt;
+focus reg
+focus asm
+si
+info breakpoints
+b sum_to&lt;/p&gt;
+&lt;h2 id=&#34;risc-v-assembly-easy&#34;&gt;RISC-V assembly (easy)&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file &lt;code&gt;user/call.c&lt;/code&gt; in your xv6 repo. &lt;code&gt;make fs.img&lt;/code&gt; compiles it and also produces a readable assembly version of the program in &lt;code&gt;user/call.asm&lt;/code&gt;.
+Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt;g&lt;/code&gt;, &lt;code&gt;f&lt;/code&gt;, and &lt;code&gt;main&lt;/code&gt;. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file &lt;code&gt;answers-traps.txt&lt;/code&gt;):&lt;/p&gt;</description>
     </item>
     <item>
       <title>[這個網站的誕生: 04] Github Actions 建立自動部署</title>
