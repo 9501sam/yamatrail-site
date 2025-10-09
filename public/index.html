@@ -131,25 +131,6 @@
 
 <article class="first-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">如何使用 gdb 追蹤 xv6 的 system call 過程
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。
-2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
-先在其中一個終端機輸入
-make qemu-gdb #　這是被 debug 的對象 在另一個終端機輸入
-gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 不知道也沒關係的點：gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的
-# .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 動機：$ 的出現 make qemu 後 xv6 開機時，會顯示的畫面
-xv6 kernel is booting hart 1 starting hart 2 starting init: starting sh $ xv6 第一個執行的程式是 sh，它最一開始會 print 出字元 $ print 的過程需要使用 system call write。
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to 如何使用 gdb 追蹤 xv6 的 system call 過程" href="http://localhost:1313/xv6/gdb/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義
     </h2>
   </header>
@@ -245,21 +226,6 @@ Type: A name: yamatrail.com IPv4 Address: 填入 vm 的 IP (在 google cloud 上
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 03] Lab: page tables
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結: lab pgtbl
-xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
-MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 所以最大的 virtual address MAXVA也就是 0b111111111111111111111111111111111111111(39 1s): // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) Direct Mapping 的區域：KERNBASE ~ PHYSTOP 這一段 0x80000000 ~ 0x88000000 是作為一般的 memory 空間使用，並且在 kernel 這一段的 mapping 中，是使用 Direct Mapping 的方式，也就是 virtual address == physical address 的意思，這麼做的好處在於 kernel 可以直接使用 physical address 對 memory 進行操作
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href="http://localhost:1313/xv6/lab3/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
     <h2 class="entry-hint-parent">[這個網站的誕生: 03] 使用 Hugo 產生網站
     </h2>
   </header>
@@ -277,12 +243,48 @@ hugo new content posts/hello-world.md vim content/posts/hello-world.md 設定 th
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[這個網站的誕生: 04] Github Actions 建立自動部署
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>建立網站部署流程 總流程概覽 我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。
+ssh key 的準備：在筆電和 VM 之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 才有權限可以登入 vm 中。 設定 GitHub Repo：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 github repo 中的 Secrets 中。 建立 GitHub Actions Workflow：撰寫 .github/workflows/deploy.yaml 設定檔，這會告訴 github 該做些什麼把網站內容放到 vm 中。 觸發與驗證：將程式碼 git push 到 GitHub，觸發自動化流程，檢查流程是否正確。 階段一：準備工作 - 建立 SSH 信任關係 步驟 1：「筆電」上產生一對 SSH Key
+在筆電上：
+# -t ed25519: 使用更現代、更安全的加密演算法 # -C &#34;...&#34; : 註解，方便你辨識這對 Key 的用途 # -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰 ssh-keygen -t ed25519 -C &#34;GitHub Actions for yamatrail.com&#34; -f ~/.ssh/hugo_deploy_key 執行之後，會在 ~/.ssh/ 中產生公鑰與私鑰
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-25 12:16:16 +0800 CST'>September 25, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [這個網站的誕生: 04] Github Actions 建立自動部署" href="http://localhost:1313/dev-log/github-actions/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 03] Lab: page tables
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: lab pgtbl
+xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
+MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 所以最大的 virtual address MAXVA也就是 0b111111111111111111111111111111111111111(39 1s): // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) Direct Mapping 的區域：KERNBASE ~ PHYSTOP 這一段 0x80000000 ~ 0x88000000 是作為一般的 memory 空間使用，並且在 kernel 這一段的 mapping 中，是使用 Direct Mapping 的方式，也就是 virtual address == physical address 的意思，這麼做的好處在於 kernel 可以直接使用 physical address 對 memory 進行操作
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href="http://localhost:1313/xv6/lab3/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[xv6 學習紀錄 04-1] 使用 GDB 追蹤 user program 以了解 RISC-V 的 Calling Convention 與 Stack Frames
     </h2>
   </header>
   <div class="entry-content">
-    <p>asdfasdfasdf
-</p>
+    <p>課程影片連結：
+6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 這篇文章目的在於整理這個影片的重點，主要有以下的重點
+如何用 GDB 追蹤 user program
+RISC-V 的 Calling Convention
+RISC-V 的 register (Caller and Callee saved) RISC-V 的 Stack Frame kernel/defs.h
+// demos.c void demo1(void); void demo2(void); void demo3(void); void demo4(void); void demo5(void); void demo6(void); void demo7(void); // asmdemo.S int sum_to(int); int sum_then_double(int); kernel/demos.c #include &#34;types.h&#34; #include &#34;riscv.h&#34; #include &#34;defs.h&#34; #include &#34;date.h&#34; #include &#34;param.h&#34; #include &#34;memlayout.h&#34; #include &#34;spinlock.h&#34; #include &#34;proc.h&#34; #include &#34;sysinfo.h&#34; void demo1() { printf(&#34;Result: %d\n&#34;, sum_to(5)); } void demo2() { printf(&#34;Tesult: %d\n&#34;, sum_ten_double(5)); } void _demo3(char a, char b, char c, char d, char e, char f, char g, char h, char i, char j) { printf(&#34;%d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n&#34;, a, b, c, d, e, f, g, h, i, j); } void demo3() { _demo3(&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;, &#39;h&#39;, &#39;i&#39;, &#39;j&#39;); } int dummymain(int argc, char *argv[]) { int i = 0; for (; i &lt; argc; i&#43;&#43;) { printf(&#34;Argument %d: %s\n&#34;, i, argv[i]); } return 0; } void demo4() { char *args[] = {&#34;foo&#34;, &#34;bar&#34;, &#34;baz&#34;}; int result = dummymain(sizeof(args)/sizeof(args[0]), args); if (result &lt; 0) panic(&#34;Demo 4&#34;); } int _dummy(int n) { int div = 5; int sum = 0; for (int i=0; i &lt; n; i&#43;&#43;) { if (i % div == 0) sum &#43;= i; } return sum; } void demo5() { printf(&#34;Demo\n&#34;); int top = 50; int result = _dummy(top); printf(&#34;Result: %d\n&#34;, result); } void demo6() { int sum = 0; for (int i = 1; i &lt; 10; i&#43;&#43;) { sum &#43;= 3 *i; printf(&#34;%d\n&#34;, sum_to(i)); } printf(&#34;Sum: %d\n&#34;, sum); } struct Person { int id; int age; // char *name; }; void printPerson(struct Person *p) { printf(&#34;Person %d (%d)\n&#34;, p-&gt;id, p-&gt;age); // printf(&#34;Name:%s: %d (%d)\n&#34;, p-&gt;name, p-&gt;id, p-&gt;age); } void demo7() { // Structs struct Person p; p.id = 1215; p.age = 22; // p.name = &#34;Nick&#34;; printPerson(&amp;p); } kernel/asmdemo.S Makefile OBJS = \ $K/entry.o \ $K/kalloc.o \ $K/string.o \ ... $K/plic.o \ $K/virtio_disk.o \ $K/demos.o \ $K/asmdemo.o 新增 system call demo() user/usys.pl 加上 entry(demo);
+...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-09 19:09:13 +0800 CST'>October 9, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 04-1] 使用 GDB 追蹤 user program 以了解 RISC-V 的 Calling Convention 與 Stack Frames" href="http://localhost:1313/xv6/lab4.1/"></a>

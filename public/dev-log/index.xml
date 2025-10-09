@@ -6,7 +6,7 @@
     <description>Recent content in 這個網站的誕生 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Thu, 25 Sep 2025 12:16:16 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 09 Oct 2025 22:01:01 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/dev-log/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>[這個網站的誕生: 01] 建立一個免費的 vm</title>
@@ -117,6 +117,28 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ssh-keygen -t ed25519 -C &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;GitHub Actions for yamatrail.com&amp;#34;&lt;/span&gt; -f ~/.ssh/hugo_deploy_key
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;執行之後，會在 &lt;code&gt;~/.ssh/&lt;/code&gt; 中產生公鑰與私鑰&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[這個網站的誕生] 筆記區域</title>
+      <link>http://localhost:1313/dev-log/notes/</link>
+      <pubDate>Thu, 09 Oct 2025 22:01:01 +0800</pubDate>
+      <guid>http://localhost:1313/dev-log/notes/</guid>
+      <description>&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/adityatelange/hugo-PaperMod/tree/exampleSite&#34;&gt;hugo-paperMod Example&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://adityatelange.github.io/hugo-PaperMod/&#34;&gt;Example site&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+
+
+&lt;p&gt;&lt;details &gt;
+  &lt;summary markdown=&#34;span&#34;&gt;&lt;strong&gt;Expand Method 1 - Git Clone&lt;/strong&gt;&lt;/summary&gt;
+  
+&lt;/details&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</description>
     </item>
   </channel>
 </rss>

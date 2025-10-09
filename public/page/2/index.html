@@ -131,6 +131,25 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。
+2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
+先在其中一個終端機輸入
+make qemu-gdb #　這是被 debug 的對象 在另一個終端機輸入
+gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 不知道也沒關係的點：gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的
+# .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 動機：$ 的出現 make qemu 後 xv6 開機時，會顯示的畫面
+xv6 kernel is booting hart 1 starting hart 2 starting init: starting sh $ xv6 第一個執行的程式是 sh，它最一開始會 print 出字元 $ print 的過程需要使用 system call write。
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程" href="http://localhost:1313/xv6/gdb/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[xv6 學習紀錄 04] Lab: Traps
     </h2>
   </header>
@@ -147,18 +166,14 @@ RISC-V assembly (easy) It will be important to understand a bit of RISC-V assemb
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[這個網站的誕生: 04] Github Actions 建立自動部署
+    <h2 class="entry-hint-parent">[這個網站的誕生] 筆記區域
     </h2>
   </header>
   <div class="entry-content">
-    <p>建立網站部署流程 總流程概覽 我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。
-ssh key 的準備：在筆電和 VM 之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 才有權限可以登入 vm 中。 設定 GitHub Repo：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 github repo 中的 Secrets 中。 建立 GitHub Actions Workflow：撰寫 .github/workflows/deploy.yaml 設定檔，這會告訴 github 該做些什麼把網站內容放到 vm 中。 觸發與驗證：將程式碼 git push 到 GitHub，觸發自動化流程，檢查流程是否正確。 階段一：準備工作 - 建立 SSH 信任關係 步驟 1：「筆電」上產生一對 SSH Key
-在筆電上：
-# -t ed25519: 使用更現代、更安全的加密演算法 # -C &#34;...&#34; : 註解，方便你辨識這對 Key 的用途 # -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰 ssh-keygen -t ed25519 -C &#34;GitHub Actions for yamatrail.com&#34; -f ~/.ssh/hugo_deploy_key 執行之後，會在 ~/.ssh/ 中產生公鑰與私鑰
-...</p>
+    <p></p>
   </div>
-  <footer class="entry-footer"><span title='2025-09-25 12:16:16 +0800 CST'>September 25, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [這個網站的誕生: 04] Github Actions 建立自動部署" href="http://localhost:1313/dev-log/github-actions/"></a>
+  <footer class="entry-footer"><span title='2025-10-09 22:01:01 +0800 CST'>October 9, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [這個網站的誕生] 筆記區域" href="http://localhost:1313/dev-log/notes/"></a>
 </article>
 
 <article class="post-entry"> 

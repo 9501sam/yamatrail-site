@@ -2,9 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/xv6/gdb/</loc>
-    <lastmod>2025-09-27T15:46:30+08:00</lastmod>
-  </url><url>
     <loc>http://localhost:1313/leetcode/17-letter-combinations-of-a-phone-number/</loc>
     <lastmod>2025-09-27T00:37:29+08:00</lastmod>
   </url><url>
@@ -23,28 +20,37 @@
     <loc>http://localhost:1313/dev-log/nginx-on-vm/</loc>
     <lastmod>2025-09-21T13:03:12+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/xv6/lab3/</loc>
-    <lastmod>2025-10-02T13:09:35+08:00</lastmod>
-  </url><url>
     <loc>http://localhost:1313/dev-log/how-to-use-hugo/</loc>
     <lastmod>2025-09-23T19:35:47+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/dev-log/github-actions/</loc>
+    <lastmod>2025-09-25T12:16:16+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/xv6/lab3/</loc>
+    <lastmod>2025-10-02T13:09:35+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/xv6/lab4.1/</loc>
     <lastmod>2025-10-09T19:09:13+08:00</lastmod>
   </url><url>
+    <loc>http://localhost:1313/xv6/gdb/</loc>
+    <lastmod>2025-09-27T15:46:30+08:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/xv6/lab4/</loc>
     <lastmod>2025-10-09T11:31:37+08:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/dev-log/github-actions/</loc>
-    <lastmod>2025-09-25T12:16:16+08:00</lastmod>
+    <loc>http://localhost:1313/dev-log/notes/</loc>
+    <lastmod>2025-10-09T22:01:01+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/</loc>
+    <lastmod>2025-10-09T22:01:01+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/dev-log/</loc>
+    <lastmod>2025-10-09T22:01:01+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/series/</loc>
     <lastmod>2025-10-09T19:09:13+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/</loc>
-    <lastmod>2025-10-09T19:09:13+08:00</lastmod>
-  </url><url>
-    <loc>http://localhost:1313/</loc>
     <lastmod>2025-10-09T19:09:13+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/leetcode/334-increasing-triplet-subsequence/</loc>
@@ -61,9 +67,6 @@
   </url><url>
     <loc>http://localhost:1313/k8s/setup-cluster/</loc>
     <lastmod>2025-09-27T00:00:40+08:00</lastmod>
-  </url><url>
-    <loc>http://localhost:1313/dev-log/</loc>
-    <lastmod>2025-09-25T12:16:16+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/</loc>
     <lastmod>2025-09-25T12:16:16+08:00</lastmod>
