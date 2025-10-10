@@ -7,6 +7,7 @@ weight = 42
 +++
 本文目標：照著以下步驟就可以看到整個 system call 的過程
 整個過程大致上都是照著[這個影片](https://www.youtube.com/watch?v=T26UuauaxWA)做的，但其中有幾個步驟稍稍的不同。
+{{< youtube T26UuauaxWA >}}
 
 ## 2. 用 gdb-multiarch debug xv6 的方式
 這裡會需要開啟 2 個終端機，  

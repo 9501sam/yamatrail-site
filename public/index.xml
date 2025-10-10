@@ -349,29 +349,36 @@
 &lt;p&gt;這一段 &lt;code&gt;0x80000000&lt;/code&gt; ~ &lt;code&gt;0x88000000&lt;/code&gt; 是作為一般的 memory 空間使用，並且在 kernel 這一段的 mapping 中，是使用 Direct Mapping 的方式，也就是 &lt;code&gt;virtual address == physical address&lt;/code&gt; 的意思，這麼做的好處在於 kernel 可以直接使用 physical address 對 memory 進行操作&lt;/p&gt;</description>
     </item>
     <item>
-      <title>[xv6 學習紀錄 04-1] 使用 GDB 追蹤 user program 以了解 RISC-V 的 Calling Convention 與 Stack Frames</title>
+      <title>[xv6 學習紀錄 04-1] 使用 GDB 追蹤 xv6 以了解 RISC-V 的 Calling Convention 與 Stack Frames</title>
       <link>http://localhost:1313/xv6/lab4.1/</link>
       <pubDate>Thu, 09 Oct 2025 19:09:13 +0800</pubDate>
       <guid>http://localhost:1313/xv6/lab4.1/</guid>
       <description>&lt;p&gt;課程影片連結：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=s-Z5t_yTyTM&#34;&gt;6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames &lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=s-Z5t_yTyTM&#34;&gt;6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames &lt;/a&gt;
+&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
+      &lt;iframe allow=&#34;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&#34; loading=&#34;eager&#34; referrerpolicy=&#34;strict-origin-when-cross-origin&#34; src=&#34;https://www.youtube.com/embed/s-Z5t_yTyTM?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; title=&#34;YouTube video&#34;&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;這篇文章目的在於整理這個影片的重點，主要有以下的重點&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;如何用 &lt;code&gt;GDB&lt;/code&gt; 追蹤 user program&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;RISC-V 的 Calling Convention&lt;/p&gt;
+&lt;li&gt;如何用 &lt;code&gt;GDB&lt;/code&gt; 追蹤 user program&lt;/li&gt;
+&lt;li&gt;RISC-V 的 Calling Convention
 &lt;ul&gt;
 &lt;li&gt;RISC-V 的 register (Caller and Callee saved)&lt;/li&gt;
 &lt;li&gt;RISC-V 的 Stack Frame&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;code&gt;kernel/defs.h&lt;/code&gt;&lt;/p&gt;
-&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;影片中的範例程式並沒有附在 lab 中，要自己新增：&lt;/p&gt;
+&lt;blockquote&gt;
+
+
+&lt;p&gt;&lt;details &gt;
+  &lt;summary markdown=&#34;span&#34;&gt;&lt;strong&gt;新增影片中的範例程式&lt;/strong&gt;&lt;/summary&gt;
+  &lt;ul&gt;
+&lt;li&gt;&lt;code&gt;kernel/defs.h&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// demos.c
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;            &lt;span style=&#34;color:#a6e22e&#34;&gt;demo1&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;);
@@ -490,7 +497,38 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
 &lt;li&gt;&lt;code&gt;kernel/asmdemo.S&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;.section&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;.text&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;.global&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sum_to&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* 
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  int sum_to() {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    int acc = 0;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    for (int i = 0; i &amp;lt;= n; i++) {
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;      acc += i;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    return acc;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sum_to:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;mv&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;t0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;a0&lt;/span&gt;     &lt;span style=&#34;color:#75715e&#34;&gt;# t0 &amp;lt;- a0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;li&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;a0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;      &lt;span style=&#34;color:#75715e&#34;&gt;# a0 &amp;lt;- 0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  loop:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;add&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;a0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;a0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;t0&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# a0 &amp;lt;- a0 + t0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;addi&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;t0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;t0&lt;/span&gt;, -&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# t0 &amp;lt;- t0 - 1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;bnez&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;t0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;loop&lt;/span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;# if t0 != 0: pc &amp;lt;- loop
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;ret&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;.global&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sum_then_double&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sum_then_double:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;addi&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sp&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;sp&lt;/span&gt;, -&lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;sd&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;ra&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;sp&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sum_to&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;li&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;t0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;mul&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;a0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;a0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;t0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;ld&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;ra&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;sp&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;addi&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sp&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;sp&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;ret&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
 &lt;li&gt;&lt;code&gt;Makefile&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;OBJS &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;\
@@ -513,7 +551,11 @@
       <pubDate>Sat, 27 Sep 2025 15:46:30 +0800</pubDate>
       <guid>http://localhost:1313/xv6/gdb/</guid>
       <description>&lt;p&gt;本文目標：照著以下步驟就可以看到整個 system call 的過程
-整個過程大致上都是照著&lt;a href=&#34;https://www.youtube.com/watch?v=T26UuauaxWA&#34;&gt;這個影片&lt;/a&gt;做的，但其中有幾個步驟稍稍的不同。&lt;/p&gt;
+整個過程大致上都是照著&lt;a href=&#34;https://www.youtube.com/watch?v=T26UuauaxWA&#34;&gt;這個影片&lt;/a&gt;做的，但其中有幾個步驟稍稍的不同。
+&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
+      &lt;iframe allow=&#34;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&#34; loading=&#34;eager&#34; referrerpolicy=&#34;strict-origin-when-cross-origin&#34; src=&#34;https://www.youtube.com/embed/T26UuauaxWA?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; title=&#34;YouTube video&#34;&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+&lt;/p&gt;
 &lt;h2 id=&#34;2-用-gdb-multiarch-debug-xv6-的方式&#34;&gt;2. 用 gdb-multiarch debug xv6 的方式&lt;/h2&gt;
 &lt;p&gt;這裡會需要開啟 2 個終端機，&lt;/p&gt;
 &lt;p&gt;先在其中一個終端機輸入&lt;/p&gt;
@@ -529,14 +571,7 @@ symbol-file kernel/kernel
 set disassemble-next-line auto
 set riscv use-compressed-breakpoints yes
 &lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;動機-的出現&#34;&gt;動機：&lt;code&gt;$&lt;/code&gt; 的出現&lt;/h2&gt;
-&lt;p&gt;&lt;code&gt;make qemu&lt;/code&gt; 後 xv6 開機時，會顯示的畫面&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-sh=&#34; data-lang=&#34;sh=&#34;&gt;xv6 kernel is booting
-
-hart 1 starting
-hart 2 starting
-init: starting sh
-$ 
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;xv6 第一個執行的程式是 &lt;code&gt;sh&lt;/code&gt;，它最一開始會 print 出字元 &lt;code&gt;$&lt;/code&gt; print 的過程需要使用 system call &lt;code&gt;write&lt;/code&gt;。&lt;/p&gt;</description>
+&lt;p&gt;&lt;code&gt;make qemu&lt;/code&gt; 後 xv6 開機時，會顯示的畫面&lt;/p&gt;</description>
     </item>
     <item>
       <title>[xv6 學習紀錄 04] Lab: Traps</title>
@@ -549,15 +584,6 @@ $
 &lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=s-Z5t_yTyTM&#34;&gt;6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames &lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=T26UuauaxWA&#34;&gt;6.S081 Fall 2020 Lecture 6: Isolation &amp;amp; System Call Entry/Exit&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h2 id=&#34;lecture-5-risc-v-calling-convention-and-stack-frames&#34;&gt;Lecture 5: RISC-V Calling Convention and Stack Frames&lt;/h2&gt;
-&lt;p&gt;What is a user process?
-&lt;code&gt;layout asm&lt;/code&gt;
-&lt;code&gt;layout src&lt;/code&gt;
-focus reg
-focus asm
-si
-info breakpoints
-b sum_to&lt;/p&gt;
 &lt;h2 id=&#34;risc-v-assembly-easy&#34;&gt;RISC-V assembly (easy)&lt;/h2&gt;
 &lt;blockquote&gt;
 &lt;p&gt;It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file &lt;code&gt;user/call.c&lt;/code&gt; in your xv6 repo. &lt;code&gt;make fs.img&lt;/code&gt; compiles it and also produces a readable assembly version of the program in &lt;code&gt;user/call.asm&lt;/code&gt;.
@@ -568,7 +594,22 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
       <link>http://localhost:1313/dev-log/notes/</link>
       <pubDate>Thu, 09 Oct 2025 22:01:01 +0800</pubDate>
       <guid>http://localhost:1313/dev-log/notes/</guid>
-      <description></description>
+      <description>&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/adityatelange/hugo-PaperMod/tree/exampleSite&#34;&gt;hugo-paperMod Example&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://adityatelange.github.io/hugo-PaperMod/&#34;&gt;Example site&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+
+
+&lt;p&gt;&lt;details &gt;
+  &lt;summary markdown=&#34;span&#34;&gt;&lt;strong&gt;Expand Method 1 - Git Clone&lt;/strong&gt;&lt;/summary&gt;
+  
+&lt;/details&gt;&lt;/p&gt;
+&lt;/blockquote&gt;</description>
     </item>
     <item>
       <title>[LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)</title>

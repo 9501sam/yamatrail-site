@@ -626,8 +626,34 @@ user/usys.pl 加上 entry(demo);">
 </span></span></code></pre></div><pre tabindex="0"><code class="language-gdb" data-lang="gdb">b sum_to
 </code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">c
 </code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">si
-</code></pre><h2 id="caller-saved-與-callee-saved-registers">Caller Saved 與 Callee Saved Registers<a hidden class="anchor" aria-hidden="true" href="#caller-saved-與-callee-saved-registers">#</a></h2>
+</code></pre><h2 id="call-sum_to-所帶來的影響"><code>call sum_to</code> 所帶來的影響<a hidden class="anchor" aria-hidden="true" href="#call-sum_to-所帶來的影響">#</a></h2>
+<ol>
+<li>把 program counter <code>pc</code> 改為 <code>sum_to</code> 的值</li>
+<li>把 <code>call sum_to</code> 的下一個 instruction (<code>li t0, 2</code>) 的 address 放入 <code>ra</code> 中</li>
+</ol>
+<h2 id="caller-saved-與-callee-saved-registers">Caller Saved 與 Callee Saved Registers<a hidden class="anchor" aria-hidden="true" href="#caller-saved-與-callee-saved-registers">#</a></h2>
 <p><img alt="registers.png" loading="lazy" src="/xv6/lab4.1/registers.png"></p>
+<ul>
+<li>
+<p>Caller saved register:</p>
+<ul>
+<li>由 caller 負擔除存的角色</li>
+</ul>
+</li>
+<li>
+<p>Callee saved register:</p>
+<ul>
+<li>由 callee 負擔除存的角色</li>
+<li>就以 caller 的角度而言，在 function call 之後他想要的結果是 callee saved register 的值還是跟 function call 之前一樣</li>
+</ul>
+</li>
+<li>
+<p><code>ra</code>: caller saved</p>
+<ul>
+<li>這是因為 <code>call</code> 會改寫 <code>ra</code> 所以一定要由 caller 負責</li>
+</ul>
+</li>
+</ul>
 <h2 id="stack-frames">Stack Frames<a hidden class="anchor" aria-hidden="true" href="#stack-frames">#</a></h2>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>                   .
 </span></span><span style="display:flex;"><span>                   .
@@ -663,6 +689,31 @@ user/usys.pl 加上 entry(demo);">
 </span></span><span style="display:flex;"><span>  $sp --&gt; | local variables |
 </span></span><span style="display:flex;"><span>          +-----------------+
 </span></span></code></pre></div><h2 id="如果打破-convention-會發生什麼事情">如果打破 Convention 會發生什麼事情<a hidden class="anchor" aria-hidden="true" href="#如果打破-convention-會發生什麼事情">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#a6e22e">.global</span> <span style="color:#66d9ef">sum_then_double</span>
+</span></span><span style="display:flex;"><span>sum_then_double:
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">addi</span> <span style="color:#66d9ef">sp</span>, <span style="color:#66d9ef">sp</span>, -<span style="color:#ae81ff">16</span>    <span style="color:#75715e"># grow the stack for ra
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">sd</span> <span style="color:#66d9ef">ra</span>, <span style="color:#ae81ff">0</span>(<span style="color:#66d9ef">sp</span>)        <span style="color:#75715e"># save ra
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">call</span> <span style="color:#66d9ef">sum_to</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">li</span> <span style="color:#66d9ef">t0</span>, <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mul</span> <span style="color:#66d9ef">a0</span>, <span style="color:#66d9ef">a0</span>, <span style="color:#66d9ef">t0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ld</span> <span style="color:#66d9ef">ra</span>, <span style="color:#ae81ff">0</span>(<span style="color:#66d9ef">sp</span>)        <span style="color:#75715e"># restore ra from stack
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">addi</span> <span style="color:#66d9ef">sp</span>, <span style="color:#66d9ef">sp</span>, <span style="color:#ae81ff">16</span>     <span style="color:#75715e"># shrink the stack back
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">ret</span>
+</span></span></code></pre></div><p>原本的 <code>sum_then_double</code> 在 <code>call</code> 的前後有做 <code>ra</code> 的 save 與 restore</p>
+<p>如果改為：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#a6e22e">.global</span> <span style="color:#66d9ef">sum_then_double</span>
+</span></span><span style="display:flex;"><span>sum_then_double:
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># addi sp, sp, -16    # grow the stack for ra
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e"># sd ra, 0(sp)        # save ra
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">call</span> <span style="color:#66d9ef">sum_to</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">li</span> <span style="color:#66d9ef">t0</span>, <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mul</span> <span style="color:#66d9ef">a0</span>, <span style="color:#66d9ef">a0</span>, <span style="color:#66d9ef">t0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># ld ra, 0(sp)        # restore ra from stack
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e"># addi sp, sp, 16     # shrink the stack back
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">ret</span>
+</span></span></code></pre></div><ul>
+<li>最後的結果就是 <code>ra</code> 會持續的指到 <code>li t0 2</code></li>
+</ul>
 <h2 id="好用的-gdb-指令">好用的 <code>GDB</code> 指令<a hidden class="anchor" aria-hidden="true" href="#好用的-gdb-指令">#</a></h2>
 <blockquote>
 
@@ -703,6 +754,8 @@ user/usys.pl 加上 entry(demo);">
 </code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">focus reg
 </code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">focus asm
 </code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">focus src
+</code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">tui enable
+</code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">tui disable
 </code></pre><blockquote>
 </blockquote>
 
@@ -715,7 +768,9 @@ user/usys.pl 加上 entry(demo);">
   <summary markdown="span"><strong>Print</strong></summary>
   <pre tabindex="0"><code class="language-gdb" data-lang="gdb">info registers
 </code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">i reg
-</code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb"></code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb"></code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb"></code></pre><blockquote>
+</code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">p $ra
+</code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb">info frame
+</code></pre><pre tabindex="0"><code class="language-gdb" data-lang="gdb"></code></pre><blockquote>
 </blockquote>
 
 </details></p>
@@ -725,7 +780,17 @@ user/usys.pl 加上 entry(demo);">
 <li><code>delete</code>: delete all the breakpoints</li>
 </ul>
 <pre tabindex="0"><code class="language-gdb" data-lang="gdb">p *argv@argc
-</code></pre>
+</code></pre><ul>
+<li>What is a user process?</li>
+<li><code>layout asm</code></li>
+<li><code>layout src</code></li>
+<li>focus reg</li>
+<li>focus asm</li>
+<li>si</li>
+<li>info breakpoints</li>
+<li>b sum_to</li>
+</ul>
+
 
   </div>
 

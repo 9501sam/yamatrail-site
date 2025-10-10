@@ -197,13 +197,11 @@ MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 所�
     </h2>
   </header>
   <div class="entry-content">
-    <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。
-2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
+    <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。 2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
 先在其中一個終端機輸入
 make qemu-gdb #　這是被 debug 的對象 在另一個終端機輸入
 gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 不知道也沒關係的點：gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的
 # .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 動機：$ 的出現 make qemu 後 xv6 開機時，會顯示的畫面
-xv6 kernel is booting hart 1 starting hart 2 starting init: starting sh $ xv6 第一個執行的程式是 sh，它最一開始會 print 出字元 $ print 的過程需要使用 system call write。
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer>
@@ -218,8 +216,7 @@ xv6 kernel is booting hart 1 starting hart 2 starting init: starting sh $ xv6 �
   <div class="entry-content">
     <p>Lab 連結: lab traps
 課程影片連結：
-6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 6.S081 Fall 2020 Lecture 6: Isolation &amp; System Call Entry/Exit Lecture 5: RISC-V Calling Convention and Stack Frames What is a user process? layout asm layout src focus reg focus asm si info breakpoints b sum_to
-RISC-V assembly (easy) It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file user/call.c in your xv6 repo. make fs.img compiles it and also produces a readable assembly version of the program in user/call.asm. Read the code in call.asm for the functions g, f, and main. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file answers-traps.txt):
+6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 6.S081 Fall 2020 Lecture 6: Isolation &amp; System Call Entry/Exit RISC-V assembly (easy) It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file user/call.c in your xv6 repo. make fs.img compiles it and also produces a readable assembly version of the program in user/call.asm. Read the code in call.asm for the functions g, f, and main. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file answers-traps.txt):
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-09 11:31:37 +0800 CST'>October 9, 2025</span></footer>

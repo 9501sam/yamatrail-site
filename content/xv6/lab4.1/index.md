@@ -306,8 +306,20 @@ c
 si
 ```
 
+## `call sum_to` 所帶來的影響
+1. 把 program counter `pc` 改為 `sum_to` 的值
+1. 把 `call sum_to` 的下一個 instruction (`li t0, 2`) 的 address 放入 `ra` 中
+
 ## Caller Saved 與 Callee Saved Registers
 ![registers.png](registers.png)
+* Caller saved register:
+    * 由 caller 負擔除存的角色
+* Callee saved register:
+    * 由 callee 負擔除存的角色
+    * 就以 caller 的角度而言，在 function call 之後他想要的結果是 callee saved register 的值還是跟 function call 之前一樣
+
+* `ra`: caller saved
+    * 這是因為 `call` 會改寫 `ra` 所以一定要由 caller 負責
 ## Stack Frames
 ```text
                    .
@@ -345,6 +357,34 @@ si
           +-----------------+
 ```
 ## 如果打破 Convention 會發生什麼事情
+```asm
+.global sum_then_double
+sum_then_double:
+    addi sp, sp, -16    # grow the stack for ra
+    sd ra, 0(sp)        # save ra
+    call sum_to
+    li t0, 2
+    mul a0, a0, t0
+    ld ra, 0(sp)        # restore ra from stack
+    addi sp, sp, 16     # shrink the stack back
+    ret
+```
+原本的 `sum_then_double` 在 `call` 的前後有做 `ra` 的 save 與 restore
+
+如果改為：
+```asm
+.global sum_then_double
+sum_then_double:
+    # addi sp, sp, -16    # grow the stack for ra
+    # sd ra, 0(sp)        # save ra
+    call sum_to
+    li t0, 2
+    mul a0, a0, t0
+    # ld ra, 0(sp)        # restore ra from stack
+    # addi sp, sp, 16     # shrink the stack back
+    ret
+```
+* 最後的結果就是 `ra` 會持續的指到 `li t0 2`
 ## 好用的 `GDB` 指令
 > {{< collapse summary="**Break Point**" >}}
 #### break at `user/demo.c`
@@ -395,6 +435,14 @@ focus asm
 ```gdb
 focus src
 ```
+
+```gdb
+tui enable
+```
+
+```gdb
+tui disable
+```
 > {{< /collapse >}}
 
 > {{< collapse summary="**Print**" >}}
@@ -406,10 +454,10 @@ info registers
 i reg
 ```
 ```gdb
-
+p $ra
 ```
 ```gdb
-
+info frame
 ```
 ```gdb
 
@@ -421,3 +469,12 @@ i reg
 ```gdb
 p *argv@argc
 ```
+
+* What is a user process?
+* `layout asm`
+* `layout src`
+* focus reg
+* focus asm
+* si
+* info breakpoints
+* b sum_to
