@@ -191,13 +191,11 @@ MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 所�
     </h2>
   </header>
   <div class="entry-content">
-    <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。
-2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
+    <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。 2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
 先在其中一個終端機輸入
 make qemu-gdb #　這是被 debug 的對象 在另一個終端機輸入
 gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 不知道也沒關係的點：gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的
 # .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 動機：$ 的出現 make qemu 後 xv6 開機時，會顯示的畫面
-xv6 kernel is booting hart 1 starting hart 2 starting init: starting sh $ xv6 第一個執行的程式是 sh，它最一開始會 print 出字元 $ print 的過程需要使用 system call write。
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer>
@@ -212,12 +210,39 @@ xv6 kernel is booting hart 1 starting hart 2 starting init: starting sh $ xv6 �
   <div class="entry-content">
     <p>Lab 連結: lab traps
 課程影片連結：
-6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 6.S081 Fall 2020 Lecture 6: Isolation &amp; System Call Entry/Exit Lecture 5: RISC-V Calling Convention and Stack Frames What is a user process? layout asm layout src focus reg focus asm si info breakpoints b sum_to
-RISC-V assembly (easy) It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file user/call.c in your xv6 repo. make fs.img compiles it and also produces a readable assembly version of the program in user/call.asm. Read the code in call.asm for the functions g, f, and main. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file answers-traps.txt):
+6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 6.S081 Fall 2020 Lecture 6: Isolation &amp; System Call Entry/Exit RISC-V assembly (easy) It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file user/call.c in your xv6 repo. make fs.img compiles it and also produces a readable assembly version of the program in user/call.asm. Read the code in call.asm for the functions g, f, and main. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file answers-traps.txt):
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-09 11:31:37 +0800 CST'>October 9, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 04] Lab: Traps" href="http://localhost:1313/xv6/lab4/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 05-1] Page Fault
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程影片連結：
+6.S081 Fall 2020 Lecture 8: Page Faults Page Fault 回顧 virtual memory 的特性
+isolation level of indirection 在原先 xv6 的設計中 pagetable 的設計是 static 現在在 page fault 的時候做一些動作，可以設計為 dynamic 的 mapping Information neede 造成 page fault 的 virtual memory stval register The type of page fault scause: R/W/Instruction Virtual address of instruction that cause page fault 這是為了在處理完 page fault 之後，可以回到原本的地方繼續執行 trampframe-&gt;epc Allocation: sbrk() 原先的方式：eager allocatoin 可變更為：Lazy Allocation 1. Lazy Allocation 先把 sys_sbrk() 變更為：
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-11 11:20:50 +0800 CST'>October 11, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 05-1] Page Fault" href="http://localhost:1313/xv6/lab5.1/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 05] Lab: Traps
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p> Lab 連結: Lab: xv6 lazy page allocation Eliminate allocation from sbrk() (easy) Your first task is to delete page allocation from the sbrk(n) system call implementation, which is the function sys_sbrk() in sysproc.c. The sbrk(n) system call grows the process’s memory size by n bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new sbrk(n) should just increment the process’s size (myproc()-&gt;sz) by n and return the old size. It should not allocate memory – so you should delete the call to growproc() (but you still need to increase the process’s size!).
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-11 11:28:40 +0800 CST'>October 11, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 05] Lab: Traps" href="http://localhost:1313/xv6/lab5/"></a>
 </article>
     </main>
     

@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>[xv6 學習紀錄 05] Lab: Traps | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="
+Lab 連結: Lab: xv6 lazy page allocation
+
+Eliminate allocation from sbrk() (easy)
+
+Your first task is to delete page allocation from the sbrk(n) system call implementation, which is the function sys_sbrk() in sysproc.c. The sbrk(n) system call grows the process&rsquo;s memory size by n bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new sbrk(n) should just increment the process&rsquo;s size (myproc()-&gt;sz) by n and return the old size. It should not allocate memory &ndash; so you should delete the call to growproc() (but you still need to increase the process&rsquo;s size!).">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/xv6/lab5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/lab5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      [xv6 學習紀錄 05] Lab: Traps
+    </h1>
+    <div class="post-meta"><span title='2025-10-11 11:28:40 +0800 CST'>October 11, 2025</span>
+
+</div>
+  </header> 
+  <div class="post-content"><ul>
+<li>Lab 連結: <a href="https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html">Lab: xv6 lazy page allocation</a></li>
+</ul>
+<h2 id="eliminate-allocation-from-sbrk-easy">Eliminate allocation from sbrk() (easy)<a hidden class="anchor" aria-hidden="true" href="#eliminate-allocation-from-sbrk-easy">#</a></h2>
+<blockquote>
+<p>Your first task is to delete page allocation from the <code>sbrk(n)</code> system call implementation, which is the function <code>sys_sbrk()</code> in <code>sysproc.c</code>. The <code>sbrk(n)</code> system call grows the process&rsquo;s memory size by <code>n</code> bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new <code>sbrk(n)</code> should just increment the process&rsquo;s size (<code>myproc()-&gt;sz</code>) by <code>n</code> and return the old size. It should not allocate memory &ndash; so you should delete the call to <code>growproc()</code> (but you still need to increase the process&rsquo;s size!).</p></blockquote>
+<ul>
+<li>origin <code>sys_sbrk()</code>:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_sbrk</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> addr;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>n) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>()<span style="color:#f92672">-&gt;</span>sz;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">growproc</span>(n) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>題目要我們改成這樣：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_sbrk</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  uint64 addr;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>n);
+</span></span><span style="display:flex;"><span>  addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>()<span style="color:#f92672">-&gt;</span>sz;
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// if(growproc(n) &lt; 0)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//   return -1;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">myproc</span>()<span style="color:#f92672">-&gt;</span>sz <span style="color:#f92672">+=</span> n;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>接著執行 <code>echo hi</code> 的結果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>xv6 kernel is booting
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>hart <span style="color:#ae81ff">2</span> starting
+</span></span><span style="display:flex;"><span>hart <span style="color:#ae81ff">1</span> starting
+</span></span><span style="display:flex;"><span>init: starting sh
+</span></span><span style="display:flex;"><span>$ echo hi
+</span></span><span style="display:flex;"><span>usertrap<span style="color:#f92672">()</span>: unexpected scause 0x000000000000000f pid<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>            sepc<span style="color:#f92672">=</span>0x00000000000012c4 stval<span style="color:#f92672">=</span>0x0000000000005008
+</span></span><span style="display:flex;"><span>panic: uvmunmap: not mapped
+</span></span></code></pre></div><h3 id="錯誤訊息解釋">錯誤訊息解釋<a hidden class="anchor" aria-hidden="true" href="#錯誤訊息解釋">#</a></h3>
+<ul>
+<li><code>usertrap()</code>:
+<ul>
+<li>這些錯誤訊息是從 <code>kernel/trap.c: usertrap()</code> 產生出來的</li>
+</ul>
+</li>
+<li><code>unexpected scause 0x000000000000000f</code>:
+<ul>
+<li>register <code>scause</code> = 0x0f，是 page fault (TODO: 貼上來源)</li>
+</ul>
+</li>
+<li><code>pid = 3</code> 是 <code>sh</code> 的 pid
+<ul>
+<li>在後面用 gdb 分析會知道這是 <code>sh</code></li>
+</ul>
+</li>
+<li><code>sepc=0x00000000000012c4</code>:
+<ul>
+<li>對應到 <code>sh.asm</code> 中的 <code>12ac: ld	ra,56(sp)</code></li>
+</ul>
+</li>
+<li><code>stval=0x0000000000004008</code>:
+<ul>
+<li>造成 page trap 的 virtual memory</li>
+</ul>
+</li>
+</ul>
+<h3 id="使用-gdb-解析">使用 <code>gdb</code> 解析<a hidden class="anchor" aria-hidden="true" href="#使用-gdb-解析">#</a></h3>
+<pre tabindex="0"><code class="language-gdb" data-lang="gdb">(gdb) b kernel/trap.c:70
+(gdb) c
+</code></pre><ul>
+<li><code>scause</code></li>
+<li><code>sepc</code></li>
+<li><code>stval</code></li>
+<li><code>struct proc p</code></li>
+</ul>
+<pre tabindex="0"><code class="language-gdb" data-lang="gdb">(gdb) p *p
+</code></pre><ul>
+<li><code>malloc()</code></li>
+</ul>
+<pre tabindex="0"><code class="language-gdb" data-lang="gdb">(gdb) add-symbol-file user/_sh
+</code></pre><p><code>sh.c</code> 透過 <code>user/user.h</code> 引入 <code>user/umalloc.c</code> 的 <code>malloc.c</code></p>
+<pre tabindex="0"><code class="language-gdb" data-lang="gdb">(gdb) b user/umalloc.c:malloc
+</code></pre><p>問題發生在 sh -&gt; malloc() -&gt; morecore()</p>
+<p>(TODO: more detailed, 說明跟 sbrk() 的關係為何)</p>
+<h2 id="lazy-allocation-moderate">Lazy allocation (moderate)<a hidden class="anchor" aria-hidden="true" href="#lazy-allocation-moderate">#</a></h2>
+<h2 id="lazytests-and-usertests-moderate">Lazytests and Usertests (moderate)<a hidden class="anchor" aria-hidden="true" href="#lazytests-and-usertests-moderate">#</a></h2>
+<hr>
+<h1 id="lab5-lazy-紀錄">Lab5 Lazy 紀錄<a hidden class="anchor" aria-hidden="true" href="#lab5-lazy-紀錄">#</a></h1>
+<h2 id="在處理-page-fault-時我們需要注意的幾件事情">在處理 page fault 時，我們需要注意的幾件事情<a hidden class="anchor" aria-hidden="true" href="#在處理-page-fault-時我們需要注意的幾件事情">#</a></h2>
+<ul>
+<li><code>stval</code>: 造成 page fault 的 virtual memory</li>
+<li><code>sepc</code>: 造成 page fault 的 program counter</li>
+<li>instruction: 當下是正在執行什麼 instruction (?)</li>
+</ul>
+<h3 id="registers">registers<a hidden class="anchor" aria-hidden="true" href="#registers">#</a></h3>
+<ol>
+<li><code>stval</code>: va cause page fault</li>
+<li><code>scause</code>: the type of fault
+<ul>
+<li>Read</li>
+<li>Write</li>
+<li>Instruction</li>
+</ul>
+</li>
+<li><code>sepc</code>: the va of instruction</li>
+</ol>
+<h2 id="eliminate-allocation-from-sbrk">Eliminate allocation from <code>sbrk()</code><a hidden class="anchor" aria-hidden="true" href="#eliminate-allocation-from-sbrk">#</a></h2>
+<p>這個 assignment 就只要根據題目的指示，把 <code>growproc()</code> 給註解掉，並且記得把 <code>myproc()-&gt;sz</code> 增加 <code>n</code> bytes</p>
+<pre tabindex="0"><code class="language-Clike=" data-lang="Clike=">uint64
+sys_sbrk(void)
+{
+  int addr;
+  int n;
+
+  if(argint(0, &amp;n) &lt; 0)
+    return -1;
+  addr = myproc()-&gt;sz;
+  // if(growproc(n) &lt; 0)
+  //   return -1;
+  myproc()-&gt;sz += n;
+  return addr;
+}
+</code></pre><p>改好之後執行 <code>echo hi</code> 會爆出以下的錯誤</p>
+<pre tabindex="0"><code class="language-=" data-lang="=">xv6 kernel is booting
+
+hart 1 starting
+hart 2 starting
+init: starting sh
+$ echo hi
+usertrap(): unexpected scause 0x000000000000000f pid=3
+            sepc=0x00000000000012ac stval=0x0000000000004008
+panic: uvmunmap: not mapped
+</code></pre><h5 id="錯誤訊息解釋-1">錯誤訊息解釋<a hidden class="anchor" aria-hidden="true" href="#錯誤訊息解釋-1">#</a></h5>
+<ul>
+<li><code>usertrap()</code>:
+<ul>
+<li>這些錯誤訊息是從 <code>kernel/trap.c: usertrap()</code> 印出來的</li>
+</ul>
+</li>
+<li><code>unexpected scause 0x000000000000000f</code>:
+<ul>
+<li><code>usertrpa()</code> 處理這個 trap 時，<code>scause</code> = 0x0f 此情況並沒有對應的程式碼</li>
+</ul>
+</li>
+<li><code>pid = 3</code> 是 <code>echo hi</code> 的 pid
+<ul>
+<li>註: <code>sh</code> 的 pid 是 2</li>
+</ul>
+</li>
+<li><code>sepc=0x00000000000012ac</code>:
+<ul>
+<li>對應到 <code>sh.asm</code> 中的 <code>12ac: ld	ra,56(sp)</code></li>
+<li>為什麼 <code>sepc</code> 停留在 <code>sh</code> 中而沒有進入到 <code>echo</code> ?</li>
+</ul>
+</li>
+<li><code>stval=0x0000000000004008</code>:
+<ul>
+<li>造成 page trap 的 virtual memory (<code>sh</code> or <code>echo</code>?)</li>
+</ul>
+</li>
+</ul>
+<h3 id="刪掉-growproc-之後會造成什麼樣的影響">刪掉 <code>growproc()</code> 之後，會造成什麼樣的影響<a hidden class="anchor" aria-hidden="true" href="#刪掉-growproc-之後會造成什麼樣的影響">#</a></h3>
+<ul>
+<li>也就是說 <code>sys_sbrk()</code> 沒有執行 <code>growproc()</code></li>
+<li>也就是沒有執行 <code>uvmalloc()</code></li>
+<li>也就是沒有執行 <code>kalloc()</code></li>
+<li>沒有執行 <code>kalloc()</code> 就是怎麼樣了(?)</li>
+<li>最終會導致 user program (sh) 使用了他沒有分配到的記憶體位置(va)</li>
+<li>我的猜想:
+<ul>
+<li>在 sh 執行 <code>sw	s6,8(a0)</code> 時，正要 access 某個 va (<code>8 + a0</code>) 的當下
+<ul>
+<li>硬體發現這個 PTE 的 <code>valid</code> flag 為 0 (false)</li>
+<li>於是發出了 0x0f 這個 trap (page fault)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>所以以物理上的狀況來說 page fault 就是</li>
+</ul>
+<blockquote>
+<p>當我要 access 某一個 va 時，我發現這個 va 在 page table 上給我的回覆為：
+此 va 並不是使用中的狀態</p></blockquote>
+<h2 id="lazy-allocation">Lazy allocation<a hidden class="anchor" aria-hidden="true" href="#lazy-allocation">#</a></h2>
+<p>當 page fault 發生時，allocate 一個新的 page，並且回到 user space 繼續執行，修改任何的 kernel code，讓 <code>echo hi</code> 可以執行</p>
+<h3 id="hints">hints<a hidden class="anchor" aria-hidden="true" href="#hints">#</a></h3>
+<ul>
+<li>page fault 時 <code>scause</code> 為 13 or 15</li>
+<li>從 <code>stval</code> 可以得知造成 page fault 的 va 是多少</li>
+<li>請偷學 <code>uvmalloc()</code>，並呼叫 <code>kalloc()</code> 以及 <code>mappages()</code>
+<ul>
+<li>先從偷學這裡開始</li>
+<li>當這個 va 沒有被分配時，我就手動幫他分配</li>
+<li>偷學 <code>uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)</code>
+<ul>
+<li><code>pagetable</code>: <code>myproc()-&gt;pagetable</code></li>
+<li><code>oldsz</code>: <code>myproc()-&gt;sz</code></li>
+<li><code>newsz</code>: <code>r_stval()</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>kernel/trap.c</code>: <code>usertrap()</code></li>
+</ul>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">void
+usertrap(void)
+{
+  // ...
+  } else if((which_dev = devintr()) != 0){
+    // ok
+  } else if(r_scause() == 13 || r_scause() == 15){
+    uint64 va = r_stval();
+    lazy_alloc(va);
+  } else {
+    printf(&#34;usertrap(): unexpected scause %p pid=%d\n&#34;, r_scause(), p-&gt;pid);
+    printf(&#34;            sepc=%p stval=%p\n&#34;, r_sepc(), r_stval());
+    p-&gt;killed = 1;
+  }
+  
+  // ...
+}
+</code></pre><ul>
+<li>
+<p>當 <code>lazy_alloc()</code> 還沒有完成實作時，會發生什麼事情?</p>
+</li>
+<li>
+<p><code>kernel/trap.c</code>: <code>lazy_alloc()</code></p>
+</li>
+</ul>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">int
+lazy_alloc(uint64 va)
+{
+  struct proc *p = myproc();
+  pagetable_t pagetable = p-&gt;pagetable;
+  uint64 new_page_va = PGROUNDDOWN(va);
+  char *newmem = kalloc();
+
+  if (newmem == 0)
+    return -1;
+  memset(newmem, 0, PGSIZE);
+  if (mappages(pagetable, new_page_va, PGSIZE, (uint64) newmem,
+        PTE_W|PTE_X|PTE_R|PTE_U) != 0) {
+    kfree(newmem);
+    return -1;
+  }
+  return 0;
+}
+</code></pre><ul>
+<li><code>kernel/vm.c</code>:</li>
+</ul>
+<pre tabindex="0"><code class="language-Clike=" data-lang="Clike=">void
+uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
+{
+  uint64 a;
+  pte_t *pte;
+
+  if((va % PGSIZE) != 0)
+    panic(&#34;uvmunmap: not aligned&#34;);
+
+  for(a = va; a &lt; va + npages*PGSIZE; a += PGSIZE){
+    if((pte = walk(pagetable, a, 0)) == 0)
+      // panic(&#34;uvmunmap: walk&#34;);
+      continue;
+    if((*pte &amp; PTE_V) == 0)
+      // panic(&#34;uvmunmap: not mapped&#34;);
+      continue;
+    if(PTE_FLAGS(*pte) == PTE_V)
+      panic(&#34;uvmunmap: not a leaf&#34;);
+    if(do_free){
+      uint64 pa = PTE2PA(*pte);
+      kfree((void*)pa);
+    }
+    *pte = 0;
+  }
+}
+</code></pre><ul>
+<li>之所以要變成 <code>continue</code> 是為什麼
+<ul>
+<li><code>procgrow()</code> 與 lazy alloc 的差別
+<ul>
+<li><code>growproc()</code> 會一次 alloc 連續的數個 page</li>
+<li>lazy alloc 只會 allocate <strong>一個</strong> page
+<ul>
+<li>所以說那些中間的不連續的沒有被 alloc 的 va 就會產生 <code>PTE_V</code> = 0 的問題</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>現在有了最基本的 lazy alloc, 接著來繼續完成</p>
+<h2 id="lazytests-and-usertests">Lazytests and Usertests<a hidden class="anchor" aria-hidden="true" href="#lazytests-and-usertests">#</a></h2>
+<h3 id="hints-1">hints<a hidden class="anchor" aria-hidden="true" href="#hints-1">#</a></h3>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> Handle negative sbrk() arguments.</li>
+<li><input checked="" disabled="" type="checkbox"> Kill a process if it page-faults on a virtual memory address higher than any allocated with sbrk().</li>
+<li><input checked="" disabled="" type="checkbox"> Handle the parent-to-child memory copy in fork() correctly.</li>
+<li><input disabled="" type="checkbox"> Handle the case in which a process passes a valid address from sbrk() to a system call such as read or write, but the memory for that address has not yet been allocated.</li>
+<li><input disabled="" type="checkbox"> Handle out-of-memory correctly: if kalloc() fails in the page fault handler, kill the current process.</li>
+<li><input disabled="" type="checkbox"> Handle faults on the invalid page below the user stack.</li>
+</ul>
+<h3 id="handle-negative-sbrk-arguments">Handle negative sbrk() arguments.<a hidden class="anchor" aria-hidden="true" href="#handle-negative-sbrk-arguments">#</a></h3>
+<p>對於正數，只需要把 <code>sz</code> 增加 n 就好
+當參數為負數時，則要實際的釋放空間
+釋放空間的方法: 就用原本的 <code>growproc()</code> 就好</p>
+<pre tabindex="0"><code class="language-Clike=" data-lang="Clike=">uint64
+sys_sbrk(void)
+{
+  int addr;
+  int n;
+  struct proc *p = myproc();
+
+  addr = myproc()-&gt;sz;
+  if (argint(0, &amp;n) &lt; 0)
+    return -1;
+  if (n &lt; 0) {
+    if (p-&gt;sz + n &lt; 0)
+      return -1;
+    if (growproc(n) &lt; -1)
+      return -1;
+  } else {
+    myproc()-&gt;sz += n;
+  }
+  return addr;
+}
+</code></pre><h3 id="kill-a-process-if-it-page-faults-on-a-virtual-memory-address-higher-than-any-allocated-with-sbrk">Kill a process if it page-faults on a virtual memory address higher than any allocated with sbrk().<a hidden class="anchor" aria-hidden="true" href="#kill-a-process-if-it-page-faults-on-a-virtual-memory-address-higher-than-any-allocated-with-sbrk">#</a></h3>
+<p>澄清 lazy alloc 的意涵：
+如果用 sbrk 增加記憶體空間，就增加 <code>sz</code>
+真的到了 page fault 的時候再來處理 allocate 的問題就好</p>
+<p>可是有時候遇到 page fault 並不代表這個 va 是允許存在的
+以下幾種方情況並不是正常的 va</p>
+<ol>
+<li><code>va</code> &gt; <code>MAXVA</code></li>
+<li>如果一個 page 的 <code>PTE_V</code> == 1 那麼他就一定不是 lazy alloc 因為它已經被分配了</li>
+<li><code>va</code> &gt;= <code>p-&gt;sz</code> 因為並沒有藉由 <code>sbrk()</code> 去新增位置</li>
+</ol>
+<p>解決方法:</p>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">int
+is_lazy_addr(int va)
+{
+  struct proc *p = myproc();
+
+  if (va &gt; MAXVA)
+    return 0;
+
+  pte_t *pte = walk(p-&gt;pagetable, va, 0);
+  if (pte &amp;&amp; (*pte &amp; PTE_V))
+    return 0;
+
+  if (PGROUNDDOWN(va) &gt; PGROUNDDOWN(p-&gt;sz))
+    return 0;
+
+  return 1;
+}
+</code></pre><blockquote>
+<p>Handle the parent-to-child memory copy in fork() correctly.</p></blockquote>
+<p>主要在講 <code>kernel/proc.c: fork()</code> 中的呼叫的，<code>kernel/vm.c: uvmcopy</code>
+原本的 <code>uvmcopy</code> 是 copy 一段連續的 memory, 可是現在使用 lazy alloc 了話，就不一定是連續的
+解決方法：
+<code>continue</code> 掉兩個 <code>panic</code></p>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">int
+uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
+{
+  // ...
+  for(i = 0; i &lt; sz; i += PGSIZE){
+    if((pte = walk(old, i, 0)) == 0)
+      // panic(&#34;uvmcopy: pte should exist&#34;);
+      continue;
+    if((*pte &amp; PTE_V) == 0)
+      // panic(&#34;uvmcopy: page not present&#34;);
+      continue;
+    // ...
+  }
+  return 0;
+}
+</code></pre><h3 id="問題一-uvmunmap-walk">問題一: <code>uvmunmap()</code> <code>walk()</code><a hidden class="anchor" aria-hidden="true" href="#問題一-uvmunmap-walk">#</a></h3>
+<pre tabindex="0"><code class="language-shell=" data-lang="shell=">$ lazytests
+lazytests starting
+running test lazy alloc
+panic: uvmunmap: walk
+</code></pre><p><code>walk()</code> 出錯了
+這跟前一個問題很像，都是因為 lazy alloc 只有 alloc 一個 page
+而不是像原本的 <code>growproc</code> 是數個 page 的原因
+解決方法：</p>
+<pre tabindex="0"><code class="language-Clike=" data-lang="Clike=">void
+uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
+{
+    // ...
+    
+    if((pte = walk(pagetable, a, 0)) == 0)
+      // panic(&#34;uvmunmap: walk&#34;);
+      continue;
+    // ...
+}
+</code></pre><blockquote>
+<p>Handle the case in which a process passes a valid address from sbrk() to a system call such as read or write, but the memory for that address has not yet been allocated.</p></blockquote>
+<p><code>copyin()</code> 與 <code>copyout()</code> 的問題</p>
+<ul>
+<li><input disabled="" type="checkbox"> trace code</li>
+</ul>
+<h2 id="reference">reference<a hidden class="anchor" aria-hidden="true" href="#reference">#</a></h2>
+<ul>
+<li><a href="https://pdos.csail.mit.edu/6.S081/2020/schedule.html">6.S081 2020</a></li>
+<li><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html">Lab lazy</a></li>
+<li><a href="https://pdos.csail.mit.edu/6.S081/2020/xv6/book-riscv-rev1.pdf">xv6 book</a></li>
+<li><a href="https://youtu.be/KSYO-gTZo0A">video</a></li>
+<li><a href="https://ttzytt.com/2022/07/xv6_lab5_record/">Lazy Page Allocation 实验记录</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/xv6/lab5.1/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>[xv6 學習紀錄 05-1] Page Fault</span>
+  </a>
+  <a class="next" href="http://localhost:1313/dev-log/notes/">
+    <span class="title">Next »</span>
+    <br>
+    <span>[這個網站的誕生] 筆記區域</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

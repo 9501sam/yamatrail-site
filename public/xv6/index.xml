@@ -6,7 +6,7 @@
     <description>Recent content in xv6 學習紀錄 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Thu, 09 Oct 2025 19:09:13 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 11 Oct 2025 11:28:40 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/xv6/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities</title>
@@ -382,6 +382,66 @@ set riscv use-compressed-breakpoints yes
 &lt;blockquote&gt;
 &lt;p&gt;It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file &lt;code&gt;user/call.c&lt;/code&gt; in your xv6 repo. &lt;code&gt;make fs.img&lt;/code&gt; compiles it and also produces a readable assembly version of the program in &lt;code&gt;user/call.asm&lt;/code&gt;.
 Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt;g&lt;/code&gt;, &lt;code&gt;f&lt;/code&gt;, and &lt;code&gt;main&lt;/code&gt;. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file &lt;code&gt;answers-traps.txt&lt;/code&gt;):&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 05-1] Page Fault</title>
+      <link>http://localhost:1313/xv6/lab5.1/</link>
+      <pubDate>Sat, 11 Oct 2025 11:20:50 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab5.1/</guid>
+      <description>&lt;p&gt;課程影片連結：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=KSYO-gTZo0A&#34;&gt;6.S081 Fall 2020 Lecture 8: Page Faults&lt;/a&gt;
+&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
+      &lt;iframe allow=&#34;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&#34; loading=&#34;eager&#34; referrerpolicy=&#34;strict-origin-when-cross-origin&#34; src=&#34;https://www.youtube.com/embed/KSYO-gTZo0A?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; title=&#34;YouTube video&#34;&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;page-fault&#34;&gt;Page Fault&lt;/h2&gt;
+&lt;p&gt;回顧 virtual memory 的特性&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;isolation&lt;/li&gt;
+&lt;li&gt;level of indirection
+在原先 xv6 的設計中 pagetable 的設計是 static
+現在在 page fault 的時候做一些動作，可以設計為 dynamic 的 mapping&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;information-neede&#34;&gt;Information neede&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;造成 page fault 的 virtual memory
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;stval&lt;/code&gt; register&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;The type of page fault
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;scause&lt;/code&gt;: R/W/Instruction&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Virtual address of instruction that cause page fault
+&lt;ul&gt;
+&lt;li&gt;這是為了在處理完 page fault 之後，可以回到原本的地方繼續執行&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;trampframe-&amp;gt;epc&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;allocation-sbrk&#34;&gt;Allocation: &lt;code&gt;sbrk()&lt;/code&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;原先的方式：eager allocatoin&lt;/li&gt;
+&lt;li&gt;可變更為：Lazy Allocation&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;1-lazy-allocation&#34;&gt;1. Lazy Allocation&lt;/h2&gt;
+&lt;p&gt;先把 &lt;code&gt;sys_sbrk()&lt;/code&gt; 變更為：&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 05] Lab: Traps</title>
+      <link>http://localhost:1313/xv6/lab5/</link>
+      <pubDate>Sat, 11 Oct 2025 11:28:40 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab5/</guid>
+      <description>&lt;ul&gt;
+&lt;li&gt;Lab 連結: &lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html&#34;&gt;Lab: xv6 lazy page allocation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;eliminate-allocation-from-sbrk-easy&#34;&gt;Eliminate allocation from sbrk() (easy)&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Your first task is to delete page allocation from the &lt;code&gt;sbrk(n)&lt;/code&gt; system call implementation, which is the function &lt;code&gt;sys_sbrk()&lt;/code&gt; in &lt;code&gt;sysproc.c&lt;/code&gt;. The &lt;code&gt;sbrk(n)&lt;/code&gt; system call grows the process&amp;rsquo;s memory size by &lt;code&gt;n&lt;/code&gt; bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new &lt;code&gt;sbrk(n)&lt;/code&gt; should just increment the process&amp;rsquo;s size (&lt;code&gt;myproc()-&amp;gt;sz&lt;/code&gt;) by &lt;code&gt;n&lt;/code&gt; and return the old size. It should not allocate memory &amp;ndash; so you should delete the call to &lt;code&gt;growproc()&lt;/code&gt; (but you still need to increase the process&amp;rsquo;s size!).&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
