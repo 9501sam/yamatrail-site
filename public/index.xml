@@ -6,7 +6,7 @@
     <description>Recent content in Yama 的網站 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Sat, 11 Oct 2025 11:28:40 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 13 Oct 2025 12:32:56 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</title>
@@ -316,28 +316,26 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;執行之後，會在 &lt;code&gt;~/.ssh/&lt;/code&gt; 中產生公鑰與私鑰&lt;/p&gt;</description>
     </item>
     <item>
-      <title>[xv6 學習紀錄 03] Lab: page tables</title>
-      <link>http://localhost:1313/xv6/lab3/</link>
-      <pubDate>Thu, 02 Oct 2025 13:09:35 +0800</pubDate>
-      <guid>http://localhost:1313/xv6/lab3/</guid>
-      <description>&lt;p&gt;Lab 連結: &lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/pgtbl.html&#34;&gt;lab pgtbl&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id=&#34;xv6-中的-virtual-memory&#34;&gt;xv6 中的 virtual memory&lt;/h2&gt;
-&lt;p&gt;&lt;img alt=&#34;page_table.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3/page_table.png&#34;&gt;
-&lt;img alt=&#34;3levels_page_table.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3/3levels_page_table.png&#34;&gt;&lt;/p&gt;
+      <title>[xv6 學習紀錄 03-1] Virtual Memory 程式碼解析</title>
+      <link>http://localhost:1313/xv6/lab3.1/</link>
+      <pubDate>Mon, 13 Oct 2025 12:32:56 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab3.1/</guid>
+      <description>&lt;h2 id=&#34;xv6-中的-virtual-memory&#34;&gt;xv6 中的 virtual memory&lt;/h2&gt;
+&lt;p&gt;&lt;img alt=&#34;page_table.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3.1/page_table.png&#34;&gt;
+&lt;img alt=&#34;3levels_page_table.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3.1/3levels_page_table.png&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;memory-layout&#34;&gt;memory layout&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table&lt;/li&gt;
 &lt;li&gt;一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;img alt=&#34;process_layout.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3/process_layout.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;process_layout.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3.1/process_layout.png&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;kernel-address-space&#34;&gt;Kernel address space&lt;/h2&gt;
-&lt;p&gt;&lt;img alt=&#34;kernel_layout.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3/kernel_layout.png&#34;&gt;
+&lt;p&gt;&lt;img alt=&#34;kernel_layout.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3.1/kernel_layout.png&#34;&gt;
 接著依序講解 &lt;code&gt;MAXVA&lt;/code&gt;, &lt;code&gt;PHYSTOP&lt;/code&gt;, &lt;code&gt;KERNBASE&lt;/code&gt;&lt;/p&gt;
 &lt;h3 id=&#34;maxva&#34;&gt;&lt;code&gt;MAXVA&lt;/code&gt;&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成
-&lt;img alt=&#34;va.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3/va.png&#34;&gt;
-所以最大的 virtual address &lt;code&gt;MAXVA&lt;/code&gt;也就是 &lt;code&gt;0b111111111111111111111111111111111111111&lt;/code&gt;(39 1s):&lt;/li&gt;
+&lt;img alt=&#34;va.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/lab3.1/va.png&#34;&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-c=&#34; data-lang=&#34;c=&#34;&gt;// kernel/riscv.h
 // one beyond the highest possible virtual address.
@@ -345,8 +343,21 @@
 // Sv39, to avoid having to sign-extend virtual addresses
 // that have the high bit set.
 #define MAXVA (1L &amp;lt;&amp;lt; (9 + 9 + 9 + 12 - 1))
-&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;direct-mapping-的區域kernbase--phystop&#34;&gt;Direct Mapping 的區域：&lt;code&gt;KERNBASE&lt;/code&gt; ~ &lt;code&gt;PHYSTOP&lt;/code&gt;&lt;/h3&gt;
-&lt;p&gt;這一段 &lt;code&gt;0x80000000&lt;/code&gt; ~ &lt;code&gt;0x88000000&lt;/code&gt; 是作為一般的 memory 空間使用，並且在 kernel 這一段的 mapping 中，是使用 Direct Mapping 的方式，也就是 &lt;code&gt;virtual address == physical address&lt;/code&gt; 的意思，這麼做的好處在於 kernel 可以直接使用 physical address 對 memory 進行操作&lt;/p&gt;</description>
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;最大的 virtual address &lt;code&gt;MAXVA&lt;/code&gt; 是 &lt;code&gt;0b100 0000 0000 0000 0000 0000 0000 0000 0000 0000&lt;/code&gt;(38 0s):
+可以得知 Sv39 並沒有把 39 個 bits 用滿，實際上最大的 address 只會到
+&lt;code&gt;MAXVA&lt;/code&gt; - 1 = &lt;code&gt;0b011 1111 1111 1111 1111 1111 1111 1111 1111 1111&lt;/code&gt;&lt;br&gt;
+= &lt;code&gt;0x3fffffffff&lt;/code&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 03] Lab: page tables</title>
+      <link>http://localhost:1313/xv6/lab3/</link>
+      <pubDate>Thu, 02 Oct 2025 13:09:35 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab3/</guid>
+      <description>&lt;p&gt;Lab 連結: &lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/pgtbl.html&#34;&gt;lab pgtbl&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;speed-up-system-calls-easy&#34;&gt;Speed up system calls (easy)&lt;/h2&gt;
+&lt;p&gt;題目敘述:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;When each process is created, map one read-only page at &lt;code&gt;USYSCALL&lt;/code&gt; (a virtual address defined in &lt;code&gt;memlayout.h&lt;/code&gt;). At the start of this page, store a struct &lt;code&gt;usyscall&lt;/code&gt; (also defined in &lt;code&gt;memlayout.h&lt;/code&gt;), and initialize it to store the PID of the current process. For this lab, &lt;code&gt;ugetpid()&lt;/code&gt; has been provided on the userspace side and will automatically use the &lt;code&gt;USYSCALL&lt;/code&gt; mapping. You will receive full credit for this part of the lab if the &lt;code&gt;ugetpid&lt;/code&gt; test case passes when running &lt;code&gt;pgtbltest&lt;/code&gt;.&lt;/p&gt;</description>
     </item>
     <item>
       <title>[xv6 學習紀錄 04-1] 使用 GDB 追蹤 xv6 以了解 RISC-V 的 Calling Convention 與 Stack Frames</title>
@@ -638,7 +649,7 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
 &lt;p&gt;先把 &lt;code&gt;sys_sbrk()&lt;/code&gt; 變更為：&lt;/p&gt;</description>
     </item>
     <item>
-      <title>[xv6 學習紀錄 05] Lab: Traps</title>
+      <title>[xv6 學習紀錄 05] Lab: xv6 lazy page allocation</title>
       <link>http://localhost:1313/xv6/lab5/</link>
       <pubDate>Sat, 11 Oct 2025 11:28:40 +0800</pubDate>
       <guid>http://localhost:1313/xv6/lab5/</guid>

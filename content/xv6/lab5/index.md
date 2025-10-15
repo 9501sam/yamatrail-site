@@ -1,7 +1,7 @@
 +++
 date = '2025-10-11T11:28:40+08:00'
 draft = false
-title = '[xv6 學習紀錄 05] Lab: Traps'
+title = '[xv6 學習紀錄 05] Lab: xv6 lazy page allocation'
 series = ["xv6 學習紀錄"]
 weight = 52
 +++
@@ -94,97 +94,107 @@ panic: uvmunmap: not mapped
 (TODO: more detailed, 說明跟 sbrk() 的關係為何)
 
 ## Lazy allocation (moderate)
-## Lazytests and Usertests (moderate)
+> Modify the code in `trap.c` to respond to a page fault from user space by mapping a newly-allocated page of physical memory at the faulting address, and then returning back to user space to let the process continue executing. You should add your code just before the `printf` call that produced the "`usertrap(): ...`" message. Modify whatever other xv6 kernel code you need to in order to get `echo hi` to work. 
 
+當 page fault 發生時：
+1. 確認情形是正常的
+1. allocate 一個新的 page 並且做 mapping
+1. 處理完 page fault 之後要回到原本的 user process 繼續執行
+1. 把程式碼加在這裡
+    ```c
+      } else {
+        // TODO
+        printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
+        printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
+        setkilled(p);
+      }
+    ```
+處理完之後，`echo hi` 應該要可以正常執行
 
----
-# Lab5 Lazy 紀錄
+這裡我要先用 gdb debug 時，發現沒辦法設定到想要的地方，先把 `CFLAGS` 中的 `-O` 移除
+```sh
+make CFLAGS="-Wall -Werror -fno-omit-frame-pointer -ggdb -gdwarf-2 -DSOL_TRAPS -DLAB_TRAPS -MD -mcmodel=medany -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie" qemu-gdb
+```
+(注意要先 `make clean` 之後才會有效果)
 
-## 在處理 page fault 時，我們需要注意的幾件事情
-* `stval`: 造成 page fault 的 virtual memory
-* `sepc`: 造成 page fault 的 program counter
-* instruction: 當下是正在執行什麼 instruction (?)
-### registers
-1. `stval`: va cause page fault
-2. `scause`: the type of fault
-    * Read
-    * Write
-    * Instruction
-3. `sepc`: the va of instruction
+```sh
+(gdb) p *myproc()
+$2 = {lock = {locked = 0, name = 0x8000b170 "proc", cpu = 0x0},
+  state = RUNNING, chan = 0x0, killed = 0, xstate = 0, pid = 3,
+  parent = 0x8000bea0 <proc+360>, kstack = 274877878272,
+  sz = 86016, pagetable = 0x87f73000, trapframe = 0x87f60000,
+  context = {ra = 2147492142, sp = 274877882368, s0 = 0,
+    s1 = 0, s2 = 0, s3 = 0, s4 = 0, s5 = 0, s6 = 0, s7 = 0,
+    s8 = 0, s9 = 0, s10 = 0, s11 = 0}, ofile = {
+    0x8001ba68 <ftable+24>, 0x8001ba68 <ftable+24>,
+    0x8001ba68 <ftable+24>, 0x0 <repeats 13 times>},
+  cwd = 0x80019e78 <itable+24>,
+  name = "sh", '\000' <repeats 13 times>}
+(gdb) p/x myproc()->sz
+$3 = 0x15000
+(gdb) p/x $stval
+$4 = 0x5008
+```
 
-## Eliminate allocation from `sbrk()`
-這個 assignment 就只要根據題目的指示，把 `growproc()` 給註解掉，並且記得把 `myproc()->sz` 增加 `n` bytes
+![vmprint.png](vmprint.png)
+```sh
+page table 0x0000000087f73000
+ ..0: pte 0x0000000021fdc001 pa 0x0000000087f70000
+ .. ..0: pte 0x0000000021fd8401 pa 0x0000000087f61000
+ .. .. ..0: pte 0x0000000021fdb85b pa 0x0000000087f6e000
+ .. .. ..1: pte 0x0000000021fd885b pa 0x0000000087f62000
+ .. .. ..2: pte 0x0000000021fd8cd7 pa 0x0000000087f63000
+ .. .. ..3: pte 0x0000000021fdbc07 pa 0x0000000087f6f000
+ .. .. ..4: pte 0x0000000021fd54d7 pa 0x0000000087f55000
+ ..255: pte 0x0000000021fdc801 pa 0x0000000087f72000
+ .. ..511: pte 0x0000000021fdc401 pa 0x0000000087f71000
+ .. .. ..510: pte 0x0000000021fd80c7 pa 0x0000000087f60000 # trapframe
+ .. .. ..511: pte 0x000000002000284b pa 0x000000008000a000 # trampoline
+```
+1. `myproc()->sz`: `0x15000`
+1. `stval`: `0x5008`
+1. 實際 pagetable 的內容，總共只有 5 個 page (不算 trampoline and trapframe)
+    * 實際 size 為 5 * `PGSIZE` = `0x5000` (所以想 access va `0x5008` 時會 page fault)
 
-```Clike=
+解決方法：
+* `sys_sbrk()`
+    * `growproc()`
+        * `uvmalloc()`
+原本的呼叫如上，最終使用 `uvmalloc()`，因此學習 `uvmalloc()` 的作法，理論上可以讓 `echo hi` 正常執行
+
+* `kernel/vm.c`:
+```c
+// Allocate PTEs and physical memory to grow process from oldsz to
+// newsz, which need not be page aligned.  Returns new size or 0 on error.
 uint64
-sys_sbrk(void)
+uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
 {
-  int addr;
-  int n;
+  char *mem;
+  uint64 a;
 
-  if(argint(0, &n) < 0)
-    return -1;
-  addr = myproc()->sz;
-  // if(growproc(n) < 0)
-  //   return -1;
-  myproc()->sz += n;
-  return addr;
+  if(newsz < oldsz)
+    return oldsz;
+
+  oldsz = PGROUNDUP(oldsz);
+  for(a = oldsz; a < newsz; a += PGSIZE){
+    mem = kalloc();
+    if(mem == 0){
+      uvmdealloc(pagetable, a, oldsz);
+      return 0;
+    }
+    memset(mem, 0, PGSIZE);
+    if(mappages(pagetable, a, PGSIZE, (uint64)mem, PTE_R|PTE_U|xperm) != 0){
+      kfree(mem);
+      uvmdealloc(pagetable, a, oldsz);
+      return 0;
+    }
+  }
+  return newsz;
 }
 ```
-改好之後執行 `echo hi` 會爆出以下的錯誤
-```=
-xv6 kernel is booting
+原先版本中的 `uvmalloc()` 是多 alloc 了多個 page，現在在這裡的版本只需要多 alloc 現在這個 va (`$stval`) 這一個 page 就好，之後如果又有沒有 allocate 的 page，就一樣會來到 page fault 的這裡，然後一樣專注於一個 page 的處理
 
-hart 1 starting
-hart 2 starting
-init: starting sh
-$ echo hi
-usertrap(): unexpected scause 0x000000000000000f pid=3
-            sepc=0x00000000000012ac stval=0x0000000000004008
-panic: uvmunmap: not mapped
-```
-##### 錯誤訊息解釋
-* `usertrap()`:
-    * 這些錯誤訊息是從 `kernel/trap.c: usertrap()` 印出來的
-* `unexpected scause 0x000000000000000f`:
-    * `usertrpa()` 處理這個 trap 時，`scause` = 0x0f 此情況並沒有對應的程式碼
-* `pid = 3` 是 `echo hi` 的 pid
-    * 註: `sh` 的 pid 是 2
-* `sepc=0x00000000000012ac`:
-    * 對應到 `sh.asm` 中的 `12ac: ld	ra,56(sp)`
-    * 為什麼 `sepc` 停留在 `sh` 中而沒有進入到 `echo` ?
-* `stval=0x0000000000004008`:
-    * 造成 page trap 的 virtual memory (`sh` or `echo`?)
-
-### 刪掉 `growproc()` 之後，會造成什麼樣的影響
-* 也就是說 `sys_sbrk()` 沒有執行 `growproc()`
-* 也就是沒有執行 `uvmalloc()`
-* 也就是沒有執行 `kalloc()`
-* 沒有執行 `kalloc()` 就是怎麼樣了(?)
-* 最終會導致 user program (sh) 使用了他沒有分配到的記憶體位置(va)
-* 我的猜想:
-    * 在 sh 執行 `sw	s6,8(a0)` 時，正要 access 某個 va (`8 + a0`) 的當下
-        * 硬體發現這個 PTE 的 `valid` flag 為 0 (false)
-        * 於是發出了 0x0f 這個 trap (page fault)
-* 所以以物理上的狀況來說 page fault 就是
-> 當我要 access 某一個 va 時，我發現這個 va 在 page table 上給我的回覆為：
-> 此 va 並不是使用中的狀態
-
-## Lazy allocation
-當 page fault 發生時，allocate 一個新的 page，並且回到 user space 繼續執行，修改任何的 kernel code，讓 `echo hi` 可以執行
-
-### hints
-* page fault 時 `scause` 為 13 or 15
-* 從 `stval` 可以得知造成 page fault 的 va 是多少
-* 請偷學 `uvmalloc()`，並呼叫 `kalloc()` 以及 `mappages()`
-    * 先從偷學這裡開始
-    * 當這個 va 沒有被分配時，我就手動幫他分配
-    * 偷學 `uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)`
-        * `pagetable`: `myproc()->pagetable`
-        * `oldsz`: `myproc()->sz`
-        * `newsz`: `r_stval()`
-* `kernel/trap.c`: `usertrap()`
-```clike=
+```c
 void
 usertrap(void)
 {
@@ -203,32 +213,26 @@ usertrap(void)
   // ...
 }
 ```
-* 當 `lazy_alloc()` 還沒有完成實作時，會發生什麼事情?
 
-* `kernel/trap.c`: `lazy_alloc()`
-```clike=
+```c
+// Returns 0 on success, -1 if not
 int
 lazy_alloc(uint64 va)
 {
-  struct proc *p = myproc();
-  pagetable_t pagetable = p->pagetable;
-  uint64 new_page_va = PGROUNDDOWN(va);
-  char *newmem = kalloc();
+  char *mem;
+  uint64 a;
 
-  if (newmem == 0)
-    return -1;
-  memset(newmem, 0, PGSIZE);
-  if (mappages(pagetable, new_page_va, PGSIZE, (uint64) newmem,
-        PTE_W|PTE_X|PTE_R|PTE_U) != 0) {
-    kfree(newmem);
+  a = PGROUNDDOWN(va);
+  mem = kalloc();
+  memset(mem, 0, PGSIZE);
+  if(mappages(myproc()->pagetable, a, PGSIZE, (uint64)mem, PTE_R|PTE_U|PTE_W) != 0){
+    kfree(mem);
     return -1;
   }
   return 0;
 }
 ```
-
-* `kernel/vm.c`: 
-```Clike=
+```c
 void
 uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
 {
@@ -255,42 +259,38 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
   }
 }
 ```
-* 之所以要變成 `continue` 是為什麼
-    * `procgrow()` 與 lazy alloc 的差別
-        * `growproc()` 會一次 alloc 連續的數個 page
-        * lazy alloc 只會 allocate **一個** page
-            * 所以說那些中間的不連續的沒有被 alloc 的 va 就會產生 `PTE_V` = 0 的問題
-            
-現在有了最基本的 lazy alloc, 接著來繼續完成
+在 lazy allocation 的設計底下，`PTE_V == 0` 本來就是正常的
+![lazy-allocation.png](lazy-allocation.png)
 
-## Lazytests and Usertests
-### hints
-- [x] Handle negative sbrk() arguments.
-- [x] Kill a process if it page-faults on a virtual memory address higher than any allocated with sbrk().
-- [x] Handle the parent-to-child memory copy in fork() correctly.
-- [ ] Handle the case in which a process passes a valid address from sbrk() to a system call such as read or write, but the memory for that address has not yet been allocated.
-- [ ] Handle out-of-memory correctly: if kalloc() fails in the page fault handler, kill the current process.
-- [ ] Handle faults on the invalid page below the user stack. 
+## Lazytests and Usertests (moderate)
+> We've supplied you with `lazytests`, an xv6 user program that tests some specific situations that may stress your lazy memory allocator. Modify your kernel code so that all of both `lazytests` and `usertests` pass.
+> * Handle negative `sbrk()` arguments.
+> * Kill a process if it page-faults on a virtual memory address higher than any allocated with `sbrk()`.
+> * Handle the parent-to-child memory copy in `fork()` correctly.
+> * Handle the case in which a process passes a valid address from `sbrk()` to a system call such as read or write, but the memory for that address has not yet been allocated.
+> * Handle out-of-memory correctly: if `kalloc()` fails in the page fault handler, kill the current process.
+> * Handle faults on the invalid page below the user stack. 
 
-### Handle negative sbrk() arguments.
-對於正數，只需要把 `sz` 增加 n 就好
-當參數為負數時，則要實際的釋放空間
-釋放空間的方法: 就用原本的 `growproc()` 就好
-```Clike=
+目前的 lazy test 還有很多破綻，現在來一個一個的解決
+> * Handle negative `sbrk()` arguments.
+
+* `kernel/sysproc.c: sys_sbrk()`: 縮小的時候就還是跟原版的一樣使用 `growproc()` 去處裡就行了，`growproc()` 會有幫我們 `kfree` 不需要的 page 的作用
+```c
 uint64
 sys_sbrk(void)
 {
-  int addr;
+  uint64 addr;
   int n;
   struct proc *p = myproc();
 
-  addr = myproc()->sz;
-  if (argint(0, &n) < 0)
-    return -1;
+
+  addr = p->sz;
+  if (argint(0, &n))
+    return 0;
   if (n < 0) {
     if (p->sz + n < 0)
       return -1;
-    if (growproc(n) < -1)
+    if (growproc(n) < 0)
       return -1;
   } else {
     myproc()->sz += n;
@@ -299,20 +299,17 @@ sys_sbrk(void)
 }
 ```
 
-### Kill a process if it page-faults on a virtual memory address higher than any allocated with sbrk().
+> * Kill a process if it page-faults on a virtual memory address higher than any allocated with `sbrk()`.
 
-澄清 lazy alloc 的意涵：
-如果用 sbrk 增加記憶體空間，就增加 `sz`
-真的到了 page fault 的時候再來處理 allocate 的問題就好
+`usertrap()` 在處理 page fualt 時，也不是所有 page fault 都符合，lazy allocation 的條件，例如 `stval` 中的 va 大於 size 的時候，就還是一個確確實實的錯誤情況，在這個情況下，把這個 process kill 掉
 
-可是有時候遇到 page fault 並不代表這個 va 是允許存在的
-以下幾種方情況並不是正常的 va 
+以下幾種方情況並不是 lazy allocation 的情形
 1. `va` > `MAXVA`
-1. 如果一個 page 的 `PTE_V` == 1 那麼他就一定不是 lazy alloc 因為它已經被分配了
+1. 如果一個 page 的 `PTE_V` == 1 那麼他就一定不是 lazy alloc, 因為它已經被分配了
 1. `va` >= `p->sz` 因為並沒有藉由 `sbrk()` 去新增位置
 
 解決方法:
-```clike=
+```c
 int
 is_lazy_addr(int va)
 {
@@ -320,75 +317,325 @@ is_lazy_addr(int va)
 
   if (va > MAXVA)
     return 0;
-
   pte_t *pte = walk(p->pagetable, va, 0);
   if (pte && (*pte & PTE_V))
     return 0;
-
   if (PGROUNDDOWN(va) > PGROUNDDOWN(p->sz))
     return 0;
-
   return 1;
 }
 ```
 
-> Handle the parent-to-child memory copy in fork() correctly.
+* `kernel/trap.c: usertrap()`
+```c
+void
+usertrap(void)
+{
+  // ...
+  } else if((which_dev = devintr()) != 0){
+    // ok
+  } else if(r_scause() == 13 || r_scause() == 15){
+    struct proc *p = myproc();
+    uint64 va = r_stval();
+
+    if (is_lazy_addr(va)) {
+      if (lazy_alloc(va) < 0)
+        p->killed = 1;
+    } else {
+      p->killed = 1;
+    }
+  } else {
+    printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
+    printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
+    p->killed = 1;
+  }
+  
+  // ...
+}
+```
+
+> * Handle the parent-to-child memory copy in `fork()` correctly.
 
 主要在講 `kernel/proc.c: fork()` 中的呼叫的，`kernel/vm.c: uvmcopy`
 原本的 `uvmcopy` 是 copy 一段連續的 memory, 可是現在使用 lazy alloc 了話，就不一定是連續的
-解決方法：
-`continue` 掉兩個 `panic`
-```clike=
+* `kernel/proc.c: fork()`
+```c
+int
+fork(void)
+{
+  int i, pid;
+  struct proc *np;
+  struct proc *p = myproc();
+
+  // Allocate process.
+  if((np = allocproc()) == 0){
+    return -1;
+  }
+
+  // Copy user memory from parent to child.
+  // 這裡使用 uvmcopy()
+  if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
+    freeproc(np);
+    release(&np->lock);
+    return -1;
+  }
+  np->sz = p->sz;
+
+  // copy saved user registers.
+  *(np->trapframe) = *(p->trapframe);
+
+  // Cause fork to return 0 in the child.
+  np->trapframe->a0 = 0;
+
+  // increment reference counts on open file descriptors.
+  for(i = 0; i < NOFILE; i++)
+    if(p->ofile[i])
+      np->ofile[i] = filedup(p->ofile[i]);
+  np->cwd = idup(p->cwd);
+
+  safestrcpy(np->name, p->name, sizeof(p->name));
+
+  pid = np->pid;
+
+  release(&np->lock);
+
+  acquire(&wait_lock);
+  np->parent = p;
+  release(&wait_lock);
+
+  acquire(&np->lock);
+  np->state = RUNNABLE;
+  release(&np->lock);
+
+  return pid;
+}
+```
+
+* `kernel/vm.c: uvmcopy`
+```c
 int
 uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
 {
-  // ...
+  pte_t *pte;
+  uint64 pa, i;
+  uint flags;
+  char *mem;
+
   for(i = 0; i < sz; i += PGSIZE){
+    // 在 lazy allocation 的設計中，沒有找到對應的 pte 是正常的
     if((pte = walk(old, i, 0)) == 0)
       // panic("uvmcopy: pte should exist");
       continue;
+    // 在 lazy allocation 的設計中，PTE_V == 0 是正常的
     if((*pte & PTE_V) == 0)
       // panic("uvmcopy: page not present");
       continue;
-    // ...
+    pa = PTE2PA(*pte);
+    flags = PTE_FLAGS(*pte);
+    if((mem = kalloc()) == 0)
+      goto err;
+    memmove(mem, (char*)pa, PGSIZE);
+    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
+      kfree(mem);
+      goto err;
+    }
+  }
+  return 0;
+
+ err:
+  uvmunmap(new, 0, i / PGSIZE, 1);
+  return -1;
+}
+```
+
+> * Handle the case in which a process passes a valid address from `sbrk()` to a system call such as read or write, but the memory for that address has not yet been allocated.
+
+這裡在說的是如果是在 system call 如 `read()` 或是 `write()` 的過程中使用 lazy address，會發生問題，因為目前只有處理 user program 所產生的 page fault, 並沒有處理 system call 所產生的 page fault
+
+例如可以像是 
+```c
+char buf[1024];
+```
+像是這種時候，`buf` 有可能是 lazy allocation，在之後如果利用 `write` 對於 `buf` 的操作會造成 page fault 但這時候已經進入到 supervisor mode 了，會無法進入到我們目前處理 page fault 的 `usertrap()`
+
+流程:
+* `kernel/sysfile.c: sys_write()`
+    * `kernel/file.c: filewrite()`
+        * `kernel/pipe.c: pipewrite()`
+            * `kernel/vm.c: copyin()`
+                * `kernel/vm.c: walkaddr()`
+                    * `kernel/vm.c: walk()`
+
+* `kernel/vm.c: copyin()`
+```c
+// Copy from user to kernel.
+// Copy len bytes to dst from virtual address srcva in a given page table.
+// Return 0 on success, -1 on error.
+int
+copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
+{
+  uint64 n, va0, pa0;
+
+  while(len > 0){
+    va0 = PGROUNDDOWN(srcva);
+    pa0 = walkaddr(pagetable, va0); // 這個 va0 有可能是一個 lazy address
+    if(pa0 == 0)
+      return -1;
+    n = PGSIZE - (srcva - va0);
+    if(n > len)
+      n = len;
+    memmove(dst, (void *)(pa0 + (srcva - va0)), n);
+
+    len -= n;
+    dst += n;
+    srcva = va0 + PGSIZE;
   }
   return 0;
 }
 ```
 
-### 問題一: `uvmunmap()` `walk()`
-```shell=
-$ lazytests
-lazytests starting
-running test lazy alloc
-panic: uvmunmap: walk
-```
-`walk()` 出錯了
-這跟前一個問題很像，都是因為 lazy alloc 只有 alloc 一個 page
-而不是像原本的 `growproc` 是數個 page 的原因
-解決方法：
-```Clike=
-void
-uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
+* `kernel/vm.c: walkaddr()`
+```c
+// Look up a virtual address, return the physical address,
+// or 0 if not mapped.
+// Can only be used to look up user pages.
+uint64
+walkaddr(pagetable_t pagetable, uint64 va)
 {
-    // ...
-    
-    if((pte = walk(pagetable, a, 0)) == 0)
-      // panic("uvmunmap: walk");
-      continue;
-    // ...
+  pte_t *pte;
+  uint64 pa;
+
+  if(va >= MAXVA)
+    return 0;
+
+  pte = walk(pagetable, va, 0); // 如果是 lazy address 這裡應該會 walk 不出來
+  if(pte == 0)
+    return 0;
+  if((*pte & PTE_V) == 0)
+    return 0;
+  if((*pte & PTE_U) == 0)
+    return 0;
+  pa = PTE2PA(*pte);
+  return pa;
 }
 ```
 
-> Handle the case in which a process passes a valid address from sbrk() to a system call such as read or write, but the memory for that address has not yet been allocated.
+* `kernel/vm.c: walk()`
+```c
+pte_t *
+walk(pagetable_t pagetable, uint64 va, int alloc)
+{
+  if(va >= MAXVA)
+    panic("walk");
 
-`copyin()` 與 `copyout()` 的問題
-- [ ] trace code
+  for(int level = 2; level > 0; level--) {
+    pte_t *pte = &pagetable[PX(level, va)];
+    if(*pte & PTE_V) {
+      pagetable = (pagetable_t)PTE2PA(*pte);
+    } else {
+      // 在 lazy address 的情況下，因為還沒有 allocate 所以會進入到這裡來
+      // 最終會回傳 0
+      if(!alloc || (pagetable = (pde_t*)kalloc()) == 0) 
+        return 0;
+      memset(pagetable, 0, PGSIZE);
+      *pte = PA2PTE(pagetable) | PTE_V;
+    }
+  }
+  return &pagetable[PX(0, va)];
+}
+```
 
-## reference
+解決方法：在 `walkaddr()` 遇到一個 lazy address 時，allocate 一個 page
+
+* `kernel/vm.c: walkaddr()`
+```c
+uint64
+walkaddr(pagetable_t pagetable, uint64 va)
+{
+  pte_t *pte;
+  uint64 pa;
+
+  if(va >= MAXVA)
+    return 0;
+
+  pte = walk(pagetable, va, 0);
+  if (pte == 0 || (*pte & PTE_V) == 0) {
+    struct proc *p = myproc();
+    if(va >= p->sz || va < PGROUNDUP(p->trapframe->sp)) return 0;
+    pa = (uint64)kalloc();
+    if (pa == 0) return 0;
+    if (mappages(p->pagetable, va, PGSIZE, pa, PTE_W|PTE_R|PTE_U|PTE_X) != 0) {
+      kfree((void*)pa);
+      return 0;
+    }
+    return pa;
+  }
+  if((*pte & PTE_U) == 0)
+    return 0;
+  pa = PTE2PA(*pte);
+  return pa;
+}
+```
+(TODO: more detailed)
+
+> * Handle out-of-memory correctly: if `kalloc()` fails in the page fault handler, kill the current process.
+
+```c
+// Returns 0 on success, -1 if not
+int
+lazy_alloc(uint64 va)
+{
+  char *mem;
+  uint64 a;
+
+  a = PGROUNDDOWN(va);
+  mem = kalloc();
+  if (mem == 0) {
+    return -1;
+  }
+  memset(mem, 0, PGSIZE);
+  if(mappages(myproc()->pagetable, a, PGSIZE, (uint64)mem, PTE_W|PTE_R|PTE_X|PTE_U) != 0){
+    kfree(mem);
+    return -1;
+  }
+  return 0;
+}
+```
+
+> * Handle faults on the invalid page below the user stack. 
+
+```c
+// Returns 0 on success, -1 if not
+int
+lazy_alloc(uint64 va)
+{
+  char *mem;
+  uint64 a;
+
+  a = PGROUNDDOWN(va);
+  mem = kalloc();
+  if (mem == 0) {
+    return -1;
+  }
+  memset(mem, 0, PGSIZE);
+  if(mappages(myproc()->pagetable, a, PGSIZE, (uint64)mem, PTE_W|PTE_R|PTE_X|PTE_U) != 0){
+    kfree(mem);
+    return -1;
+  }
+  return 0;
+}
+```
+(TODO: more detailed)
+
+![ac1.png](ac1.png)
+![ac2.png](ac2.png)
+![ac3.png](ac3.png)
+
+## References
 * [6.S081 2020](https://pdos.csail.mit.edu/6.S081/2020/schedule.html)
 * [Lab lazy](https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html)
 * [xv6 book](https://pdos.csail.mit.edu/6.S081/2020/xv6/book-riscv-rev1.pdf)
 * [video](https://youtu.be/KSYO-gTZo0A)
 * [Lazy Page Allocation 实验记录](https://ttzytt.com/2022/07/xv6_lab5_record/)
+
 

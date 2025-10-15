@@ -162,13 +162,28 @@ Boot xv6(Easy) 題目敘述： 這部份的詳細內容都寫在 lab util 中，
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 03-1] Virtual Memory 程式碼解析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
+MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) 最大的 virtual address MAXVA 是 0b100 0000 0000 0000 0000 0000 0000 0000 0000 0000(38 0s): 可以得知 Sv39 並沒有把 39 個 bits 用滿，實際上最大的 address 只會到 MAXVA - 1 = 0b011 1111 1111 1111 1111 1111 1111 1111 1111 1111
+= 0x3fffffffff
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-13 12:32:56 +0800 CST'>October 13, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03-1] Virtual Memory 程式碼解析" href="http://localhost:1313/xv6/lab3.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[xv6 學習紀錄 03] Lab: page tables
     </h2>
   </header>
   <div class="entry-content">
     <p>Lab 連結: lab pgtbl
-xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
-MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 所以最大的 virtual address MAXVA也就是 0b111111111111111111111111111111111111111(39 1s): // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) Direct Mapping 的區域：KERNBASE ~ PHYSTOP 這一段 0x80000000 ~ 0x88000000 是作為一般的 memory 空間使用，並且在 kernel 這一段的 mapping 中，是使用 Direct Mapping 的方式，也就是 virtual address == physical address 的意思，這麼做的好處在於 kernel 可以直接使用 physical address 對 memory 進行操作
+Speed up system calls (easy) 題目敘述:
+When each process is created, map one read-only page at USYSCALL (a virtual address defined in memlayout.h). At the start of this page, store a struct usyscall (also defined in memlayout.h), and initialize it to store the PID of the current process. For this lab, ugetpid() has been provided on the userspace side and will automatically use the USYSCALL mapping. You will receive full credit for this part of the lab if the ugetpid test case passes when running pgtbltest.
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
@@ -240,7 +255,7 @@ isolation level of indirection 在原先 xv6 的設計中 pagetable 的設計是
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 05] Lab: Traps
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 05] Lab: xv6 lazy page allocation
     </h2>
   </header>
   <div class="entry-content">
@@ -248,7 +263,7 @@ isolation level of indirection 在原先 xv6 的設計中 pagetable 的設計是
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-11 11:28:40 +0800 CST'>October 11, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 05] Lab: Traps" href="http://localhost:1313/xv6/lab5/"></a>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 05] Lab: xv6 lazy page allocation" href="http://localhost:1313/xv6/lab5/"></a>
 </article>
     </main>
     
