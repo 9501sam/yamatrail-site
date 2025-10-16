@@ -235,6 +235,20 @@ Expand Method 1 - Git Clone </p>
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 345 Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：345. Reverse Vowels of a String
+解題思路 這題就很直覺得掃過兩遍，第一遍收集 Vowels，第二變把 Vowels 用相反的順序放回去，真有什麼好說的東西的話應該是寫個 helper function isVowels() 會方便一些。
+程式碼 class Solution { private: bool isVowels(char c) { if (c == &#39;a&#39; || c == &#39;e&#39; || c == &#39;i&#39; || c == &#39;o&#39; || c == &#39;u&#39;) return true; if (c == &#39;A&#39; || c == &#39;E&#39; || c == &#39;I&#39; || c == &#39;O&#39; || c == &#39;U&#39;) return true; return false; } public: string reverseVowels(string s) { int n = s.size(); queue&lt;char&gt; q; for (int i = 0; i &lt; n; i&#43;&#43;) if (isVowels(s[i])) q.push(s[i]); for (int i = n - 1; i &gt;= 0; i--) if (isVowels(s[i])) { s[i] = q.front(); q.pop(); } return s; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 11:08:09 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 345 Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/345-reverse-vowels-of-a-string/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)
     </h2>
   </header>
@@ -263,24 +277,12 @@ nodes: https://120.108.205.137:9999/ui/
   <footer class="entry-footer"><span title='2025-09-27 00:00:40 +0800 CST'>September 27, 2025</span></footer>
   <a class="entry-link" aria-label="post link to 架設 Kubernetes cluster" href="http://localhost:1313/k8s/setup-cluster/"></a>
 </article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Hello World
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>This is my first article!
-所以我說那個醬汁呢？
-</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-20 21:52:54 +0800 CST'>September 20, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to Hello World" href="http://localhost:1313/posts/hello-world/"></a>
-</article>
 <footer class="page-footer">
   <nav class="pagination">
     <a class="prev" href="http://localhost:1313/">
       «&nbsp;Prev&nbsp;
+    </a>
+    <a class="next" href="http://localhost:1313/page/3/">Next&nbsp;&nbsp;»
     </a>
   </nav>
 </footer>
