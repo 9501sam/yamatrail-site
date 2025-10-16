@@ -262,17 +262,29 @@ isolation level of indirection 在原先 xv6 的設計中 pagetable 的設計是
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 06-1] Page Fault
     </h2>
   </header>
   <div class="entry-content">
-    <p>題目敘述:
-The problem The fork() system call in xv6 copies all of the parent process’s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.
+    <p>課程影片連結：
+6.S081 Fall 2020 Lecture 9: Interrupts Terms PLIC UART Interrupts 的意義 跟 syscall, traps 很像
+Interrupts 從哪裡來? 一些 CPU 的 fig
+programming device,
+memory mapped I/O
+UART store/load to registers
+Case Study: $ ls 的出現 kerenl/main.c
+kernel/console.c: consoleinit() kernel/uart.c: uartinit() kernel/plic.c: plicinit() kernel/plic.c: plicinithart() kernel/proc.c: scheduler() user/sh.c: getcmd()
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-10-15 17:47:29 +0800 CST'>October 15, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6" href="http://localhost:1313/xv6/lab6/"></a>
+  <footer class="entry-footer"><span title='2025-10-16 15:52:53 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06-1] Page Fault" href="http://localhost:1313/xv6/lab6.1/"></a>
 </article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/page/2/">Next&nbsp;&nbsp;»
+    </a>
+  </nav>
+</footer>
     </main>
     
 <footer class="footer">

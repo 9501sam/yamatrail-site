@@ -7,7 +7,8 @@
 <meta name="robots" content="noindex, nofollow">
 <title>[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6 | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
-<meta name="description" content="題目敘述:
+<meta name="description" content="Lab 連結：Lab: Copy-on-Write Fork for xv6
+題目解析
 
 The problem
 The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.">
@@ -131,21 +132,130 @@ The fork() system call in xv6 copies all of the parent process&rsquo;s user-spac
 
 </div>
   </header> 
-  <div class="post-content"><p>題目敘述:</p>
+  <div class="post-content"><p>Lab 連結：<a href="https://pdos.csail.mit.edu/6.S081/2022/labs/cow.html">Lab: Copy-on-Write Fork for xv6</a></p>
+<h2 id="題目解析">題目解析<a hidden class="anchor" aria-hidden="true" href="#題目解析">#</a></h2>
 <blockquote>
 <h2 id="the-problem">The problem<a hidden class="anchor" aria-hidden="true" href="#the-problem">#</a></h2>
-<p>The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.</p>
+<p>The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.</p></blockquote>
+<p>在現在的 xv6 設計中，<code>fork()</code> 出來的 child 會複製 parent 的所有 memory，但是在很多時候，child 會直接接著執行 <code>exec()</code>，也就直接把先前的一大票 memory 覆蓋掉了，這讓當 memory 的複製便得很浪費。</p>
+<p>想要節省這樣的浪費可以在 <code>fork()</code> 的時候只複製一份 page table 給 child，但是這麼做的話，每當 parent or child 想要 write 的時候，就會需要真的 copy 一份才行</p>
+<blockquote>
 <h2 id="the-solution">The solution<a hidden class="anchor" aria-hidden="true" href="#the-solution">#</a></h2>
-<p>Your goal in implementing copy-on-write (COW) fork() is to defer allocating and copying physical memory pages until the copies are actually needed, if ever.</p>
-<p>COW fork() creates just a pagetable for the child, with PTEs for user memory pointing to the parent&rsquo;s physical pages. COW fork() marks all the user PTEs in both parent and child as read-only. When either process tries to write one of these COW pages, the CPU will force a page fault. The kernel page-fault handler detects this case, allocates a page of physical memory for the faulting process, copies the original page into the new page, and modifies the relevant PTE in the faulting process to refer to the new page, this time with the PTE marked writeable. When the page fault handler returns, the user process will be able to write its copy of the page.</p></blockquote>
+<p>Your goal in implementing copy-on-write (COW) fork() is to defer allocating and copying physical memory pages until the copies are actually needed, if ever.</p></blockquote>
+<p>這個 lab 要我們實做一個 copy-on-write (COW) fork() 的技術，跟先前提到的一樣，只有在「真的需要的時候」才真的複製一個 page 出來。</p>
+<blockquote>
+<p>COW <code>fork()</code> creates just a pagetable for the child, with PTEs for user memory pointing to the parent&rsquo;s physical pages. COW <code>fork()</code> marks all the user PTEs in both parent and child as read-only. When either process tries to write one of these COW pages, the CPU will force a page fault. The kernel page-fault handler detects this case, allocates a page of physical memory for the faulting process, copies the original page into the new page, and modifies the relevant PTE in the faulting process to refer to the new page, this time with the PTE marked writeable. When the page fault handler returns, the user process will be able to write its copy of the page.</p></blockquote>
+<p>實際的作法是把 child 的 pagetable 跟 parent 的一樣指向同樣的 physical memory 區域，並且都 mark 為 read only，當有 process 想要 write 的時候，就會進入到 page fault 處理，page fault 會複製出一份可以 write 的 page</p>
 <blockquote>
 <p>Here&rsquo;s a reasonable plan of attack.</p>
 <ol>
-<li>Modify uvmcopy() to map the parent&rsquo;s physical pages into the child, instead of allocating new pages. Clear PTE_W in the PTEs of both child and parent for pages that have PTE_W set.</li>
-<li>Modify usertrap() to recognize page faults. When a write page-fault occurs on a COW page that was originally writeable, allocate a new page with kalloc(), copy the old page to the new page, and install the new page in the PTE with PTE_W set. Pages that were originally read-only (not mapped PTE_W, like pages in the text segment) should remain read-only and shared between parent and child; a process that tries to write such a page should be killed.</li>
-<li>Ensure that each physical page is freed when the last PTE reference to it goes away &ndash; but not before. A good way to do this is to keep, for each physical page, a &ldquo;reference count&rdquo; of the number of user page tables that refer to that page. Set a page&rsquo;s reference count to one when kalloc() allocates it. Increment a page&rsquo;s reference count when fork causes a child to share the page, and decrement a page&rsquo;s count each time any process drops the page from its page table. kfree() should only place a page back on the free list if its reference count is zero. It&rsquo;s OK to to keep these counts in a fixed-size array of integers. You&rsquo;ll have to work out a scheme for how to index the array and how to choose its size. For example, you could index the array with the page&rsquo;s physical address divided by 4096, and give the array a number of elements equal to highest physical address of any page placed on the free list by kinit() in kalloc.c. Feel free to modify kalloc.c (e.g., kalloc() and kfree()) to maintain the reference counts.</li>
-<li>Modify copyout() to use the same scheme as page faults when it encounters a COW page.</li>
+<li>Modify <code>uvmcopy()</code> to map the parent&rsquo;s physical pages into the child, instead of allocating new pages. Clear <code>PTE_W</code> in the PTEs of both child and parent for pages that have <code>PTE_W</code> set.</li>
 </ol></blockquote>
+<p>在 <code>uvmcopy()</code> 中執行複製 pagetable 並且設定 <code>PTE_W</code> 的計畫</p>
+<ul>
+<li><code>uvmcopy()</code> 的使用時機也只有 <code>fork()</code> 的時候會用到</li>
+</ul>
+<blockquote>
+<ol start="2">
+<li>Modify <code>usertrap()</code> to recognize page faults. When a write page-fault occurs on a COW page that was originally writeable, allocate a new page with <code>kalloc()</code>, copy the old page to the new page, and install the new page in the PTE with <code>PTE_W</code> set. Pages that were originally read-only (not mapped <code>PTE_W</code>, like pages in the text segment) should remain read-only and shared between parent and child; a process that tries to write such a page should be killed.</li>
+</ol></blockquote>
+<p>在 (write to read only) page fault 時，會進入到 <code>usertrap()</code> 處理，這時候會分為一下兩種情況：</p>
+<ol>
+<li>這個 page 在最初的時候，是 <code>PTE_W</code> (在這個情況下才需要 Copy-on-Write)</li>
+<li>這個 page 在最初的時候，是本來就不是 <code>PTE_W</code>: 這是真正的 page fault, kill the process
+<ul>
+<li>像是 text segment (instructions 的區域)</li>
+</ul>
+</li>
+</ol>
+<ul>
+<li>這裡就需要考慮一下該把最初 <code>PTE_W</code> 存放在哪裡了</li>
+</ul>
+<blockquote>
+<ol start="3">
+<li>Ensure that each physical page is freed when the last PTE reference to it goes away &ndash; but not before. A good way to do this is to keep, for each physical page, a &ldquo;reference count&rdquo; of the number of user page tables that refer to that page. Set a page&rsquo;s reference count to one when <code>kalloc()</code> allocates it. Increment a page&rsquo;s reference count when fork causes a child to share the page, and decrement a page&rsquo;s count each time any process drops the page from its page table. <code>kfree()</code> should only place a page back on the free list if its reference count is zero. It&rsquo;s OK to to keep these counts in a fixed-size array of integers. You&rsquo;ll have to work out a scheme for how to index the array and how to choose its size. For example, you could index the array with the page&rsquo;s physical address divided by <code>4096</code>, and give the array a number of elements equal to highest physical address of any page placed on the free list by <code>kinit()</code> in <code>kalloc.c</code>. Feel free to modify <code>kalloc.c</code> (e.g., <code>kalloc()</code> and <code>kfree()</code>) to maintain the reference counts.</li>
+</ol></blockquote>
+<p>這裡是在探討把 physical page free 掉的時機，「沒有任何 process 使用」時才真的 free 掉，雖然概念上很清楚的知道是這個時機，但其實要實做出來也沒有那麼容易。</p>
+<ul>
+<li>每當 <code>kalloc()</code> 之後，就給這個 page 一個 reference count</li>
+<li><code>kalloc()</code> 的時候，reference count 設定為 1</li>
+<li>Increase: 因為 <code>fork()</code> 產生出 child 的時候</li>
+<li>Decrease: 一個 process drop 這個 page 的時候</li>
+<li><code>kfree()</code> 只有在 reference count 減少到 0 時才會真的把 page 放回 free list 中</li>
+<li>計算 reference count 的 data structure 可以是放在一個 fixed size 的 array 中
+<ul>
+<li>需要多大？</li>
+<li>如何做 index 的 mapping?</li>
+<li>要放在哪裡？(於 <code>kinit()</code> 中放置這個 array)
+<ul>
+<li>學習 free list 的初始化過程</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<ol>
+<li>Modify <code>copyout()</code> to use the same scheme as page faults when it encounters a COW page.</li>
+</ol></blockquote>
+<p>在 <code>copyout()</code> 的時候，也需要判斷有沒有遇到 COW page，如果是 COW page, 就比照辦理</p>
+<ul>
+<li>這裡可以發現跟 Lazy allocation 的時候一樣，在 supervisor mode 的時候因為不會進入 <code>usertrap()</code> 所以要自行處理。</li>
+</ul>
+<blockquote>
+<ul>
+<li>It may be useful to have a way to record, for each PTE, whether it is a COW mapping. You can use the RSW (reserved for software) bits in the RISC-V PTE for this.</li>
+</ul></blockquote>
+<p>可以在每個 PTE 中新增像是 <code>PTE_C</code> 去紀錄這是不是一個 COW mapping</p>
+<ul>
+<li>其實有一點想要把原本的所有狀態都塞進去，</li>
+</ul>
+<blockquote>
+<ul>
+<li><code>usertests -q</code> explores scenarios that <code>cowtest</code> does not test, so don&rsquo;t forget to check that all tests pass for both.</li>
+</ul></blockquote>
+<blockquote>
+<ul>
+<li>Some helpful macros and definitions for page table flags are at the end of <code>kernel/riscv.h</code>.</li>
+</ul></blockquote>
+<blockquote>
+<ul>
+<li>If a COW page fault occurs and there&rsquo;s no free memory, the process should be killed.</li>
+</ul></blockquote>
+<ul>
+<li>如果沒有free memory 時，就直接 kill the process</li>
+</ul>
+<h2 id="uvmcopy"><code>uvmcopy()</code><a hidden class="anchor" aria-hidden="true" href="#uvmcopy">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uvmcopy</span>(<span style="color:#66d9ef">pagetable_t</span> old, <span style="color:#66d9ef">pagetable_t</span> new, uint64 sz)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;
+</span></span><span style="display:flex;"><span>  uint64 pa, i;
+</span></span><span style="display:flex;"><span>  uint flags;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>mem;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> sz; i <span style="color:#f92672">+=</span> PGSIZE){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(old, i, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: pte should exist&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: page not present&#34;</span>);
+</span></span><span style="display:flex;"><span>    pa <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE2PA</span>(<span style="color:#f92672">*</span>pte);
+</span></span><span style="display:flex;"><span>    flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((mem <span style="color:#f92672">=</span> <span style="color:#a6e22e">kalloc</span>()) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> err;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memmove</span>(mem, (<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>)pa, PGSIZE);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">mappages</span>(new, i, PGSIZE, (uint64)mem, flags) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">kfree</span>(mem);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> err;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> err:
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uvmunmap</span>(new, <span style="color:#ae81ff">0</span>, i <span style="color:#f92672">/</span> PGSIZE, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>doing</p>
 <h2 id="題目的意圖">題目的意圖<a hidden class="anchor" aria-hidden="true" href="#題目的意圖">#</a></h2>
 <p><code>fork()</code> 時會把整個 page table 也複製給 child, 但是大多數時候，child 並不會使用這個 page table
 常常都是在 <code>fork()</code> 之後去執行 <code>exec()</code> 這時 <code>exec()</code> 又會把原本的 page table 蓋掉, 這樣太浪費 physical memory 了，</p>
@@ -209,7 +319,7 @@ The fork() system call in xv6 copies all of the parent process&rsquo;s user-spac
 <li><code>fork()</code> 使用 <code>uvmcopy()</code> 把 child 的 page table 建立出來，</li>
 <li><code>fork()</code> 結束之後，child 跟 parent 會得到相同的 virtual memory</li>
 </ul>
-<h3 id="uvmcopy"><code>uvmcopy()</code><a hidden class="anchor" aria-hidden="true" href="#uvmcopy">#</a></h3>
+<h3 id="uvmcopy-1"><code>uvmcopy()</code><a hidden class="anchor" aria-hidden="true" href="#uvmcopy-1">#</a></h3>
 <p><code>fork()</code> 使用 <code>uvmcopy()</code> 把 parent 的 page table 複製一份給 child</p>
 <ul>
 <li>原版 <code>uvmcopy()</code>: parent 的 memory 內容真正的複製出來 (使用了 <code>kalloc()</code>)</li>
@@ -717,10 +827,10 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
     <ul class="post-tags">
     </ul>
 <nav class="paginav">
-  <a class="prev" href="http://localhost:1313/xv6/lab5/">
+  <a class="prev" href="http://localhost:1313/xv6/lab6.1/">
     <span class="title">« Prev</span>
     <br>
-    <span>[xv6 學習紀錄 05] Lab: xv6 lazy page allocation</span>
+    <span>[xv6 學習紀錄 06-1] Page Fault</span>
   </a>
   <a class="next" href="http://localhost:1313/dev-log/notes/">
     <span class="title">Next »</span>

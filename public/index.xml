@@ -6,7 +6,7 @@
     <description>Recent content in Yama 的網站 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Thu, 16 Oct 2025 13:14:24 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 16 Oct 2025 15:52:53 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</title>
@@ -661,11 +661,54 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
 &lt;p&gt;Your first task is to delete page allocation from the &lt;code&gt;sbrk(n)&lt;/code&gt; system call implementation, which is the function &lt;code&gt;sys_sbrk()&lt;/code&gt; in &lt;code&gt;sysproc.c&lt;/code&gt;. The &lt;code&gt;sbrk(n)&lt;/code&gt; system call grows the process&amp;rsquo;s memory size by &lt;code&gt;n&lt;/code&gt; bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new &lt;code&gt;sbrk(n)&lt;/code&gt; should just increment the process&amp;rsquo;s size (&lt;code&gt;myproc()-&amp;gt;sz&lt;/code&gt;) by &lt;code&gt;n&lt;/code&gt; and return the old size. It should not allocate memory &amp;ndash; so you should delete the call to &lt;code&gt;growproc()&lt;/code&gt; (but you still need to increase the process&amp;rsquo;s size!).&lt;/p&gt;</description>
     </item>
     <item>
+      <title>[xv6 學習紀錄 06-1] Page Fault</title>
+      <link>http://localhost:1313/xv6/lab6.1/</link>
+      <pubDate>Thu, 16 Oct 2025 15:52:53 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab6.1/</guid>
+      <description>&lt;p&gt;課程影片連結：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=zRnGNndcVEA&#34;&gt;6.S081 Fall 2020 Lecture 9: Interrupts&lt;/a&gt;
+&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
+      &lt;iframe allow=&#34;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&#34; loading=&#34;eager&#34; referrerpolicy=&#34;strict-origin-when-cross-origin&#34; src=&#34;https://www.youtube.com/embed/zRnGNndcVEA?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; title=&#34;YouTube video&#34;&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;terms&#34;&gt;Terms&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;PLIC&lt;/li&gt;
+&lt;li&gt;UART&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;interrupts-的意義&#34;&gt;Interrupts 的意義&lt;/h2&gt;
+&lt;p&gt;跟 &lt;code&gt;syscall&lt;/code&gt;, &lt;code&gt;traps&lt;/code&gt; 很像&lt;/p&gt;
+&lt;h2 id=&#34;interrupts-從哪裡來&#34;&gt;Interrupts 從哪裡來?&lt;/h2&gt;
+&lt;p&gt;一些 CPU 的 fig&lt;/p&gt;
+&lt;p&gt;programming device,&lt;/p&gt;
+&lt;p&gt;memory mapped I/O&lt;/p&gt;
+&lt;p&gt;UART store/load to registers&lt;/p&gt;
+&lt;h2 id=&#34;case-study--ls-的出現&#34;&gt;Case Study: &lt;code&gt;$ ls&lt;/code&gt; 的出現&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;kerenl/main.c&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;kernel/console.c: consoleinit()&lt;/code&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;kernel/uart.c: uartinit()&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kernel/plic.c: plicinit()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kernel/plic.c: plicinithart()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kernel/proc.c: scheduler()&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;user/sh.c: getcmd()&lt;/code&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
       <title>[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6</title>
       <link>http://localhost:1313/xv6/lab6/</link>
       <pubDate>Wed, 15 Oct 2025 17:47:29 +0800</pubDate>
       <guid>http://localhost:1313/xv6/lab6/</guid>
-      <description>&lt;p&gt;題目敘述:&lt;/p&gt;
+      <description>&lt;p&gt;Lab 連結：&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/cow.html&#34;&gt;Lab: Copy-on-Write Fork for xv6&lt;/a&gt;&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;h2 id=&#34;the-problem&#34;&gt;The problem&lt;/h2&gt;
 &lt;p&gt;The fork() system call in xv6 copies all of the parent process&amp;rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.&lt;/p&gt;</description>
@@ -699,36 +742,24 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
       <guid>http://localhost:1313/leetcode/1004-max-consecutive-ones-iii/</guid>
       <description>&lt;p&gt;題目連結：&lt;a href=&#34;https://leetcode.com/problems/max-consecutive-ones-iii/description/&#34;&gt;1004. Max Consecutive Ones III&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;解題思路&#34;&gt;解題思路&lt;/h2&gt;
-&lt;h2 id=&#34;程式碼&#34;&gt;程式碼&lt;/h2&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Solution&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; longestOnes(vector&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;amp;&lt;/span&gt; nums, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; k) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; n &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; nums.size();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; right;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; left;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; zeroCount &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; ret &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        left &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (right &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; right &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; nums.size(); right&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (nums[right] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                zeroCount&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (zeroCount &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; k) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; (left &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; n) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (nums[left] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            zeroCount&lt;span style=&#34;color:#f92672&#34;&gt;--&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        left&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (zeroCount &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;=&lt;/span&gt; k)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                            &lt;span style=&#34;color:#66d9ef&#34;&gt;break&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                    }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            ret &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; max(ret, right &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; left &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; ret;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+&lt;p&gt;這題使用兩個 pointer &lt;code&gt;left&lt;/code&gt; 與 &lt;code&gt;right&lt;/code&gt; 來紀錄當前的 array 大小，像是：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0 1 2 3 4 5 6 7 8 9
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ↑       ↑
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    l       r
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;這個時候 &lt;code&gt;left == 2&lt;/code&gt;, &lt;code&gt;right == 6&lt;/code&gt; 長度的計算為&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;length &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; right &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; left &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;也就是 6 - 2 + 1 == 5&lt;/p&gt;
+&lt;h3 id=&#34;如何表達-length--0&#34;&gt;如何表達 &lt;code&gt;length == 0&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;這樣的設計會碰到的下一個問題是&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;假設 &lt;code&gt;right == 6&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;如何表達 &lt;code&gt;length == 0&lt;/code&gt; 的情況??&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;會像是下面這個樣子：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;0 1 2 3 4 5 6 7 8 9
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            ↑ ↑
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            r l
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;雖然是 &lt;code&gt;left&lt;/code&gt; 不過卻在 &lt;code&gt;right&lt;/code&gt; 的右邊，但這樣做的好處就在於我們計算長度的公式：&lt;/p&gt;</description>
     </item>
     <item>
       <title>[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)</title>

@@ -5,19 +5,115 @@ title = '[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6'
 series = ["xv6 學習紀錄"]
 weight = 61
 +++
-題目敘述:
+Lab 連結：[Lab: Copy-on-Write Fork for xv6](https://pdos.csail.mit.edu/6.S081/2022/labs/cow.html)
+
+## 題目解析
+
 > ## The problem
 >  The fork() system call in xv6 copies all of the parent process's user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed. 
+
+在現在的 xv6 設計中，`fork()` 出來的 child 會複製 parent 的所有 memory，但是在很多時候，child 會直接接著執行 `exec()`，也就直接把先前的一大票 memory 覆蓋掉了，這讓當 memory 的複製便得很浪費。
+
+想要節省這樣的浪費可以在 `fork()` 的時候只複製一份 page table 給 child，但是這麼做的話，每當 parent or child 想要 write 的時候，就會需要真的 copy 一份才行
+
 > ## The solution
 >  Your goal in implementing copy-on-write (COW) fork() is to defer allocating and copying physical memory pages until the copies are actually needed, if ever. 
-> 
->  COW fork() creates just a pagetable for the child, with PTEs for user memory pointing to the parent's physical pages. COW fork() marks all the user PTEs in both parent and child as read-only. When either process tries to write one of these COW pages, the CPU will force a page fault. The kernel page-fault handler detects this case, allocates a page of physical memory for the faulting process, copies the original page into the new page, and modifies the relevant PTE in the faulting process to refer to the new page, this time with the PTE marked writeable. When the page fault handler returns, the user process will be able to write its copy of the page. 
+
+這個 lab 要我們實做一個 copy-on-write (COW) fork() 的技術，跟先前提到的一樣，只有在「真的需要的時候」才真的複製一個 page 出來。
+
+>  COW `fork()` creates just a pagetable for the child, with PTEs for user memory pointing to the parent's physical pages. COW `fork()` marks all the user PTEs in both parent and child as read-only. When either process tries to write one of these COW pages, the CPU will force a page fault. The kernel page-fault handler detects this case, allocates a page of physical memory for the faulting process, copies the original page into the new page, and modifies the relevant PTE in the faulting process to refer to the new page, this time with the PTE marked writeable. When the page fault handler returns, the user process will be able to write its copy of the page. 
+
+實際的作法是把 child 的 pagetable 跟 parent 的一樣指向同樣的 physical memory 區域，並且都 mark 為 read only，當有 process 想要 write 的時候，就會進入到 page fault 處理，page fault 會複製出一份可以 write 的 page
 
 > Here's a reasonable plan of attack.
->    1. Modify uvmcopy() to map the parent's physical pages into the child, instead of allocating new pages. Clear PTE_W in the PTEs of both child and parent for pages that have PTE_W set.
->    1. Modify usertrap() to recognize page faults. When a write page-fault occurs on a COW page that was originally writeable, allocate a new page with kalloc(), copy the old page to the new page, and install the new page in the PTE with PTE_W set. Pages that were originally read-only (not mapped PTE_W, like pages in the text segment) should remain read-only and shared between parent and child; a process that tries to write such a page should be killed.
->    1. Ensure that each physical page is freed when the last PTE reference to it goes away -- but not before. A good way to do this is to keep, for each physical page, a "reference count" of the number of user page tables that refer to that page. Set a page's reference count to one when kalloc() allocates it. Increment a page's reference count when fork causes a child to share the page, and decrement a page's count each time any process drops the page from its page table. kfree() should only place a page back on the free list if its reference count is zero. It's OK to to keep these counts in a fixed-size array of integers. You'll have to work out a scheme for how to index the array and how to choose its size. For example, you could index the array with the page's physical address divided by 4096, and give the array a number of elements equal to highest physical address of any page placed on the free list by kinit() in kalloc.c. Feel free to modify kalloc.c (e.g., kalloc() and kfree()) to maintain the reference counts.
->    1. Modify copyout() to use the same scheme as page faults when it encounters a COW page. 
+>    1. Modify `uvmcopy()` to map the parent's physical pages into the child, instead of allocating new pages. Clear `PTE_W` in the PTEs of both child and parent for pages that have `PTE_W` set.
+
+在 `uvmcopy()` 中執行複製 pagetable 並且設定 `PTE_W` 的計畫
+* `uvmcopy()` 的使用時機也只有 `fork()` 的時候會用到
+
+>    2. Modify `usertrap()` to recognize page faults. When a write page-fault occurs on a COW page that was originally writeable, allocate a new page with `kalloc()`, copy the old page to the new page, and install the new page in the PTE with `PTE_W` set. Pages that were originally read-only (not mapped `PTE_W`, like pages in the text segment) should remain read-only and shared between parent and child; a process that tries to write such a page should be killed.
+
+在 (write to read only) page fault 時，會進入到 `usertrap()` 處理，這時候會分為一下兩種情況：
+1. 這個 page 在最初的時候，是 `PTE_W` (在這個情況下才需要 Copy-on-Write)
+1. 這個 page 在最初的時候，是本來就不是 `PTE_W`: 這是真正的 page fault, kill the process
+	* 像是 text segment (instructions 的區域)
+* 這裡就需要考慮一下該把最初 `PTE_W` 存放在哪裡了
+
+>    3. Ensure that each physical page is freed when the last PTE reference to it goes away -- but not before. A good way to do this is to keep, for each physical page, a "reference count" of the number of user page tables that refer to that page. Set a page's reference count to one when `kalloc()` allocates it. Increment a page's reference count when fork causes a child to share the page, and decrement a page's count each time any process drops the page from its page table. `kfree()` should only place a page back on the free list if its reference count is zero. It's OK to to keep these counts in a fixed-size array of integers. You'll have to work out a scheme for how to index the array and how to choose its size. For example, you could index the array with the page's physical address divided by `4096`, and give the array a number of elements equal to highest physical address of any page placed on the free list by `kinit()` in `kalloc.c`. Feel free to modify `kalloc.c` (e.g., `kalloc()` and `kfree()`) to maintain the reference counts.
+
+這裡是在探討把 physical page free 掉的時機，「沒有任何 process 使用」時才真的 free 掉，雖然概念上很清楚的知道是這個時機，但其實要實做出來也沒有那麼容易。
+* 每當 `kalloc()` 之後，就給這個 page 一個 reference count
+* `kalloc()` 的時候，reference count 設定為 1
+* Increase: 因為 `fork()` 產生出 child 的時候
+* Decrease: 一個 process drop 這個 page 的時候
+* `kfree()` 只有在 reference count 減少到 0 時才會真的把 page 放回 free list 中
+* 計算 reference count 的 data structure 可以是放在一個 fixed size 的 array 中
+	* 需要多大？
+	* 如何做 index 的 mapping?
+	* 要放在哪裡？(於 `kinit()` 中放置這個 array)
+		* 學習 free list 的初始化過程
+
+
+>    1. Modify `copyout()` to use the same scheme as page faults when it encounters a COW page. 
+
+在 `copyout()` 的時候，也需要判斷有沒有遇到 COW page，如果是 COW page, 就比照辦理
+* 這裡可以發現跟 Lazy allocation 的時候一樣，在 supervisor mode 的時候因為不會進入 `usertrap()` 所以要自行處理。
+
+
+> * It may be useful to have a way to record, for each PTE, whether it is a COW mapping. You can use the RSW (reserved for software) bits in the RISC-V PTE for this.
+
+可以在每個 PTE 中新增像是 `PTE_C` 去紀錄這是不是一個 COW mapping
+* 其實有一點想要把原本的所有狀態都塞進去，
+
+> * `usertests -q` explores scenarios that `cowtest` does not test, so don't forget to check that all tests pass for both.
+
+> * Some helpful macros and definitions for page table flags are at the end of `kernel/riscv.h`.
+
+> * If a COW page fault occurs and there's no free memory, the process should be killed. 
+
+* 如果沒有free memory 時，就直接 kill the process
+
+
+## `uvmcopy()`
+```c
+int
+uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
+{
+  pte_t *pte;
+  uint64 pa, i;
+  uint flags;
+  char *mem;
+
+  for(i = 0; i < sz; i += PGSIZE){
+    if((pte = walk(old, i, 0)) == 0)
+      panic("uvmcopy: pte should exist");
+    if((*pte & PTE_V) == 0)
+      panic("uvmcopy: page not present");
+    pa = PTE2PA(*pte);
+    flags = PTE_FLAGS(*pte);
+    if((mem = kalloc()) == 0)
+      goto err;
+    memmove(mem, (char*)pa, PGSIZE);
+    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
+      kfree(mem);
+      goto err;
+    }
+  }
+  return 0;
+
+ err:
+  uvmunmap(new, 0, i / PGSIZE, 1);
+  return -1;
+}
+```
+
+doing
+
+
+
+
+
+
 
 ## 題目的意圖
 `fork()` 時會把整個 page table 也複製給 child, 但是大多數時候，child 並不會使用這個 page table 
