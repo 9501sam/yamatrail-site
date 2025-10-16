@@ -157,21 +157,34 @@ class Solution { public: ListNode* reverseList(ListNode* head) { if (!head) retu
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 用個 helper function 會方便許多 (C&#43;&#43;)
+    <h2 class="entry-hint-parent">[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)
     </h2>
   </header>
   <div class="entry-content">
-    <p>題目連結：1679. Max Number of K-Sum Pairs
-解題思路 這一題跟 11. Container With Most Water 的感覺還蠻像的，都是先把兩的 pointer 放在兩端，並且根據不同的情況，用 greedy 的方式判斷下一步要做什麼。
-程式碼 class Solution { public: int maxOperations(vector&lt;int&gt;&amp; nums, int k) { int left = 0; int right = nums.size() - 1; int count = 0; sort(nums.begin(), nums.end()); while (left &lt; right) { if (nums[left] &#43; nums[right] == k) { count&#43;&#43;; left&#43;&#43;; right--; } else if (nums[left] &#43; nums[right] &lt; k) { left&#43;&#43;; } else { right--; } } return count; } }; </p>
+    <p>題目連結：1004. Max Consecutive Ones III
+解題思路 程式碼 class Solution { public: int longestOnes(vector&lt;int&gt;&amp; nums, int k) { int n = nums.size(); int right; int left; int zeroCount = 0; int ret = 0; left = 0; for (right = 0; right &lt; nums.size(); right&#43;&#43;) { if (nums[right] == 0) { zeroCount&#43;&#43;; if (zeroCount &gt; k) { while (left &lt; n) { if (nums[left] == 0) zeroCount--; left&#43;&#43;; if (zeroCount &lt;= k) break; } } } ret = max(ret, right - left &#43; 1); } return ret; } }; </p>
   </div>
-  <footer class="entry-footer"><span title='2025-10-16 11:30:41 +0800 CST'>October 16, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1679. Max Number of K-Sum Pairs | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1679-max-number-of-k-sum-pairs/"></a>
+  <footer class="entry-footer"><span title='2025-10-16 13:14:24 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1004-max-consecutive-ones-iii/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 345 Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)
+    <h2 class="entry-hint-parent">[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：1679. Max Number of K-Sum Pairs
+解題思路 這一題跟 11. Container With Most Water 的感覺還蠻像的，都是先把兩的 pointer 放在兩端，並且根據不同的情況，用 greedy 的方式判斷下一步要做什麼。還有這個問題是配對到了就刪除掉，所以也不會有重複的問題。
+程式碼 class Solution { public: int maxOperations(vector&lt;int&gt;&amp; nums, int k) { int left = 0; int right = nums.size() - 1; int count = 0; sort(nums.begin(), nums.end()); while (left &lt; right) { if (nums[left] &#43; nums[right] == k) { count&#43;&#43;; left&#43;&#43;; right--; } else if (nums[left] &#43; nums[right] &lt; k) { left&#43;&#43;; } else { right--; } } return count; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 11:30:41 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1679-max-number-of-k-sum-pairs/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)
     </h2>
   </header>
   <div class="entry-content">
@@ -180,7 +193,7 @@ class Solution { public: ListNode* reverseList(ListNode* head) { if (!head) retu
 程式碼 class Solution { private: bool isVowels(char c) { if (c == &#39;a&#39; || c == &#39;e&#39; || c == &#39;i&#39; || c == &#39;o&#39; || c == &#39;u&#39;) return true; if (c == &#39;A&#39; || c == &#39;E&#39; || c == &#39;I&#39; || c == &#39;O&#39; || c == &#39;U&#39;) return true; return false; } public: string reverseVowels(string s) { int n = s.size(); queue&lt;char&gt; q; for (int i = 0; i &lt; n; i&#43;&#43;) if (isVowels(s[i])) q.push(s[i]); for (int i = n - 1; i &gt;= 0; i--) if (isVowels(s[i])) { s[i] = q.front(); q.pop(); } return s; } }; </p>
   </div>
   <footer class="entry-footer"><span title='2025-10-16 11:08:09 +0800 CST'>October 16, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 345 Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/345-reverse-vowels-of-a-string/"></a>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/345-reverse-vowels-of-a-string/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 

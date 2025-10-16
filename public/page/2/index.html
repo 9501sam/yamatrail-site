@@ -235,6 +235,19 @@ Expand Method 1 - Git Clone </p>
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：1004. Max Consecutive Ones III
+解題思路 程式碼 class Solution { public: int longestOnes(vector&lt;int&gt;&amp; nums, int k) { int n = nums.size(); int right; int left; int zeroCount = 0; int ret = 0; left = 0; for (right = 0; right &lt; nums.size(); right&#43;&#43;) { if (nums[right] == 0) { zeroCount&#43;&#43;; if (zeroCount &gt; k) { while (left &lt; n) { if (nums[left] == 0) zeroCount--; left&#43;&#43;; if (zeroCount &lt;= k) break; } } } ret = max(ret, right - left &#43; 1); } return ret; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 13:14:24 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1004-max-consecutive-ones-iii/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)
     </h2>
   </header>
@@ -259,22 +272,6 @@ Expand Method 1 - Git Clone </p>
   </div>
   <footer class="entry-footer"><span title='2025-10-16 11:08:09 +0800 CST'>October 16, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/345-reverse-vowels-of-a-string/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>題目連結：334. Increasing Triplet Subsequence
-解題思路 這題我剛開始是朝著先找出 i 與 k 之後再檢查 j 是否存在，想了幾遍都覺得有些瑕疵，後來發現依照 i, j, k 的順序尋找會比較合理一些，可以用很 greedy 的方式去尋找。
-如果再來一次的話，我應該會先列出以下兩種可能：
-先找出最大最小的 i 與 k, 再找出中間的 j 依照順序尋找 i, j, k 評估之後挑選較有可能的順序，並且保持另一個方案的可能性。
-程式碼 class Solution { public: bool increasingTriplet(vector&lt;int&gt;&amp; nums) { if (nums.size() &lt; 3) return false; int i = 0; int j = -1; for (int l = 1; l &lt; nums.size(); l&#43;&#43;) { if (nums[l] &lt; nums[i]) { i = l; } else if (j &gt; 0 &amp;&amp; nums[l] &gt; nums[j]) { return true; } else if (nums[l] &gt; nums[i]) { j = l; } } return false; } }; </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-30 11:13:47 +0800 CST'>September 30, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)" href="http://localhost:1313/leetcode/334-increasing-triplet-subsequence/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

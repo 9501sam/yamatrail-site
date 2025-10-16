@@ -157,6 +157,25 @@ class Solution { public: ListNode* reverseList(ListNode* head) { if (!head) retu
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：1004. Max Consecutive Ones III
+解題思路 這題使用兩個 pointer left 與 right 來紀錄當前的 array 大小，像是：
+0 1 2 3 4 5 6 7 8 9 ↑ ↑ l r 這個時候 left == 2, right == 6 長度的計算為
+length = right - left &#43; 1 也就是 6 - 2 &#43; 1 == 5
+如何表達 length == 0 這樣的設計會碰到的下一個問題是
+假設 right == 6 如何表達 length == 0 的情況?? 會像是下面這個樣子：
+0 1 2 3 4 5 6 7 8 9 ↑ ↑ r l 雖然是 left 不過卻在 right 的右邊，但這樣做的好處就在於我們計算長度的公式：
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 13:14:24 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1004-max-consecutive-ones-iii/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)
     </h2>
   </header>
