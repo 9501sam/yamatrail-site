@@ -131,6 +131,21 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">架設 Kubernetes cluster
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>sudo apt-get update sudo apt-get install -y kubelet kubeadm kubectl sudo apt-mark hold kubelet kubeadm kubectl https://stackoverflow.com/questions/52893111/no-endpoints-available-for-service-kubernetes-dashboard
+nodes: https://120.108.205.137:9999/ui/
+192.168.1.115 ssh k1 # ssh user@192.168.1.11 ssh k2 # ssh user@192.168.1.12 ssh k3 # ssh user@192.168.1.13 ssh k4 # ssh user@192.168.1.14 sudo vim /etc/hosts # /etc/hosts 192.168.1.115 asus 192.168.1.11 k1 192.168.1.12 k2 192.168.1.13 k3 192.168.1.14 k4 # for cluster on virtualbox 192.168.56.1 thinkpad # my thinkpad 192.168.56.101 node1 # vm on virtualbox sudo systemctl restart systemd-resolved docker installation https://docs.docker.com/engine/install/ubuntu/ CRI (container runtime interface) 是 container 用來互相溝通的 API
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-27 00:00:40 +0800 CST'>September 27, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to 架設 Kubernetes cluster" href="http://localhost:1313/k8s/setup-cluster/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Hello World
     </h2>
   </header>

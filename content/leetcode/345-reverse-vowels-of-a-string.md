@@ -1,7 +1,7 @@
 +++
 date = '2025-10-16T11:08:09+08:00'
 draft = false
-title = '[LeetCode 解題] 345 Reverse Vowels of a String | 用個 helper function 會方便許多 (C++)'
+title = '[LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C++)'
 series = ["LeetCode 解題"]
 +++
 

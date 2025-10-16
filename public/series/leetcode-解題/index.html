@@ -157,6 +157,20 @@ class Solution { public: ListNode* reverseList(ListNode* head) { if (!head) retu
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 用個 helper function 會方便許多 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：1679. Max Number of K-Sum Pairs
+解題思路 這一題跟 11. Container With Most Water 的感覺還蠻像的，都是先把兩的 pointer 放在兩端，並且根據不同的情況，用 greedy 的方式判斷下一步要做什麼。
+程式碼 class Solution { public: int maxOperations(vector&lt;int&gt;&amp; nums, int k) { int left = 0; int right = nums.size() - 1; int count = 0; sort(nums.begin(), nums.end()); while (left &lt; right) { if (nums[left] &#43; nums[right] == k) { count&#43;&#43;; left&#43;&#43;; right--; } else if (nums[left] &#43; nums[right] &lt; k) { left&#43;&#43;; } else { right--; } } return count; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 11:30:41 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1679. Max Number of K-Sum Pairs | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1679-max-number-of-k-sum-pairs/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 345 Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)
     </h2>
   </header>
