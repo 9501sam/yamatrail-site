@@ -6,7 +6,7 @@
     <description>Recent content in Xv6 學習紀錄 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Mon, 13 Oct 2025 12:32:56 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 15 Oct 2025 17:47:29 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities</title>
@@ -453,6 +453,14 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
 &lt;h2 id=&#34;eliminate-allocation-from-sbrk-easy&#34;&gt;Eliminate allocation from sbrk() (easy)&lt;/h2&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Your first task is to delete page allocation from the &lt;code&gt;sbrk(n)&lt;/code&gt; system call implementation, which is the function &lt;code&gt;sys_sbrk()&lt;/code&gt; in &lt;code&gt;sysproc.c&lt;/code&gt;. The &lt;code&gt;sbrk(n)&lt;/code&gt; system call grows the process&amp;rsquo;s memory size by &lt;code&gt;n&lt;/code&gt; bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new &lt;code&gt;sbrk(n)&lt;/code&gt; should just increment the process&amp;rsquo;s size (&lt;code&gt;myproc()-&amp;gt;sz&lt;/code&gt;) by &lt;code&gt;n&lt;/code&gt; and return the old size. It should not allocate memory &amp;ndash; so you should delete the call to &lt;code&gt;growproc()&lt;/code&gt; (but you still need to increase the process&amp;rsquo;s size!).&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6</title>
+      <link>http://localhost:1313/xv6/lab6/</link>
+      <pubDate>Wed, 15 Oct 2025 17:47:29 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab6/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;The fork() system call in xv6 copies all of the parent process&amp;rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

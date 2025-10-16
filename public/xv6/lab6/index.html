@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6 | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="題目敘述:
+
+The problem
+The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/xv6/lab6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/lab6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      [xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6
+    </h1>
+    <div class="post-meta"><span title='2025-10-15 17:47:29 +0800 CST'>October 15, 2025</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>題目敘述:</p>
+<blockquote>
+<h2 id="the-problem">The problem<a hidden class="anchor" aria-hidden="true" href="#the-problem">#</a></h2>
+<p>The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.</p>
+<h2 id="the-solution">The solution<a hidden class="anchor" aria-hidden="true" href="#the-solution">#</a></h2>
+<p>Your goal in implementing copy-on-write (COW) fork() is to defer allocating and copying physical memory pages until the copies are actually needed, if ever.</p>
+<p>COW fork() creates just a pagetable for the child, with PTEs for user memory pointing to the parent&rsquo;s physical pages. COW fork() marks all the user PTEs in both parent and child as read-only. When either process tries to write one of these COW pages, the CPU will force a page fault. The kernel page-fault handler detects this case, allocates a page of physical memory for the faulting process, copies the original page into the new page, and modifies the relevant PTE in the faulting process to refer to the new page, this time with the PTE marked writeable. When the page fault handler returns, the user process will be able to write its copy of the page.</p></blockquote>
+<blockquote>
+<p>Here&rsquo;s a reasonable plan of attack.</p>
+<ol>
+<li>Modify uvmcopy() to map the parent&rsquo;s physical pages into the child, instead of allocating new pages. Clear PTE_W in the PTEs of both child and parent for pages that have PTE_W set.</li>
+<li>Modify usertrap() to recognize page faults. When a write page-fault occurs on a COW page that was originally writeable, allocate a new page with kalloc(), copy the old page to the new page, and install the new page in the PTE with PTE_W set. Pages that were originally read-only (not mapped PTE_W, like pages in the text segment) should remain read-only and shared between parent and child; a process that tries to write such a page should be killed.</li>
+<li>Ensure that each physical page is freed when the last PTE reference to it goes away &ndash; but not before. A good way to do this is to keep, for each physical page, a &ldquo;reference count&rdquo; of the number of user page tables that refer to that page. Set a page&rsquo;s reference count to one when kalloc() allocates it. Increment a page&rsquo;s reference count when fork causes a child to share the page, and decrement a page&rsquo;s count each time any process drops the page from its page table. kfree() should only place a page back on the free list if its reference count is zero. It&rsquo;s OK to to keep these counts in a fixed-size array of integers. You&rsquo;ll have to work out a scheme for how to index the array and how to choose its size. For example, you could index the array with the page&rsquo;s physical address divided by 4096, and give the array a number of elements equal to highest physical address of any page placed on the free list by kinit() in kalloc.c. Feel free to modify kalloc.c (e.g., kalloc() and kfree()) to maintain the reference counts.</li>
+<li>Modify copyout() to use the same scheme as page faults when it encounters a COW page.</li>
+</ol></blockquote>
+<h2 id="題目的意圖">題目的意圖<a hidden class="anchor" aria-hidden="true" href="#題目的意圖">#</a></h2>
+<p><code>fork()</code> 時會把整個 page table 也複製給 child, 但是大多數時候，child 並不會使用這個 page table
+常常都是在 <code>fork()</code> 之後去執行 <code>exec()</code> 這時 <code>exec()</code> 又會把原本的 page table 蓋掉, 這樣太浪費 physical memory 了，</p>
+<p>比較好的作法是：<code>fork()</code> 時先讓 parent 跟 child 都指向同樣的 pa 區域, 直到要寫入時，才真正的把 physical memory 的內容複製一份，也就是題目所謂的 Copy-on-Write</p>
+<h2 id="大致上的流程">大致上的流程:<a hidden class="anchor" aria-hidden="true" href="#大致上的流程">#</a></h2>
+<ol>
+<li>
+<p><code>fork()</code> 使用 <code>uvmcopy()</code> 把 page table 複製過去</p>
+<ul>
+<li>在這個 lab 中，我們希望 <code>fork()</code> 後 child 跟 parent 的 page table 都是 map 到相同的 pa</li>
+</ul>
+</li>
+<li>
+<p>現在的 <code>uvmcopy()</code> 就是把 <code>old</code> 的東西複製到 <code>new</code></p>
+</li>
+<li>
+<p>根據題目的需求，我們必須要做到以下幾件事情:</p>
+<ul>
+<li>把 <code>new</code> 跟 <code>old</code> 的 <code>pte_w</code> 都關掉，這樣想要寫入的時候，就會進入 trap() 處理</li>
+<li><code>new</code> 跟 <code>old</code> 都要立起 <code>pte_c</code>，這樣在 trap() 中就可以認出真正的 write page fault</li>
+<li>遇到 write page fault 時，check <code>pte_c</code></li>
+<li>ref count 在 kfree() 的時候減少 1</li>
+<li>ref count 在 kalloc() 的時候設為 1</li>
+<li>ref count 在 uvmcopy() 的時候設增加 1:</li>
+</ul>
+</li>
+</ol>
+<p>doing</p>
+<hr>
+<h1 id="lab6-copy-on-write-fork-for-xv6-紀錄">Lab6 Copy-on-Write Fork for xv6 紀錄<a hidden class="anchor" aria-hidden="true" href="#lab6-copy-on-write-fork-for-xv6-紀錄">#</a></h1>
+<h2 id="題目的意圖-1">題目的意圖<a hidden class="anchor" aria-hidden="true" href="#題目的意圖-1">#</a></h2>
+<p><code>fork()</code> 時會把整個 page table 也複製給 child, 但是大多數時候，child 並不會使用這個 page table
+常常都是在 <code>fork()</code> 去執行 <code>exec()</code> 這時 <code>exec()</code> 又會把原本的 page table 蓋掉, 這樣太浪費 physical memory 了，
+比較好的作法是：<code>fork()</code> 時先讓 parent 跟 child 都指向同樣的 pa , 直到要寫入時，才真正的把 physical memory 的內容複製一份</p>
+<h2 id="大致上的流程-1">大致上的流程:<a hidden class="anchor" aria-hidden="true" href="#大致上的流程-1">#</a></h2>
+<ol>
+<li>
+<p><code>fork()</code> 使用 <code>uvmcopy()</code> 把 page table 複製過去</p>
+<ul>
+<li>在這個 lab 中，我們希望 <code>fork()</code> 後 child 跟 parent 的 page table 都是 map 到相同的 pa</li>
+</ul>
+</li>
+<li>
+<p>現在的 <code>uvmcopy()</code> 就是把 <code>old</code> 的東西複製到 <code>new</code></p>
+</li>
+<li>
+<p>根據題目的需求，我們必須要做到以下幾件事情:</p>
+<ul>
+<li>把 <code>new</code> 跟 <code>old</code> 的 <code>pte_w</code> 都關掉，這樣想要寫入的時候，就會進入 trap() 處理</li>
+<li><code>new</code> 跟 <code>old</code> 都要立起 <code>pte_c</code>，這樣在 trap() 中就可以認出真正的 write page fault</li>
+<li>遇到 write page fault 時，check <code>pte_c</code></li>
+<li>ref count 在 kfree() 的時候減少 1</li>
+<li>ref count 在 kalloc() 的時候設為 1</li>
+<li>ref count 在 uvmcopy() 的時候設增加 1:</li>
+</ul>
+</li>
+</ol>
+<h2 id="幾個重要的時間點">幾個重要的時間點:<a hidden class="anchor" aria-hidden="true" href="#幾個重要的時間點">#</a></h2>
+<h3 id="fork"><code>fork()</code><a hidden class="anchor" aria-hidden="true" href="#fork">#</a></h3>
+<ul>
+<li><code>fork()</code> 使用 <code>uvmcopy()</code> 把 child 的 page table 建立出來，</li>
+<li><code>fork()</code> 結束之後，child 跟 parent 會得到相同的 virtual memory</li>
+</ul>
+<h3 id="uvmcopy"><code>uvmcopy()</code><a hidden class="anchor" aria-hidden="true" href="#uvmcopy">#</a></h3>
+<p><code>fork()</code> 使用 <code>uvmcopy()</code> 把 parent 的 page table 複製一份給 child</p>
+<ul>
+<li>原版 <code>uvmcopy()</code>: parent 的 memory 內容真正的複製出來 (使用了 <code>kalloc()</code>)</li>
+<li>cow 的版本: 只有把 page table 複製給 child, prarent 與 child 實際上是指到同樣的 physical memory</li>
+</ul>
+<h3 id="write-page-fault">write page fault<a hidden class="anchor" aria-hidden="true" href="#write-page-fault">#</a></h3>
+<p>在 <code>kernel/trap.c: usertrap()</code> (<code>r_scause() == 15</code>)</p>
+<ul>
+<li>遇到 write page fault ，並且 <code>pte_c</code> off: 真正的 page fault</li>
+<li>遇到 write page fault ，並且 <code>pte_c</code> on: 準備執行 copy on write
+<ul>
+<li>這時候才要真正的把 page 的內容複製一份出來，因為</li>
+</ul>
+</li>
+</ul>
+<h3 id="kalloc-與-kfree"><code>kalloc()</code> 與 <code>kfree()</code><a hidden class="anchor" aria-hidden="true" href="#kalloc-與-kfree">#</a></h3>
+<p>原版執行 <code>kfree()</code> 的時候就是真的把這個 page free 掉了
+可是 cow 的版本中會有問題</p>
+<p>使用 cow 了話，有可能會有很多個 page table 指向同一個 page，
+而這時候<strong>什麼時候要 free 掉這個 page</strong> 就成為了一個很大的問題
+因為其中一個 process 要 free 掉這個 page 時，這個 page 可能正同時被其他 process 使用</p>
+<p>解決方法：使用 counter 去計算各個 page 被多少個 process 使用，如果沒有任何 process 使用，
+才需要真正的 free 掉這個 page</p>
+<h2 id="破解步驟">破解步驟<a hidden class="anchor" aria-hidden="true" href="#破解步驟">#</a></h2>
+<ol>
+<li>在 <code>uvmcopy()</code> 中，刪掉 child 以及 parent 的所有 <code>pte_w</code>
+<ul>
+<li>原本的 <code>pte_w</code> 所記載的資訊去哪了</li>
+</ul>
+</li>
+<li>之後遇到 write page-fault 時
+<ul>
+<li>並不是真正的 page-fault，他原本是 writeable 的</li>
+<li><code>kalloc()</code> 出一個新的 page 並且把 old page 的內容複製到 new page，並且 set <code>pte_w</code></li>
+<li>原本 readonly 的區域，child 就使用 old page 的內容就好</li>
+<li>如果 child 想要修改 readonly 的內容，一樣要把他 kill 掉</li>
+</ul>
+</li>
+<li>要新增 reference count 的功能</li>
+<li>在 <code>copyout()</code> 中使用跟 page fault 時一樣的方法
+<ul>
+<li>也就是並不是真正的 page fault 的意思</li>
+</ul>
+</li>
+</ol>
+<h2 id="需要修改與新增的-function">需要修改與新增的 function<a hidden class="anchor" aria-hidden="true" href="#需要修改與新增的-function">#</a></h2>
+<ul>
+<li><code>uvmcopy()</code>:</li>
+<li><code>usertrap()</code>:</li>
+<li><code>uncopied_cow()</code>: 還沒有被 copy 出來的 cow page</li>
+<li><code>cow_alloc()</code>:</li>
+<li><code>copyout()</code>:</li>
+</ul>
+<h2 id="實驗紀錄">實驗紀錄<a hidden class="anchor" aria-hidden="true" href="#實驗紀錄">#</a></h2>
+<blockquote>
+<ol>
+<li>modify <code>uvmcopy()</code> to map the parent&rsquo;s physical pages into the child, instead of allocating new pages. clear <code>pte_w</code> in the ptes of both child and parent for pages that have <code>pte_w</code> set.</li>
+</ol></blockquote>
+<ul>
+<li>修改 <code>uvmcopy()</code>, 讓 <code>fork()</code> 使用 <code>uvmcopy()</code> 複製 parent 的 va 內容給 child 時
+讓 child 的 <code>page_table</code> map 到 parent 的 physical page</li>
+</ul>
+<p>讓 <code>usertrap()</code> 有辦法分辨真正的 write page fault 與 copy-on-write</p>
+<ul>
+<li>使用 <code>PTE_C</code></li>
+<li>原本是 <code>PTE_W</code> on 的 page:
+<ul>
+<li><code>PTE_W</code> 變成 off</li>
+<li><code>PTE_C</code> 變成 on</li>
+</ul>
+</li>
+<li>原本是 <code>PTE_W</code> off 的 page
+<ul>
+<li><code>PTE_W</code> 維持原本的 off</li>
+<li><code>PTE_W</code> 維持原本的 off</li>
+</ul>
+</li>
+</ul>
+<p>如此一來 <code>usertrap()</code> 遇到 <code>r_scause() ==並且 </code>PTE_C<code> 為 on  15</code>，
+就進入 copy-on-write 的情形處理</p>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">int
+uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
+{
+  pte_t *pte;
+  uint64 pa, i;
+  uint flags;
+  char *mem;
+
+  for(i = 0; i &lt; sz; i += PGSIZE){
+    if((pte = walk(old, i, 0)) == 0)
+      panic(&#34;uvmcopy: pte should exist&#34;);
+    if((*pte &amp; PTE_V) == 0)
+      panic(&#34;uvmcopy: page not present&#34;);
+    pa = PTE2PA(*pte);
+    if (*pte &amp; PTE_W) {
+      *pte &amp;= ~PTE_W; // for copy on write: clear parent&#39;s PTE_W
+      *pte |= PTE_C; // for copy on write: set PTE_C
+    }
+    flags = PTE_FLAGS(*pte);
+    // if((mem = kalloc()) == 0)
+    //   goto err;
+    // memmove(mem, (char*)pa, PGSIZE);
+    mem = (char *) pa;
+    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
+      kfree(mem);
+      goto err;
+    }
+    prefcnt_inc(pa);
+  }
+  return 0;
+
+ err:
+  uvmunmap(new, 0, i / PGSIZE, 1);
+  return -1;
+}
+</code></pre><blockquote>
+<ol start="2">
+<li>modify <code>usertrap()</code> to recognize page faults. when a write page-fault occurs on a cow page that was originally writeable, allocate a new page with kalloc(), copy the old page to the new page, and install the new page in the pte with <code>pte_w</code> set. pages that were originally read-only (not mapped <code>pte_w</code>, like pages in the text segment) should remain read-only and shared between parent and child; a process that tries to write such a page should be killed.</li>
+</ol></blockquote>
+<p>修改 <code>userteap()</code></p>
+<ul>
+<li><code>kernel/trap.c: usertrap()</code>:</li>
+</ul>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">// ...
+  } else if((r_scause() == 15) &amp;&amp; uncopied_cow(p-&gt;pagetable, r_stval())){
+    if (cow_alloc(p-&gt;pagetable, r_stval()) &lt; 0)
+      p-&gt;killed = 1;
+// ...
+</code></pre><ul>
+<li><code>kernel/vm.c: uncopied_cow()</code></li>
+</ul>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">int
+uncopied_cow(pagetable_t pagetable, uint64 va)
+{
+  if (va &gt;= MAXVA)
+    return 0;
+  pte_t *pte;
+  if ((pte = walk(pagetable, va, 0)) == 0)
+    return 0;
+  if ((*pte &amp; PTE_V) == 0)
+    return 0;
+  if ((*pte &amp; PTE_U) == 0)
+    return 0;
+  return (*pte &amp; PTE_C);
+}
+</code></pre><ul>
+<li><code>kernel/vm.c: cow_alloc()</code></li>
+</ul>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">int
+cow_alloc(pagetable_t pagetable, uint64 va)
+{
+  pte_t *pte;
+  uint64 pa;
+  uint flags;
+  char *mem;
+
+  va = pgrounddown(va);
+  if (pte = walk(pagetable, va, 0) == 0)
+    return -1;
+  pa = pte2pa(*pte);
+  flags = pte_flags(*pte);
+  flags |= pte_w;
+  if ((mem = kalloc()) == 0)
+    return -1;
+  memove(mem, (char *)pa, pgsize);
+  if (mappages(pagetable, va, pgsize, (uint64)mem, flags) != 0) {
+    kfree(mem);
+    return -1;
+  }
+  return 0;
+}
+</code></pre><blockquote>
+<ol start="3">
+<li>ensure that each physical page is freed when the last pte reference to it goes away &ndash; but not before. a good way to do this is to keep, for each physical page, a &ldquo;reference count&rdquo; of the number of user page tables that refer to that page. set a page&rsquo;s reference count to one when kalloc() allocates it. increment a page&rsquo;s reference count when fork causes a child to share the page, and decrement a page&rsquo;s count each time any process drops the page from its page table. kfree() should only place a page back on the free list if its reference count is zero. it&rsquo;s ok to to keep these counts in a fixed-size array of integers. you&rsquo;ll have to work out a scheme for how to index the array and how to choose its size. for example, you could index the array with the page&rsquo;s physical address divided by 4096, and give the array a number of elements equal to highest physical address of any page placed on the free list by kinit() in kalloc.c. feel free to modify kalloc.c (e.g., kalloc() and kfree()) to maintain the reference counts.</li>
+</ol></blockquote>
+<p>因為一個已分配的 memory 可能會被多個 process 使用，我們必須要紀錄這個 page 有多少個 process 使用才行，如果使用人數為 0 時，才要真正的把這個 page 刪除掉。</p>
+<ul>
+<li><code>kinit()</code> 時初始化</li>
+<li><code>kalloc()</code> 時增加</li>
+<li><code>kfree()</code> 時增加</li>
+</ul>
+<p>複習 xv6 的 memory layout
+<img alt="xv6 book figure 3.3" loading="lazy"></p>
+<ul>
+<li>從 <code>kinit()</code> 可以看到，<code>kalloc()</code> 可以使用的範圍就存放在 <code>end</code> ~ <code>phystop</code>
+<ul>
+<li><code>end</code>: 從 <code>kernel/kernel.ld</code> 可以得知他被存放在 kernel 的 <code>.text</code> 與 <code>.data</code> 之後
+<ul>
+<li><code>end</code> 的位置不太確定，反正 linker 會幫我們弄好</li>
+<li>從圖上來看了話，<code>end</code> 是 free memory 的開始</li>
+<li>free memory 也就是 <code>kalloc()</code> 可以使用的範圍</li>
+</ul>
+</li>
+<li><code>phystop</code>: phycical address 的實際上的最大的 address = 0x88000000</li>
+</ul>
+</li>
+</ul>
+<p>從 <code>end</code> 與 <code>phystop</code>
+先定義一些 macro</p>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">#define pa2refindex(pa) ((pgrounddown(pa) - kernbase) / pgsize)
+uint prefcnt[(phystop - kernbase) / pgsize];
+</code></pre><ul>
+<li>
+<p><code>kfree()</code></p>
+</li>
+<li>
+<p><code>kalloc()</code></p>
+<ul>
+<li>把最後回傳的那個 page 對應到的 count 的值設為 1</li>
+<li>請注意，增加 count 是在 fork() 做的事情</li>
+</ul>
+</li>
+<li>
+<p><code>init</code></p>
+</li>
+<li>
+<p><code>kernel/kalloc.c</code>:</p>
+</li>
+</ul>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">// Physical memory allocator, for user processes,
+// kernel stacks, page-table pages,
+// and pipe buffers. Allocates whole 4096-byte pages.
+
+#include &#34;types.h&#34;
+#include &#34;param.h&#34;
+#include &#34;memlayout.h&#34;
+#include &#34;spinlock.h&#34;
+#include &#34;riscv.h&#34;
+#include &#34;defs.h&#34;
+
+void freerange(void *pa_start, void *pa_end);
+
+extern char end[]; // first address after kernel.
+                   // defined by kernel.ld.
+
+#define NUM_PREF_COUNT (PHYSTOP - KERNBASE) / PGSIZE
+#define PA2REFIDX(pa) ((PGROUNDDOWN(pa) - KERNBASE) / PGSIZE)
+#define PA2CNT(pa) prefcnt.count[PA2REFIDX((uint64) pa)]
+
+struct {
+  struct spinlock lock;
+  uint count[NUM_PREF_COUNT];
+} prefcnt;
+
+struct run {
+  struct run *next;
+};
+
+struct {
+  struct spinlock lock;
+  struct run *freelist;
+} kmem;
+
+void
+kinit()
+{
+  initlock(&amp;kmem.lock, &#34;kmem&#34;);
+  initlock(&amp;prefcnt.lock, &#34;prefcnt&#34;);
+  freerange(end, (void*)PHYSTOP);
+}
+
+void
+freerange(void *pa_start, void *pa_end)
+{
+  char *p;
+  p = (char*)PGROUNDUP((uint64)pa_start);
+  for(; p + PGSIZE &lt;= (char*)pa_end; p += PGSIZE) {
+    acquire(&amp;prefcnt.lock);
+    PA2CNT(p) = 1;
+    release(&amp;prefcnt.lock);
+    kfree(p);
+  }
+}
+
+// Free the page of physical memory pointed at by pa,
+// which normally should have been returned by a
+// call to kalloc().  (The exception is when
+// initializing the allocator; see kinit above.)
+void
+kfree(void *pa)
+{
+  struct run *r;
+
+  if(((uint64)pa % PGSIZE) != 0 || (char*)pa &lt; end || (uint64)pa &gt;= PHYSTOP)
+    panic(&#34;kfree&#34;);
+
+  acquire(&amp;prefcnt.lock);
+  if (--PA2CNT(pa) &lt;= 0) {
+    // Fill with junk to catch dangling refs.
+    memset(pa, 1, PGSIZE);
+
+    r = (struct run*)pa;
+    acquire(&amp;kmem.lock);
+    r-&gt;next = kmem.freelist;
+    kmem.freelist = r;
+    release(&amp;kmem.lock);
+  }
+
+  release(&amp;prefcnt.lock);
+}
+
+// Allocate one 4096-byte page of physical memory.
+// Returns a pointer that the kernel can use.
+// Returns 0 if the memory cannot be allocated.
+void *
+kalloc(void)
+{
+  struct run *r;
+
+  acquire(&amp;kmem.lock);
+  r = kmem.freelist;
+  if(r)
+    kmem.freelist = r-&gt;next;
+  release(&amp;kmem.lock);
+
+  if(r) {
+    memset((char*)r, 5, PGSIZE); // fill with junk
+    acquire(&amp;prefcnt.lock);
+    PA2CNT(r) = 1;
+    release(&amp;prefcnt.lock);
+  }
+  return (void*)r;
+}
+
+void
+prefcnt_inc(uint64 pa)
+{
+  acquire(&amp;prefcnt.lock);
+  PA2CNT(pa)++;
+  release(&amp;prefcnt.lock);
+}
+</code></pre><blockquote>
+<ol start="4">
+<li>modify copyout() to use the same scheme as page faults when it encounters a cow page.</li>
+</ol></blockquote>
+<p>copy 出去的時候，不要指到跟 kernel 一樣的 pa, （要自己 copy 一份給 user mode 使用）</p>
+<ul>
+<li><code>kernel/vm.c: copyout()</code>:</li>
+</ul>
+<pre tabindex="0"><code class="language-clike=" data-lang="clike=">int
+copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
+{
+  uint64 n, va0, pa0;
+
+  while(len &gt; 0){
+    va0 = PGROUNDDOWN(dstva);
+    if (uncopied_cow(pagetable, va0)) {
+      if (cow_alloc(pagetable, va0) == -1)
+        return -1;
+    }
+    pa0 = walkaddr(pagetable, va0);
+    if(pa0 == 0)
+      return -1;
+    n = PGSIZE - (dstva - va0);
+    if(n &gt; len)
+      n = len;
+    memmove((void *)(pa0 + (dstva - va0)), src, n);
+
+    len -= n;
+    src += n;
+    dstva = va0 + PGSIZE;
+  }
+  return 0;
+}
+</code></pre><h2 id="debug">debug<a hidden class="anchor" aria-hidden="true" href="#debug">#</a></h2>
+<ul>
+<li>
+<p><code>freelist</code> 並沒有被正確的初始化</p>
+<ul>
+<li>解決方法: <code>pa2cnt(p) = 1</code> in freerange</li>
+</ul>
+</li>
+<li>
+<p><code>panic: mappages: remap</code></p>
+<ul>
+<li>不應該出現 remap
+在</li>
+</ul>
+</li>
+</ul>
+
+
+
+<div class="goat svg-container ">
+  
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      font-family="Menlo,Lucida Console,monospace"
+      
+        viewBox="0 0 544 41"
+      >
+      <g transform='translate(8,16)'>
+<text text-anchor='middle' x='0' y='4' fill='currentColor' style='font-size:1em'>2</text>
+<text text-anchor='middle' x='24' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='32' y='4' fill='currentColor' style='font-size:1em'>x</text>
+<text text-anchor='middle' x='32' y='20' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='40' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='40' y='20' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='48' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='56' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='56' y='20' fill='currentColor' style='font-size:1em'>k</text>
+<text text-anchor='middle' x='64' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='64' y='20' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='72' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='72' y='20' fill='currentColor' style='font-size:1em'>r</text>
+<text text-anchor='middle' x='80' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='80' y='20' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='88' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='88' y='20' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='96' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='96' y='20' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='104' y='4' fill='currentColor' style='font-size:1em'>8</text>
+<text text-anchor='middle' x='104' y='20' fill='currentColor' style='font-size:1em'>/</text>
+<text text-anchor='middle' x='112' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='112' y='20' fill='currentColor' style='font-size:1em'>v</text>
+<text text-anchor='middle' x='120' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='120' y='20' fill='currentColor' style='font-size:1em'>m</text>
+<text text-anchor='middle' x='128' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='128' y='20' fill='currentColor' style='font-size:1em'>.</text>
+<text text-anchor='middle' x='136' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='136' y='20' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='144' y='4' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='144' y='20' fill='currentColor' style='font-size:1em'>:</text>
+<text text-anchor='middle' x='152' y='4' fill='currentColor' style='font-size:1em'>8</text>
+<text text-anchor='middle' x='152' y='20' fill='currentColor' style='font-size:1em'>4</text>
+<text text-anchor='middle' x='160' y='4' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='160' y='20' fill='currentColor' style='font-size:1em'>8</text>
+<text text-anchor='middle' x='168' y='20' fill='currentColor' style='font-size:1em'>7</text>
+<text text-anchor='middle' x='176' y='4' fill='currentColor' style='font-size:1em'>i</text>
+<text text-anchor='middle' x='184' y='4' fill='currentColor' style='font-size:1em'>n</text>
+<text text-anchor='middle' x='200' y='4' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='208' y='4' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='216' y='4' fill='currentColor' style='font-size:1em'>w</text>
+<text text-anchor='middle' x='224' y='4' fill='currentColor' style='font-size:1em'>_</text>
+<text text-anchor='middle' x='232' y='4' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='240' y='4' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='248' y='4' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='256' y='4' fill='currentColor' style='font-size:1em'>o</text>
+<text text-anchor='middle' x='264' y='4' fill='currentColor' style='font-size:1em'>c</text>
+<text text-anchor='middle' x='280' y='4' fill='currentColor' style='font-size:1em'>(</text>
+<text text-anchor='middle' x='288' y='4' fill='currentColor' style='font-size:1em'>p</text>
+<text text-anchor='middle' x='296' y='4' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='304' y='4' fill='currentColor' style='font-size:1em'>g</text>
+<text text-anchor='middle' x='312' y='4' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='320' y='4' fill='currentColor' style='font-size:1em'>t</text>
+<text text-anchor='middle' x='328' y='4' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='336' y='4' fill='currentColor' style='font-size:1em'>b</text>
+<text text-anchor='middle' x='344' y='4' fill='currentColor' style='font-size:1em'>l</text>
+<text text-anchor='middle' x='352' y='4' fill='currentColor' style='font-size:1em'>e</text>
+<text text-anchor='middle' x='360' y='4' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='368' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='376' y='4' fill='currentColor' style='font-size:1em'>x</text>
+<text text-anchor='middle' x='384' y='4' fill='currentColor' style='font-size:1em'>8</text>
+<text text-anchor='middle' x='392' y='4' fill='currentColor' style='font-size:1em'>7</text>
+<text text-anchor='middle' x='400' y='4' fill='currentColor' style='font-size:1em'>f</text>
+<text text-anchor='middle' x='408' y='4' fill='currentColor' style='font-size:1em'>7</text>
+<text text-anchor='middle' x='416' y='4' fill='currentColor' style='font-size:1em'>3</text>
+<text text-anchor='middle' x='424' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='432' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='440' y='4' fill='currentColor' style='font-size:1em'>0</text>
+<text text-anchor='middle' x='448' y='4' fill='currentColor' style='font-size:1em'>,</text>
+<text text-anchor='middle' x='464' y='4' fill='currentColor' style='font-size:1em'>v</text>
+<text text-anchor='middle' x='472' y='4' fill='currentColor' style='font-size:1em'>a</text>
+<text text-anchor='middle' x='480' y='4' fill='currentColor' style='font-size:1em'>=</text>
+<text text-anchor='middle' x='488' y='4' fill='currentColor' style='font-size:1em'>1</text>
+<text text-anchor='middle' x='496' y='4' fill='currentColor' style='font-size:1em'>6</text>
+<text text-anchor='middle' x='504' y='4' fill='currentColor' style='font-size:1em'>3</text>
+<text text-anchor='middle' x='512' y='4' fill='currentColor' style='font-size:1em'>8</text>
+<text text-anchor='middle' x='520' y='4' fill='currentColor' style='font-size:1em'>4</text>
+<text text-anchor='middle' x='528' y='4' fill='currentColor' style='font-size:1em'>)</text>
+</g>
+
+    </svg>
+  
+</div>
+<p>出現了 <code>panic: mappages: remap</code> 的錯誤</p>
+<p>照裡來說不應該出現 remap 的情況
+<code>cow_alloc()</code> 由 <code>usertrap()</code> 遇到 write page fault 時呼叫
+在 <code>cow_alloc()</code> 的情況下應該要</p>
+<p>在 <code>cow_alloc()</code> 中的 <code>uvmunmap()</code> 必須要 <code>do_free</code> 這樣</p>
+<blockquote>
+<p>先用執行 <code>cowtests</code> 來發現錯誤會比較容易</p></blockquote>
+<ul>
+<li>現在 <code>pipe() failed</code> 來看看是為什麼
+<ul>
+<li>使用 gdb 得知為 <code>sys_pipe()</code> 中的 <code>copyout()</code> 發生了錯誤</li>
+<li>而且遇到的
+[] 使用紙筆畫出 <code>filetest()</code> 的流程
+[] 強烈建議好好檢查 <code>cowalloc()</code> in <code>copyout()</code>
+[] 不可 write 的 page 就維持不可以 write</li>
+</ul>
+</li>
+</ul>
+<h2 id="reference">reference<a hidden class="anchor" aria-hidden="true" href="#reference">#</a></h2>
+<p><a href="https://pdos.csail.mit.edu/6.S081/2022/schedule.html">6.1810</a>
+<a href="https://pdos.csail.mit.edu/6.S081/2022/labs/cow.html">lab cow</a>
+<a href="https://ttzytt.com/2022/07/xv6_lab6_record/">mit 6.s081 xv6 lab6 cow 实验记录</a>
+<a href="https://five-embeddev.com/riscv-isa-manual/latest/supervisor.html#sec:scause">https://five-embeddev.com/riscv-isa-manual/latest/supervisor.html#sec:scause</a>
+<a href="https://blog.louie.lu/2016/11/06/10%E5%88%86%E9%90%98%E8%AE%80%E6%87%82-linker-scripts/">11分鐘讀懂 linker scripts</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/xv6/lab5/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>[xv6 學習紀錄 05] Lab: xv6 lazy page allocation</span>
+  </a>
+  <a class="next" href="http://localhost:1313/dev-log/notes/">
+    <span class="title">Next »</span>
+    <br>
+    <span>[這個網站的誕生] 筆記區域</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
