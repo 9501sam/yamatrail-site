@@ -131,7 +131,7 @@
   </header>
   <div class="entry-content">
     <p>Lab 連結：Lab: Copy-on-Write Fork for xv6
-The problem The fork() system call in xv6 copies all of the parent process’s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.
+題目解析 The problem The fork() system call in xv6 copies all of the parent process’s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-15 17:47:29 +0800 CST'>October 15, 2025</span></footer>

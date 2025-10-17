@@ -503,6 +503,7 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
       <pubDate>Wed, 15 Oct 2025 17:47:29 +0800</pubDate>
       <guid>http://localhost:1313/xv6/lab6/</guid>
       <description>&lt;p&gt;Lab 連結：&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/cow.html&#34;&gt;Lab: Copy-on-Write Fork for xv6&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;題目解析&#34;&gt;題目解析&lt;/h2&gt;
 &lt;blockquote&gt;
 &lt;h2 id=&#34;the-problem&#34;&gt;The problem&lt;/h2&gt;
 &lt;p&gt;The fork() system call in xv6 copies all of the parent process&amp;rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.&lt;/p&gt;</description>

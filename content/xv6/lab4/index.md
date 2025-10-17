@@ -734,3 +734,4 @@ usertrap(void)
 ```
 ![alarm-pass.png](alarm-pass.png)
 ![pass.png](pass.png)
+(TODO: use `setkilled()`)
