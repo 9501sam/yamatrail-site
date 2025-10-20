@@ -273,7 +273,10 @@ write:
 $1 = 0x3ffffff000
 (gdb) break *0x3ffffff000 # break *stvec
 (gdb) si # 執行 ecall, 真正進入 supervisor mode 並且處理由 system call 觸發的 trap
-</code></pre><h3 id="stvec-中的-0x3ffffff000-指向哪一段程式碼"><code>stvec</code> 中的 0x3ffffff000 指向哪一段程式碼<a hidden class="anchor" aria-hidden="true" href="#stvec-中的-0x3ffffff000-指向哪一段程式碼">#</a></h3>
+</code></pre><p>也可以在進入 system call 之前使用</p>
+<pre tabindex="0"><code class="language-gdb" data-lang="gdb">(gdb) break *$stvec
+</code></pre><p>會比較方便</p>
+<h3 id="stvec-中的-0x3ffffff000-指向哪一段程式碼"><code>stvec</code> 中的 0x3ffffff000 指向哪一段程式碼<a hidden class="anchor" aria-hidden="true" href="#stvec-中的-0x3ffffff000-指向哪一段程式碼">#</a></h3>
 <p>執行 <code>ecall</code> 之後</p>
 <ul>
 <li>會跑到 <code>stvec</code> 指向的位置 0x3ffffff000 開始執行</li>

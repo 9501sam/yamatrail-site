@@ -150,10 +150,10 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     flags = PTE_FLAGS(*pte);
     // parent pte
     // set PTE_COW and PTE_COW_W
-    *pte = *pte | PTE_COW; // set PTE_COW
+    *pte |= PTE_COW; // set PTE_COW
     if (*pte & PTE_W)
-      *pte = *pte | PTE_COW_W; // set PTE_COW_W
-    *pte = *pte & ~PTE_W; // cannot be wite
+      *pte |= PTE_COW_W; // set PTE_COW_W
+    *pte &= ~PTE_W; // cannot be wite
     // child pte
     flags = PTE_FLAGS(*pte); // as same as parent
     if(mappages(new, i, PGSIZE, (uint64)pa, flags) != 0){
@@ -178,8 +178,9 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
 #define KERNBASE 0x80000000L
 #define PHYSTOP (KERNBASE + 128*1024*1024)
 ```
-真的是 Physical memory (RAM) 的 address 為 `KERNBASE` ~ `PHYSTOP`  
+Physical memory (RAM) 的 address 為 `KERNBASE` ~ `PHYSTOP`  
 -> `0x80000000 ~ 0x88000000`
+
 在 Physical memory (RAM) 又因為 kernel text 與 kernel data 佔去了一部分
 實際上 user program 會用到的只有 `end` ~ `PHYSTOP`
 
@@ -200,40 +201,80 @@ freerange(void *pa_start, void *pa_end)
 {
   char *p;
   p = (char*)PGROUNDUP((uint64)pa_start);
+
+  // 注意這裡，最後一個可用的 page
+  // 是 starting address == PHYSTOP - PGSIZE
+  // 的那一個 page
   for(; p + PGSIZE <= (char*)pa_end; p += PGSIZE)
     kfree(p);
 }
 ```
 這裡需要小注意一下 
-* `PHYSTOP` 是包含的
+* `PHYSTOP` 是不包含的
 * `end` 則不一定，要看 `PGROUNDUP()` 的結果 (因為不可以跟 kerenl 塞在同一個 page 中)
 
-需要 reference count 的 page 數量為
-```c
-(PHYSTOP - PGROUNDUP((uint64)pa_start) + 1) / PGSIZE;
-```
-但題目說可以用一個 fix-sized 的 array 就好，言下之意就是雖然 kernel text 與 kernel data 雖然實際上部需要 reference count 的管理，但還是給它們 refrence count 單純為了求一個方便
+### 可用的 RAM 的範圍：
+#### 最開始的 page
+* `KERNBASE`: 0x80000000 作為開頭的這個 page
+* physical address: `0x80000000 ~ 0x80000fff`
+* `0x80000xxx` 的 address 都屬於最開頭的 page
+* `0x80000xxx` 的 address 會共用同一個 reference count
+* `PGROUNDDOWN(pa) == 0x80000000` 的 `pa` 會共用同一個 reference count (`index == 0`)
 
-結論：大小為
+#### 最後一個 page
+* `PHYSTOP - PGSIZE == 0x88000000 == 0x87fff000` 作為開頭的這個 page
+* physical address: `0x87fff000 ~ 0x87ffffff`
+* `0x87fffxxx` 的 address 都屬於最開頭的 page
+* `0x87fffxxx` 的 address 會共用同一個 reference count
+* `PGROUNDDOWN(pa) == 0x87fffxxx` 的 `pa` 會共用同一個 reference count，並且是最後一個 index
+
+### 需要 reference count 的 page 數量為
+題目說可以用一個 fix-sized 的 array 就好，言下之意就是雖然 kernel text 與 kernel data 雖然實際上部需要 reference count 的管理，但還是給它們 refrence count 單純為了求一個方便
+
+需要 index 的數量為 
+
+* `087fff - 0x80000 + 1 = 0x08000` 
+* `088000 - 0x80000 = 0x08000` 
+* `(PHYSTOP - KERNBASE) / PGSIZE = 0x08000` 
+
+### index 的方法
 ```c
-(PHYSTOP - KERNBASE) / PGSIZE;
-(PGROUNDUP(PHYSTOP) - KERNBASE) / PGSIZE;
+address      condition                       calculate index      index
+-----------------------------------------------------------------------
+0x87fffxxx | PGROUNDOWN(pa) == 0x87fff 000 | 0x87fff - 0x80000 == 0x07fff
+0x87ffexxx | PGROUNDOWN(pa) == 0x87ffe 000 | 0x87ffe - 0x80000 == 0x07ffe
+.          |                               |
+.          |                               |
+.          |                               |
+0x80001xxx | PGROUNDOWN(pa) == 0x80001 000 | 0x80001 - 0x80000 == 0x00001
+0x80000xxx | PGROUNDOWN(pa) == 0x80000 000 | 0x80000 - 0x80000 == 0x00000
 ```
+如果有了 physical address `pa`, 它在 array of reference count 的 index 計算公式為：
+```c
+index = (PGROUNDOWN(pa) >> 12) - 0x80000
+```
+
+也就是因為當初的
+```c
+index = (PGROUNDOWN(pa) >> 12) - (KERNBASE >> 12)
+```
+等等會用一個 macro 來處理
 
 
 ### Reference Count 的 Data Structure
 
 #### 存放位置
 * 這個 array 最終實際上的位置會在 kernel data 的區域中
-* `kernel/kalloc.c`
+* 把 index 的作法寫成 macro 比較方便
+* `kernel/kalloc.c`: 跟 `kmem` 一樣要使用 `spinlock`
 ```c
-int ref_cnt[(PHYSTOP - KERNBASE / PGSIZE)]; // TODO
-```
+struct {
+  struct spinlock lock;
+  struct run *freelist;
+    int count[(PHYSTOP - KERNBASE) / PGSIZE];
+} refcnt;
 
-#### index 的方法
-* `kernel/memlayout.h`
-```c
-REFCNT(pa) ref_cnf[PGROUNDDOWN(pa) - xxx]; // TODO
+#define REFCNT(pa) refcnt.count[(PGROUNDDOWN(pa) >> 12) - (KERNBASE >> 12)];
 ```
 
 ### Reference Count 的 Increament/Decreament
@@ -247,8 +288,12 @@ kalloc(void)
 
   acquire(&kmem.lock);
   r = kmem.freelist;
-  if(r)
+  if(r) {
     kmem.freelist = r->next;
+    acquire(&refcnt.lock);
+    REFCNT((uint64) r) = 1;
+    release(&refcnt.lock);
+  }
   release(&kmem.lock);
 
   if(r)
@@ -258,7 +303,21 @@ kalloc(void)
 ```
 
 #### Increament
-`fork()` 所導致的 `uvmcopy()`
+* `fork()` 所導致的 `uvmcopy()` 時，要加一
+* 不過 `uvmcopy()` 在 `kernel/vm.c` 中，`refcnt` 所在的 `kernel/kalloc.c` 會需要提供一個 function
+
+* `kernel/kalloc.c: inc_refcnt()`
+```c
+void
+inc_refcnt(uint64 pa)
+{
+  acquire(&refcnt.lock);
+  REFCNT((uint64) r)++;
+  release(&refcnt.lock);
+}
+```
+
+* `kernel/vm.c: uvmcopy()`: 使用 `inc_refcnt()`
 ```c
 int
 uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
@@ -287,6 +346,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
       kfree(mem);
       goto err;
     }
+    inc_refcnt(pa); // <-- increase reference count when fork
   }
   return 0;
 
@@ -297,7 +357,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
 ```
 
 #### Decreament
-`kfree()`
+* `kernel/kalloc.c: kfree()`
 ```c
 void
 kfree(void *pa)
@@ -306,6 +366,12 @@ kfree(void *pa)
 
   if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
     panic("kfree");
+
+  acquire(&refcnt.lock);
+  REFCNT(pa)--;
+  release(&refcnt.lock);
+  if (REFCNT(pa) > 0)
+    return;
 
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
@@ -318,31 +384,14 @@ kfree(void *pa)
   release(&kmem.lock);
 }
 ```
-
-#### 降為 0 時
-`kfree()`
-```c
-void
-kfree(void *pa)
-{
-  struct run *r;
-
-  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
-    panic("kfree");
-
-  // Fill with junk to catch dangling refs.
-  memset(pa, 1, PGSIZE);
-
-  r = (struct run*)pa;
-
-  acquire(&kmem.lock);
-  r->next = kmem.freelist;
-  kmem.freelist = r;
-  release(&kmem.lock);
-}
-```
+只有 reference count 減少到 0 時才會真的 free 掉這個 page
 
 ### Page Fault 的處理
+
+* `scause` = 12:  Instruction page fault
+* `scause` = 13:  Load page fault
+* `scause` = 15:  Store/AMO page fault (copy on write 的情形)
+
 這裡跟 Lazy allocation 的處理類似
 * `kernel/trap.c: usertrap()`
 ```c
@@ -352,14 +401,9 @@ usertrap(void)
   // ...
   } else if((which_dev = devintr()) != 0){
     // ok
-  } else if(r_scause() == 13 || r_scause() == 15){
-    uint64 va = r_stval();
-    struct proc *p = myproc();
-
-    if () {
-	} else {
+  } else if(r_scause() == 15 && uncopied_cow(p->pagetable, r_stval())){
+    if (cow_alloc(p->pagetable) < 0)
       setkilled(p);
-    }
   } else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
@@ -369,7 +413,159 @@ usertrap(void)
 }
 ```
 
-## kernel 中的 Copy-on-Write 如何處理
-這裡就有一點像是前面 `copyin()` `copyout()`
+* `kernel/vm.c`
+```c
+int 
+uncopied_cow(pagetable_t pagetable, uint64 va)
+{
+  if (va >= MAXVA)
+    return 0;
+  pte_t *pte;
+  if (pte = walk(pagetable, va, 0) == 0)
+    return 0;
+  if ((*pte & PTE_V) == 0)
+    return 0;
+  if ((*pte & PTE_U) == 0)
+    return 0;
+  if ((*pte & PTE_COW_W) == 0) // COW 之前的 PTE_W
+    return 0;
+  return (*pte & PTE_COW);
+}
 
-doing
+int
+cow_alloc(pagetable_t pagetable, uint64 va)
+{
+  pte_t *pte;
+}
+```
+
+
+## kernel 中的 Copy-on-Write 如何處理
+這裡就有一點像是前面的 Lab: Lazy 也會遇到的問題，因為現在我們處理的範圍都只有 user program 產生的 page fault，如果是 supervisor mode 的情況下想要 write COW page 就需要當下在 supervisor mode 自行處理
+
+這裡要考慮的是從 kernel 複製到 user program 可能會 write COW page 的 `copyout()` 這個 function
+* `kernel/vm.c: copyout()`
+```c
+int
+copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
+{
+  uint64 n, va0, pa0;
+  while(len > 0){
+    va0 = PGROUNDDOWN(dstva);
+    if (uncopied_cow(pagetable, va0))
+      if (cow_alloc(pagetable, va0) == -1)
+        return -1;
+    pa0 = walkaddr(pagetable, va0);
+    if(pa0 == 0)
+      return -1;
+    n = PGSIZE - (dstva - va0);
+    if(n > len)
+      n = len;
+    memmove((void *)(pa0 + (dstva - va0)), src, n);
+
+    len -= n;
+    src += n;
+    dstva = va0 + PGSIZE;
+  }
+  return 0;
+}
+```
+
+## 心得：
+這個 Lab 錯在一些小地方似乎不太容易發現，覺得真的不確定的時候要使用 gdb 去確認會比較好，
+不過這幾個 Lab 做下來覺得使用 gdb 的心態也蠻重要的，像是這兩種心態：
+1. 使用 gdb 檢查哪裡的 value 有錯誤，並且想辦法修正錯誤的 value
+1. 先了解背後的原理，並且用 gdb 驗證背後的原理有沒有正確的被執行
+
+我自己的體感是 2. 會比較好一些，1. 則是會有一種被 gdb 拉著走的感覺，但是真的沒頭緒的時候，還是可以用 1. 做一個範圍上的線縮。
+
+### 除錯過程中學到的一些方便的 gdb 使用方式
+情境：
+```c
+int
+uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
+{
+  pte_t *pte;
+  uint64 pa, i;
+  uint flags;
+  // char *mem;
+
+  // for debug
+  for(i = 0; i < sz; i += PGSIZE){
+    // printf("%x,", i / PGSIZE);
+    if((pte = walk(old, i, 0)) == 0)
+      panic("uvmcopy: pte should exist");
+    if (i == 0x402f000 - 0 * PGSIZE)
+      printf("!!!*pte = %p\n", *pte);
+    if((*pte & PTE_V) == 0) {
+      printf("*pte = %p\n", pte);
+      printf("i = %x\n", i);
+      printf("sz = %x\n", sz);
+      panic("uvmcopy: page not present");
+    }
+  }
+
+  for(i = 0; i < sz; i += PGSIZE){
+    // printf("%x,", i / PGSIZE);
+    if((pte = walk(old, i, 0)) == 0)
+      panic("uvmcopy: pte should exist");
+    // if (i == 0x402f000 - 0 * PGSIZE)
+    //   printf("!!!*pte = %p\n", *pte);
+    if((*pte & PTE_V) == 0) {
+      printf("*pte = %p\n", *pte);
+      printf("i = %x\n", i);
+      printf("sz = %x\n", sz);
+      panic("uvmcopy: page not present");
+    }
+    pa = PTE2PA(*pte);
+    flags = PTE_FLAGS(*pte);
+    // parent pte
+    // set PTE_COW and PTE_COW_W
+    *pte |= PTE_COW; // set PTE_COW
+    if (*pte & PTE_W)
+      *pte |= PTE_COW_W; // set PTE_COW_W
+    *pte = *pte & ~PTE_W; // cannot be wite
+    // child pte
+    flags = PTE_FLAGS(*pte); // as same as parent
+    if(mappages(new, i, PGSIZE, (uint64)pa, flags) != 0){
+      // kfree(mem);
+      goto err;
+    }
+    inc_refcnt(pa);
+  }
+  return 0;
+
+ err:
+  panic("uvmcopy: err");
+  uvmunmap(new, 0, i / PGSIZE, 1);
+  return -1;
+}
+```
+
+發現觸發 `panic("uvmcopy: page not present");`
+
+* set breakpoint `b kernel/vm.c: xxx` at `panic("uvmcopy: page not present");`
+    * 發現 `i == 0x402f000` 這個 iteration 的時候，會觸發 `panic("uvmcopy: page not present");`
+
+再跑一次 gdb，這次先用
+```gdb
+(gdb) add-symbol-file user/_cowtest
+(gdb) b simpletest
+(gdb) b *$stvec
+(gdb) c
+(gdb) b uvmcopy
+(gdb) p watch(old, 0x42f000, 0)
+$1 0x83f39178
+```
+
+知道受影響的 PTE 的 address 之後，在設定 watch point
+```gdb
+(gdb) watch *(pte_t *) 0x83f39178
+(gdb) c
+```
+
+這樣這一次就會知道是那裡更改了不該被更改的值
+
+最後有發現是 macro 的 `KERNBASE >> 12` 寫成了 `KERNBASE >> 3` 一時疏忽忘記 HEX 中的三個 0 代表 12 個 bits
+
+![ac.png](ac.png)

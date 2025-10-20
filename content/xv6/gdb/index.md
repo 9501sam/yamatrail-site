@@ -139,6 +139,12 @@ $1 = 0x3ffffff000
 (gdb) si # 執行 ecall, 真正進入 supervisor mode 並且處理由 system call 觸發的 trap
 ```
 
+也可以在進入 system call 之前使用
+```gdb
+(gdb) break *$stvec
+```
+會比較方便
+
 ### ```stvec``` 中的 0x3ffffff000 指向哪一段程式碼
 執行 ```ecall``` 之後
 * 會跑到 `stvec` 指向的位置 0x3ffffff000 開始執行
