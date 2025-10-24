@@ -6,7 +6,7 @@
     <description>Recent content in Yama 的網站 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Thu, 16 Oct 2025 15:52:53 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 23 Oct 2025 14:41:29 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</title>
@@ -661,7 +661,7 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
 &lt;p&gt;Your first task is to delete page allocation from the &lt;code&gt;sbrk(n)&lt;/code&gt; system call implementation, which is the function &lt;code&gt;sys_sbrk()&lt;/code&gt; in &lt;code&gt;sysproc.c&lt;/code&gt;. The &lt;code&gt;sbrk(n)&lt;/code&gt; system call grows the process&amp;rsquo;s memory size by &lt;code&gt;n&lt;/code&gt; bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new &lt;code&gt;sbrk(n)&lt;/code&gt; should just increment the process&amp;rsquo;s size (&lt;code&gt;myproc()-&amp;gt;sz&lt;/code&gt;) by &lt;code&gt;n&lt;/code&gt; and return the old size. It should not allocate memory &amp;ndash; so you should delete the call to &lt;code&gt;growproc()&lt;/code&gt; (but you still need to increase the process&amp;rsquo;s size!).&lt;/p&gt;</description>
     </item>
     <item>
-      <title>[xv6 學習紀錄 06-1] Page Fault</title>
+      <title>[xv6 學習紀錄 06-1] Interrupts</title>
       <link>http://localhost:1313/xv6/lab6.1/</link>
       <pubDate>Thu, 16 Oct 2025 15:52:53 +0800</pubDate>
       <guid>http://localhost:1313/xv6/lab6.1/</guid>
@@ -713,6 +713,69 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
 &lt;blockquote&gt;
 &lt;h2 id=&#34;the-problem&#34;&gt;The problem&lt;/h2&gt;
 &lt;p&gt;The fork() system call in xv6 copies all of the parent process&amp;rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 07-1] Thread Switching</title>
+      <link>http://localhost:1313/xv6/lab7.1/</link>
+      <pubDate>Tue, 21 Oct 2025 19:35:28 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab7.1/</guid>
+      <description>&lt;p&gt;課程影片連結：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=zRnGNndcVEA&#34;&gt;6.S081 Fall 2020 Lecture 11: Thread Switching&lt;/a&gt;
+&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
+      &lt;iframe allow=&#34;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&#34; loading=&#34;eager&#34; referrerpolicy=&#34;strict-origin-when-cross-origin&#34; src=&#34;https://www.youtube.com/embed/vsgrTHY5tkg?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; title=&#34;YouTube video&#34;&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;追蹤-context-switch-的過程&#34;&gt;追蹤 Context Switch 的過程&lt;/h2&gt;
+&lt;p&gt;先看一下影片中的範例程式&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;user/spin.c&lt;/code&gt;:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;kernel/types.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;user/user.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;**&lt;/span&gt;argv)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; pid;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; c;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  pid &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fork&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (pid &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    c &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/&amp;#39;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;parent pid is %d, child is %d&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;getpid&lt;/span&gt;(), pid);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    c &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\\&amp;#39;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; ; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (i &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1000000&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#a6e22e&#34;&gt;write&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;c, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;exit&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在做的事情基本上是&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 07] Lab thread: Multithreading</title>
+      <link>http://localhost:1313/xv6/lab7/</link>
+      <pubDate>Tue, 21 Oct 2025 19:35:33 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab7/</guid>
+      <description>&lt;p&gt;Lab 連結：&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/thread.html&#34;&gt;Lab: Multithreading&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;uthread-switching-between-threads-moderate&#34;&gt;Uthread: switching between threads (moderate)&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;In this exercise you will design the context switch mechanism for a user-level threading system, and then implement it. To get you started, your xv6 has two files &lt;code&gt;user/uthread.c&lt;/code&gt; and &lt;code&gt;user/uthread_switch.S&lt;/code&gt;, and a rule in the &lt;code&gt;Makefile&lt;/code&gt; to build a uthread program. uthread.c contains most of a user-level threading package, and code for three simple test threads. The threading package is missing some of the code to create a thread and to switch between threads.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>[xv6 學習紀錄 08] Lab: locks</title>
+      <link>http://localhost:1313/xv6/lab8/</link>
+      <pubDate>Thu, 23 Oct 2025 14:41:29 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lab8/</guid>
+      <description>&lt;h2 id=&#34;memory-allocator-moderate&#34;&gt;Memory allocator (moderate)&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Your job is to implement per-CPU freelists, and stealing when a CPU&amp;rsquo;s free list is empty. You must give all of your locks names that start with &amp;ldquo;kmem&amp;rdquo;. That is, you should call &lt;code&gt;initlock&lt;/code&gt; for each of your locks, and pass a name that starts with &amp;ldquo;kmem&amp;rdquo;. Run kalloctest to see if your implementation has reduced lock contention. To check that it can still allocate all of memory, run &lt;code&gt;usertests&lt;/code&gt; &lt;code&gt;sbrkmuch&lt;/code&gt;. Your output will look similar to that shown below, with much-reduced contention in total on kmem locks, although the specific numbers will differ. Make sure all tests in &lt;code&gt;usertests -q&lt;/code&gt; pass. make grade should say that the &lt;code&gt;kalloctests&lt;/code&gt; pass.&lt;/p&gt;</description>
     </item>
     <item>
       <title>[這個網站的誕生] 筆記區域</title>

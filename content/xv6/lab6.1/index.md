@@ -1,7 +1,7 @@
 +++
 date = '2025-10-16T15:52:53+08:00'
 draft = false
-title = '[xv6 學習紀錄 06-1] Page Fault'
+title = '[xv6 學習紀錄 06-1] Interrupts'
 series = ["xv6 學習紀錄"]
 weight = 61
 +++

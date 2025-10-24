@@ -207,7 +207,7 @@ isolation level of indirection 在原先 xv6 的設計中 pagetable 的設計是
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 06-1] Page Fault
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 06-1] Interrupts
     </h2>
   </header>
   <div class="entry-content">
@@ -222,7 +222,7 @@ kernel/console.c: consoleinit() kernel/uart.c: uartinit() kernel/plic.c: plicini
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-16 15:52:53 +0800 CST'>October 16, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06-1] Page Fault" href="http://localhost:1313/xv6/lab6.1/"></a>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06-1] Interrupts" href="http://localhost:1313/xv6/lab6.1/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -241,49 +241,44 @@ kernel/console.c: consoleinit() kernel/uart.c: uartinit() kernel/plic.c: plicini
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[這個網站的誕生] 筆記區域
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 07-1] Thread Switching
     </h2>
   </header>
   <div class="entry-content">
-    <p> hugo-paperMod Example
-Example site
-Expand Method 1 - Git Clone </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-09 22:01:01 +0800 CST'>October 9, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [這個網站的誕生] 筆記區域" href="http://localhost:1313/dev-log/notes/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>題目連結：1004. Max Consecutive Ones III
-解題思路 這題使用兩個 pointer left 與 right 來紀錄當前的 array 大小，像是：
-0 1 2 3 4 5 6 7 8 9 ↑ ↑ l r 這個時候 left == 2, right == 6 長度的計算為
-length = right - left &#43; 1 也就是 6 - 2 &#43; 1 == 5
-如何表達 length == 0 這樣的設計會碰到的下一個問題是
-假設 right == 6 如何表達 length == 0 的情況?? 會像是下面這個樣子：
-0 1 2 3 4 5 6 7 8 9 ↑ ↑ r l 雖然是 left 不過卻在 right 的右邊，但這樣做的好處就在於我們計算長度的公式：
+    <p>課程影片連結：
+6.S081 Fall 2020 Lecture 11: Thread Switching 追蹤 Context Switch 的過程 先看一下影片中的範例程式
+user/spin.c: #include &#34;kernel/types.h&#34; #include &#34;user/user.h&#34; int main(int argc, char **argv) { int pid; char c; pid = fork(); if (pid == 0) { c = &#39;/&#39;; } else { printf(&#34;parent pid is %d, child is %d&#34;, getpid(), pid); c = &#39;\\&#39;; } for (int i = 0; ; i&#43;&#43;) { if (i % 1000000 == 0) write(2, &amp;c, 1); } exit(0); } 在做的事情基本上是
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-10-16 13:14:24 +0800 CST'>October 16, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1004-max-consecutive-ones-iii/"></a>
+  <footer class="entry-footer"><span title='2025-10-21 19:35:28 +0800 CST'>October 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 07-1] Thread Switching" href="http://localhost:1313/xv6/lab7.1/"></a>
 </article>
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 07] Lab thread: Multithreading
     </h2>
   </header>
   <div class="entry-content">
-    <p>題目連結：1679. Max Number of K-Sum Pairs
-解題思路 這一題跟 11. Container With Most Water 的感覺還蠻像的，都是先把兩的 pointer 放在兩端，並且根據不同的情況，用 greedy 的方式判斷下一步要做什麼。還有這個問題是配對到了就刪除掉，所以也不會有重複的問題。
-程式碼 class Solution { public: int maxOperations(vector&lt;int&gt;&amp; nums, int k) { int left = 0; int right = nums.size() - 1; int count = 0; sort(nums.begin(), nums.end()); while (left &lt; right) { if (nums[left] &#43; nums[right] == k) { count&#43;&#43;; left&#43;&#43;; right--; } else if (nums[left] &#43; nums[right] &lt; k) { left&#43;&#43;; } else { right--; } } return count; } }; </p>
+    <p>Lab 連結：Lab: Multithreading
+Uthread: switching between threads (moderate) In this exercise you will design the context switch mechanism for a user-level threading system, and then implement it. To get you started, your xv6 has two files user/uthread.c and user/uthread_switch.S, and a rule in the Makefile to build a uthread program. uthread.c contains most of a user-level threading package, and code for three simple test threads. The threading package is missing some of the code to create a thread and to switch between threads.
+...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-10-16 11:30:41 +0800 CST'>October 16, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1679-max-number-of-k-sum-pairs/"></a>
+  <footer class="entry-footer"><span title='2025-10-21 19:35:33 +0800 CST'>October 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 07] Lab thread: Multithreading" href="http://localhost:1313/xv6/lab7/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 08] Lab: locks
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Memory allocator (moderate) Your job is to implement per-CPU freelists, and stealing when a CPU’s free list is empty. You must give all of your locks names that start with “kmem”. That is, you should call initlock for each of your locks, and pass a name that starts with “kmem”. Run kalloctest to see if your implementation has reduced lock contention. To check that it can still allocate all of memory, run usertests sbrkmuch. Your output will look similar to that shown below, with much-reduced contention in total on kmem locks, although the specific numbers will differ. Make sure all tests in usertests -q pass. make grade should say that the kalloctests pass.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-23 14:41:29 +0800 CST'>October 23, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08] Lab: locks" href="http://localhost:1313/xv6/lab8/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">
