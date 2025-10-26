@@ -270,15 +270,16 @@ Uthread: switching between threads (moderate) In this exercise you will design t
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 08] Lab: locks
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks
     </h2>
   </header>
   <div class="entry-content">
-    <p>Memory allocator (moderate) Your job is to implement per-CPU freelists, and stealing when a CPU’s free list is empty. You must give all of your locks names that start with “kmem”. That is, you should call initlock for each of your locks, and pass a name that starts with “kmem”. Run kalloctest to see if your implementation has reduced lock contention. To check that it can still allocate all of memory, run usertests sbrkmuch. Your output will look similar to that shown below, with much-reduced contention in total on kmem locks, although the specific numbers will differ. Make sure all tests in usertests -q pass. make grade should say that the kalloctests pass.
+    <p>課程影片連結：
+6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks Deadlock acquire(&amp;l) acquire(&amp;l) release(&amp;l) Locks vs. Performance 越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳 Case study UART kernel/uart.c struct spinlock uart_tx_lock; void uartputc(int c) { acquire(&amp;uart_tx_lock); if(panicked){ for(;;) ; } while(uart_tx_w == uart_tx_r &#43; UART_TX_BUF_SIZE){ // buffer is full. // wait for uartstart() to open up space in the buffer. sleep(&amp;uart_tx_r, &amp;uart_tx_lock); } uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c; uart_tx_w &#43;= 1; uartstart(); release(&amp;uart_tx_lock); } void uartintr(void) { // read and process incoming characters. while(1){ int c = uartgetc(); if(c == -1) break; consoleintr(c); } // send buffered characters. acquire(&amp;uart_tx_lock); uartstart(); release(&amp;uart_tx_lock); } Lock rules protect data structure Lock 的實做 broken lock void acquire(struct spinlock *lk) // does not work! { for(;;) { if(lk-&gt;locked == 0) { lk-&gt;locked = 1; break; } } } 這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l-&gt;locked == 0)
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-10-23 14:41:29 +0800 CST'>October 23, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08] Lab: locks" href="http://localhost:1313/xv6/lab8/"></a>
+  <footer class="entry-footer"><span title='2025-10-25 13:13:07 +0800 CST'>October 25, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks" href="http://localhost:1313/xv6/lab8.1/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

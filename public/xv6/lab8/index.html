@@ -7,7 +7,8 @@
 <meta name="robots" content="noindex, nofollow">
 <title>[xv6 學習紀錄 08] Lab: locks | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
-<meta name="description" content="Memory allocator (moderate)
+<meta name="description" content="Lab 連結：Lab: locks
+Memory allocator (moderate)
 
 Your job is to implement per-CPU freelists, and stealing when a CPU&rsquo;s free list is empty. You must give all of your locks names that start with &ldquo;kmem&rdquo;. That is, you should call initlock for each of your locks, and pass a name that starts with &ldquo;kmem&rdquo;. Run kalloctest to see if your implementation has reduced lock contention. To check that it can still allocate all of memory, run usertests sbrkmuch. Your output will look similar to that shown below, with much-reduced contention in total on kmem locks, although the specific numbers will differ. Make sure all tests in usertests -q pass. make grade should say that the kalloctests pass.">
 <meta name="author" content="">
@@ -130,12 +131,17 @@ Your job is to implement per-CPU freelists, and stealing when a CPU&rsquo;s free
 
 </div>
   </header> 
-  <div class="post-content"><h2 id="memory-allocator-moderate">Memory allocator (moderate)<a hidden class="anchor" aria-hidden="true" href="#memory-allocator-moderate">#</a></h2>
+  <div class="post-content"><p>Lab 連結：<a href="https://pdos.csail.mit.edu/6.S081/2022/labs/lock.html">Lab: locks</a></p>
+<h2 id="memory-allocator-moderate">Memory allocator (moderate)<a hidden class="anchor" aria-hidden="true" href="#memory-allocator-moderate">#</a></h2>
 <blockquote>
 <p>Your job is to implement per-CPU freelists, and stealing when a CPU&rsquo;s free list is empty. You must give all of your locks names that start with &ldquo;kmem&rdquo;. That is, you should call <code>initlock</code> for each of your locks, and pass a name that starts with &ldquo;kmem&rdquo;. Run kalloctest to see if your implementation has reduced lock contention. To check that it can still allocate all of memory, run <code>usertests</code> <code>sbrkmuch</code>. Your output will look similar to that shown below, with much-reduced contention in total on kmem locks, although the specific numbers will differ. Make sure all tests in <code>usertests -q</code> pass. make grade should say that the <code>kalloctests</code> pass.</p></blockquote>
+<h3 id="原本的-memory-allocator-如何運作">原本的 memory allocator 如何運作<a hidden class="anchor" aria-hidden="true" href="#原本的-memory-allocator-如何運作">#</a></h3>
 <h2 id="buffer-cache-hard">Buffer cache (hard)<a hidden class="anchor" aria-hidden="true" href="#buffer-cache-hard">#</a></h2>
 <blockquote>
 <p>Modify the block cache so that the number of <code>acquire</code> loop iterations for all locks in the <code>bcache</code> is close to zero when running bcachetest. Ideally the sum of the counts for all locks involved in the block cache should be zero, but it&rsquo;s OK if the sum is less than 500. Modify bget and <code>brelse</code> so that concurrent lookups and releases for different blocks that are in the bcache are unlikely to conflict on locks (e.g., don&rsquo;t all have to wait for <code>bcache.lock</code>). You must maintain the invariant that at most one copy of each block is cached. When you are done, your output should be similar to that shown below (though not identical). Make sure <code>usertests -q</code> still passes. make grade should pass all tests when you are done.</p></blockquote>
+<ul>
+<li><code>bcache</code> 是 filesystem 才有的概念？</li>
+</ul>
 
 
   </div>
@@ -144,10 +150,10 @@ Your job is to implement per-CPU freelists, and stealing when a CPU&rsquo;s free
     <ul class="post-tags">
     </ul>
 <nav class="paginav">
-  <a class="prev" href="http://localhost:1313/xv6/lab7/">
+  <a class="prev" href="http://localhost:1313/xv6/lab8.1/">
     <span class="title">« Prev</span>
     <br>
-    <span>[xv6 學習紀錄 07] Lab thread: Multithreading</span>
+    <span>[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks</span>
   </a>
   <a class="next" href="http://localhost:1313/dev-log/notes/">
     <span class="title">Next »</span>
