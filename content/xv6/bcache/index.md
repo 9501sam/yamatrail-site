@@ -97,6 +97,7 @@ bread(uint dev, uint blockno)
   return b;
 }
 ```
+如果 `bget()` 可以拿到 `buf` 就直接回傳，如果不行，則使用 `virtio_disk_rw()`
 
 ```c
 // Write b's contents to disk.  Must be locked.
@@ -108,6 +109,7 @@ bwrite(struct buf *b)
   virtio_disk_rw(b, 1);
 }
 ```
+要先拿到 `b->lock` 才可以透過 `virtio_disk_rw()` 進行寫入
 
 ## `bget()`
 ```c
@@ -142,5 +144,36 @@ bget(uint dev, uint blockno)
     }
   }
   panic("bget: no buffers");
+}
+```
+如果 `bcache` 中有 buf 就回傳這個 buf，沒有的話就依據 least recently used (LRU) 的原則替代掉一個 buf
+
+* 比較常用的會被放到 `head->next` 的方向，`head->prev` 的方向則是比較少被用到的
+
+## `brelse()`
+```c
+// Release a locked buffer.
+// Move to the head of the most-recently-used list.
+void
+brelse(struct buf *b)
+{
+  if(!holdingsleep(&b->lock))
+    panic("brelse");
+
+  releasesleep(&b->lock);
+
+  acquire(&bcache.lock);
+  b->refcnt--;
+  if (b->refcnt == 0) {
+    // no one is waiting for it.
+    b->next->prev = b->prev;
+    b->prev->next = b->next;
+    b->next = bcache.head.next;
+    b->prev = &bcache.head;
+    bcache.head.next->prev = b;
+    bcache.head.next = b;
+  }
+  
+  release(&bcache.lock);
 }
 ```

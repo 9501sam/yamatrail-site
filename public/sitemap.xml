@@ -65,6 +65,9 @@
     <loc>http://localhost:1313/xv6/kalloc/</loc>
     <lastmod>2025-10-27T12:28:33+08:00</lastmod>
   </url><url>
+    <loc>http://localhost:1313/xv6/bcache/</loc>
+    <lastmod>2025-10-28T14:02:59+08:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/xv6/lab8/</loc>
     <lastmod>2025-10-23T14:41:29+08:00</lastmod>
   </url><url>
@@ -72,13 +75,13 @@
     <lastmod>2025-10-09T22:01:01+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/series/</loc>
-    <lastmod>2025-10-27T12:28:33+08:00</lastmod>
+    <lastmod>2025-10-28T14:02:59+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/</loc>
-    <lastmod>2025-10-27T12:28:33+08:00</lastmod>
+    <lastmod>2025-10-28T14:02:59+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/</loc>
-    <lastmod>2025-10-27T12:28:33+08:00</lastmod>
+    <lastmod>2025-10-28T14:02:59+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/leetcode/1004-max-consecutive-ones-iii/</loc>
     <lastmod>2025-10-16T13:14:24+08:00</lastmod>
