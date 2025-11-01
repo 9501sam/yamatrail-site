@@ -228,6 +228,21 @@ Memory allocator (moderate) Your job is to implement per-CPU freelists, and stea
   <footer class="entry-footer"><span title='2025-10-23 14:41:29 +0800 CST'>October 23, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08] Lab: locks" href="http://localhost:1313/xv6/lab8/"></a>
 </article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 09-1] file system 相關程式碼解析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>一個 file 在 disk 中的樣子 在這張圖片中，每一個 “data” 都是一個 BSIZE (兩個 block)，即大小為，1024 bytes
+也可以推論出在 xv6 中，一個檔案的最大的 size 為 12 &#43; 256 = 268 blocks
+kernel/fs.h // On-disk inode structure struct dinode { short type; // File type short major; // Major device number (T_DEVICE only) short minor; // Minor device number (T_DEVICE only) short nlink; // Number of links to inode in file system uint size; // Size of file (bytes) uint addrs[NDIRECT&#43;1]; // Data block addresses }; #define NINDIRECT (BSIZE / sizeof(uint)) NINDIRECT (TODO) 知道一個檔案在 disk 中長什麼樣子之後，下一個要思考的問題會是如何跟 memory 中的資訊做連結
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-31 17:28:19 +0800 CST'>October 31, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-1] file system 相關程式碼解析" href="http://localhost:1313/xv6/filesystem/"></a>
+</article>
 <footer class="page-footer">
   <nav class="pagination">
     <a class="prev" href="http://localhost:1313/xv6/">
