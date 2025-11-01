@@ -188,6 +188,20 @@ kernel/fs.h // On-disk inode structure struct dinode { short type; // File type 
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 09] Lab: file system
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: file system
+Large files (moderate) Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You’ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you’re not allowed to change the size of an on-disk inode. The first 11 elements of ip-&gt;addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 11:48:29 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09] Lab: file system" href="http://localhost:1313/xv6/lab9/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[這個網站的誕生] 筆記區域
     </h2>
   </header>
@@ -259,20 +273,6 @@ length = right - left &#43; 1 也就是 6 - 2 &#43; 1 == 5
   </div>
   <footer class="entry-footer"><span title='2025-10-16 11:30:41 +0800 CST'>October 16, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1679-max-number-of-k-sum-pairs/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>題目連結：345. Reverse Vowels of a String
-解題思路 這題就很直覺得掃過兩遍，第一遍收集 Vowels，第二變把 Vowels 用相反的順序放回去，真有什麼好說的東西的話應該是寫個 helper function isVowels() 會方便一些。
-程式碼 class Solution { private: bool isVowels(char c) { if (c == &#39;a&#39; || c == &#39;e&#39; || c == &#39;i&#39; || c == &#39;o&#39; || c == &#39;u&#39;) return true; if (c == &#39;A&#39; || c == &#39;E&#39; || c == &#39;I&#39; || c == &#39;O&#39; || c == &#39;U&#39;) return true; return false; } public: string reverseVowels(string s) { int n = s.size(); queue&lt;char&gt; q; for (int i = 0; i &lt; n; i&#43;&#43;) if (isVowels(s[i])) q.push(s[i]); for (int i = n - 1; i &gt;= 0; i--) if (isVowels(s[i])) { s[i] = q.front(); q.pop(); } return s; } }; </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-16 11:08:09 +0800 CST'>October 16, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/345-reverse-vowels-of-a-string/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

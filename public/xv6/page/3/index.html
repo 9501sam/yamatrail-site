@@ -5,11 +5,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>Series | Yama&#39;s Trail</title>
+<title>xv6 學習紀錄 | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
-<meta name="description" content="">
+<meta name="description" content="xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的解題紀錄，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。
+課程連結">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/series/">
+<link rel="canonical" href="http://localhost:1313/xv6/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
@@ -18,8 +19,8 @@
 <link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/series/index.xml">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/series/">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/xv6/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/">
 <noscript>
     <style>
         #theme-toggle,
@@ -111,31 +112,43 @@
             </li>
             <li>
                 <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
-                    <span>xv6 學習紀錄</span>
+                    <span class="active">xv6 學習紀錄</span>
                 </a>
             </li>
         </ul>
     </nav>
 </header>
-<main class="main">
+<main class="main"> 
 <header class="page-header">
-    <h1>Series</h1>
+  <h1>
+    xv6 學習紀錄
+  </h1>
 </header>
+<div class="post-content"><p>xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的<a href="https://hackmd.io/@xv6">解題紀錄</a>，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。</p>
+<p><a href="https://pdos.csail.mit.edu/6.S081/2022/schedule.html">課程連結</a></p>
 
-<ul class="terms-tags">
-    <li>
-        <a href="http://localhost:1313/series/leetcode-%E8%A7%A3%E9%A1%8C/">LeetCode 解題 <sup><strong><sup>8</sup></strong></sup> </a>
-    </li>
-    <li>
-        <a href="http://localhost:1313/series/xv6/">xv6 <sup><strong><sup>1</sup></strong></sup> </a>
-    </li>
-    <li>
-        <a href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/">xv6 學習紀錄 <sup><strong><sup>19</sup></strong></sup> </a>
-    </li>
-    <li>
-        <a href="http://localhost:1313/series/%E9%80%99%E5%80%8B%E7%B6%B2%E7%AB%99%E7%9A%84%E8%AA%95%E7%94%9F/">這個網站的誕生 <sup><strong><sup>4</sup></strong></sup> </a>
-    </li>
-</ul>
+
+</div>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11] Lab net: Network driver
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Background You’ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the “guest”) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you’re running qemu (the “host”).
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 13:01:44 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11] Lab net: Network driver" href="http://localhost:1313/xv6/lab11/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="prev" href="http://localhost:1313/xv6/page/2/">
+      «&nbsp;Prev&nbsp;
+    </a>
+  </nav>
+</footer>
     </main>
     
 <footer class="footer">

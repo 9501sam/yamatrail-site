@@ -243,10 +243,41 @@ kernel/fs.h // On-disk inode structure struct dinode { short type; // File type 
   <footer class="entry-footer"><span title='2025-10-31 17:28:19 +0800 CST'>October 31, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-1] file system 相關程式碼解析" href="http://localhost:1313/xv6/filesystem/"></a>
 </article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 09] Lab: file system
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: file system
+Large files (moderate) Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You’ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you’re not allowed to change the size of an on-disk inode. The first 11 elements of ip-&gt;addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 11:48:29 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09] Lab: file system" href="http://localhost:1313/xv6/lab9/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 10] Lab: mmap
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: mmap
+Lab: mmap (hard) The mmap and munmap system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you’ll add mmap and munmap to xv6, focusing on memory-mapped files.
+目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 12:05:39 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 10] Lab: mmap" href="http://localhost:1313/xv6/lab10/"></a>
+</article>
 <footer class="page-footer">
   <nav class="pagination">
     <a class="prev" href="http://localhost:1313/xv6/">
       «&nbsp;Prev&nbsp;
+    </a>
+    <a class="next" href="http://localhost:1313/xv6/page/3/">Next&nbsp;&nbsp;»
     </a>
   </nav>
 </footer>

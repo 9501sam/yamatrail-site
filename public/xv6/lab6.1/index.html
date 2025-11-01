@@ -29,7 +29,6 @@ memory mapped I/O
 UART store/load to registers
 Case Study: $ ls 的出現
 
-
 kerenl/main.c
 
 kernel/console.c: consoleinit()
@@ -43,7 +42,89 @@ kernel/proc.c: scheduler()
 
 
 
-user/sh.c: getcmd()">
+void
+main()
+{
+  if(cpuid() == 0){
+    consoleinit(); // &lt;--
+    printfinit();
+    printf(&#34;\n&#34;);
+    printf(&#34;xv6 kernel is booting\n&#34;);
+    printf(&#34;\n&#34;);
+    kinit();         // physical page allocator
+    kvminit();       // create kernel page table
+    kvminithart();   // turn on paging
+    procinit();      // process table
+    trapinit();      // trap vectors
+    trapinithart();  // install kernel trap vector
+    plicinit();      // set up interrupt controller
+    plicinithart();  // ask PLIC for device interrupts
+    binit();         // buffer cache
+    iinit();         // inode table
+    fileinit();      // file table
+    virtio_disk_init(); // emulated hard disk
+    userinit();      // first user process
+    __sync_synchronize();
+    started = 1;
+  } else {
+    while(started == 0)
+      ;
+    __sync_synchronize();
+    printf(&#34;hart %d starting\n&#34;, cpuid());
+    kvminithart();    // turn on paging
+    trapinithart();   // install kernel trap vector
+    plicinithart();   // ask PLIC for device interrupts
+  }
+
+  scheduler();        
+}
+UART
+
+kernel/console.c: consoleinit()
+
+void
+consoleinit(void)
+{
+  initlock(&amp;cons.lock, &#34;cons&#34;);
+
+  uartinit(); // &lt;--
+
+  // connect read and write system calls
+  // to consoleread and consolewrite.
+  devsw[CONSOLE].read = consoleread;
+  devsw[CONSOLE].write = consolewrite;
+}
+
+kernel/uart.c: uartinit()
+
+void
+uartinit(void)
+{
+  // disable interrupts.
+  WriteReg(IER, 0x00);
+
+  // special mode to set baud rate.
+  WriteReg(LCR, LCR_BAUD_LATCH);
+
+  // LSB for baud rate of 38.4K.
+  WriteReg(0, 0x03);
+
+  // MSB for baud rate of 38.4K.
+  WriteReg(1, 0x00);
+
+  // leave set-baud mode,
+  // and set word length to 8 bits, no parity.
+  WriteReg(LCR, LCR_EIGHT_BITS);
+
+  // reset and enable FIFOs.
+  WriteReg(FCR, FCR_FIFO_ENABLE | FCR_FIFO_CLEAR);
+
+  // enable transmit and receive interrupts.
+  WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE);
+
+  initlock(&amp;uart_tx_lock, &#34;uart&#34;);
+}
+在這裡可以設定一些 UART 的參數，像是 baud rate 等等">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/xv6/lab6.1/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
@@ -186,8 +267,7 @@ user/sh.c: getcmd()">
 <p>UART store/load to registers</p>
 <h2 id="case-study--ls-的出現">Case Study: <code>$ ls</code> 的出現<a hidden class="anchor" aria-hidden="true" href="#case-study--ls-的出現">#</a></h2>
 <ul>
-<li>
-<p><code>kerenl/main.c</code></p>
+<li><code>kerenl/main.c</code>
 <ul>
 <li><code>kernel/console.c: consoleinit()</code>
 <ul>
@@ -198,6 +278,166 @@ user/sh.c: getcmd()">
 <li><code>kernel/plic.c: plicinithart()</code></li>
 <li><code>kernel/proc.c: scheduler()</code></li>
 </ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">main</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">cpuid</span>() <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">consoleinit</span>(); <span style="color:#75715e">// &lt;--
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printfinit</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;xv6 kernel is booting</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kinit</span>();         <span style="color:#75715e">// physical page allocator
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">kvminit</span>();       <span style="color:#75715e">// create kernel page table
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">kvminithart</span>();   <span style="color:#75715e">// turn on paging
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">procinit</span>();      <span style="color:#75715e">// process table
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">trapinit</span>();      <span style="color:#75715e">// trap vectors
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">trapinithart</span>();  <span style="color:#75715e">// install kernel trap vector
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">plicinit</span>();      <span style="color:#75715e">// set up interrupt controller
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">plicinithart</span>();  <span style="color:#75715e">// ask PLIC for device interrupts
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">binit</span>();         <span style="color:#75715e">// buffer cache
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">iinit</span>();         <span style="color:#75715e">// inode table
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">fileinit</span>();      <span style="color:#75715e">// file table
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">virtio_disk_init</span>(); <span style="color:#75715e">// emulated hard disk
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">userinit</span>();      <span style="color:#75715e">// first user process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">__sync_synchronize</span>();
+</span></span><span style="display:flex;"><span>    started <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span>(started <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      ;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__sync_synchronize</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;hart %d starting</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">cpuid</span>());
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kvminithart</span>();    <span style="color:#75715e">// turn on paging
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">trapinithart</span>();   <span style="color:#75715e">// install kernel trap vector
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">plicinithart</span>();   <span style="color:#75715e">// ask PLIC for device interrupts
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">scheduler</span>();        
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="uart">UART<a hidden class="anchor" aria-hidden="true" href="#uart">#</a></h3>
+<ul>
+<li><code>kernel/console.c: consoleinit()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">consoleinit</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">initlock</span>(<span style="color:#f92672">&amp;</span>cons.lock, <span style="color:#e6db74">&#34;cons&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uartinit</span>(); <span style="color:#75715e">// &lt;--
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// connect read and write system calls
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// to consoleread and consolewrite.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  devsw[CONSOLE].read <span style="color:#f92672">=</span> consoleread;
+</span></span><span style="display:flex;"><span>  devsw[CONSOLE].write <span style="color:#f92672">=</span> consolewrite;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>kernel/uart.c: uartinit()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uartinit</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// disable interrupts.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">WriteReg</span>(IER, <span style="color:#ae81ff">0x00</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// special mode to set baud rate.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">WriteReg</span>(LCR, LCR_BAUD_LATCH);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// LSB for baud rate of 38.4K.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">WriteReg</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0x03</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// MSB for baud rate of 38.4K.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">WriteReg</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0x00</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// leave set-baud mode,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// and set word length to 8 bits, no parity.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">WriteReg</span>(LCR, LCR_EIGHT_BITS);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// reset and enable FIFOs.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">WriteReg</span>(FCR, FCR_FIFO_ENABLE <span style="color:#f92672">|</span> FCR_FIFO_CLEAR);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// enable transmit and receive interrupts.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">WriteReg</span>(IER, IER_TX_ENABLE <span style="color:#f92672">|</span> IER_RX_ENABLE);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">initlock</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock, <span style="color:#e6db74">&#34;uart&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>在這裡可以設定一些 UART 的參數，像是 baud rate 等等</p>
+<h3 id="plic-platform-level-interrupt-controller">PLIC (Platform-Level Interrupt Controller)<a hidden class="anchor" aria-hidden="true" href="#plic-platform-level-interrupt-controller">#</a></h3>
+<p>UART 的資訊先傳送到 PLIC，PLIC 再傳送到 OS，這裡則是在做 PLIC 的設定</p>
+<ul>
+<li><code>kernel/plic.c: plicinit()</code>: 設定有哪些 interrupt 是開啟的</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">plicinit</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// set desired IRQ priorities non-zero (otherwise disabled).
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#f92672">*</span>(uint32<span style="color:#f92672">*</span>)(PLIC <span style="color:#f92672">+</span> UART0_IRQ<span style="color:#f92672">*</span><span style="color:#ae81ff">4</span>) <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">*</span>(uint32<span style="color:#f92672">*</span>)(PLIC <span style="color:#f92672">+</span> VIRTIO0_IRQ<span style="color:#f92672">*</span><span style="color:#ae81ff">4</span>) <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>目前開啟的有來自 UART 的 interrupt</p>
+<ul>
+<li><code>kernel/plic.c: plicinithart()</code>: 這個 kernel 可以接受哪些 interrupt</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">plicinithart</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> hart <span style="color:#f92672">=</span> <span style="color:#a6e22e">cpuid</span>();
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// set enable bits for this hart&#39;s S-mode
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// for the uart and virtio disk.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#f92672">*</span>(uint32<span style="color:#f92672">*</span>)<span style="color:#a6e22e">PLIC_SENABLE</span>(hart) <span style="color:#f92672">=</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> UART0_IRQ) <span style="color:#f92672">|</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> VIRTIO0_IRQ);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// set this hart&#39;s S-mode priority threshold to 0.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#f92672">*</span>(uint32<span style="color:#f92672">*</span>)<span style="color:#a6e22e">PLIC_SPRIORITY</span>(hart) <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="scheduler">scheduler<a hidden class="anchor" aria-hidden="true" href="#scheduler">#</a></h3>
+<p>這裡真的進入 scheduler，會開始第一個 user process <code>user/init.c</code>，之後的詳情要看 context switch 的</p>
+<ul>
+<li><code>kernel/proc.c: scheduler()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">scheduler</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> cpu <span style="color:#f92672">*</span>c <span style="color:#f92672">=</span> <span style="color:#a6e22e">mycpu</span>();
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  c<span style="color:#f92672">-&gt;</span>proc <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(;;){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Avoid deadlock by ensuring that devices can interrupt.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">intr_on</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span>(p <span style="color:#f92672">=</span> proc; p <span style="color:#f92672">&lt;</span> <span style="color:#f92672">&amp;</span>proc[NPROC]; p<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(p<span style="color:#f92672">-&gt;</span>state <span style="color:#f92672">==</span> RUNNABLE) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Switch to chosen process.  It is the process&#39;s job
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// to release its lock and then reacquire it
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// before jumping back to us.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        p<span style="color:#f92672">-&gt;</span>state <span style="color:#f92672">=</span> RUNNING;
+</span></span><span style="display:flex;"><span>        c<span style="color:#f92672">-&gt;</span>proc <span style="color:#f92672">=</span> p;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">swtch</span>(<span style="color:#f92672">&amp;</span>c<span style="color:#f92672">-&gt;</span>context, <span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>context);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Process is done running for now.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// It should have changed its p-&gt;state before coming back.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        c<span style="color:#f92672">-&gt;</span>proc <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>kernel/riscv.h</code>: 在進入到 <code>scheduler()</code> 的時候都會 <code>intr_on()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// enable device interrupts
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">intr_on</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">w_sstatus</span>(<span style="color:#a6e22e">r_sstatus</span>() <span style="color:#f92672">|</span> SSTATUS_SIE);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="-的出現"><code>$</code> 的出現<a hidden class="anchor" aria-hidden="true" href="#-的出現">#</a></h2>
+<ul>
+<li>
+<p><code>user/init.c</code></p>
 </li>
 <li>
 <p><code>user/sh.c: getcmd()</code></p>
@@ -214,7 +454,179 @@ user/sh.c: getcmd()">
 </li>
 </ul>
 </li>
+<li>
+<p><code>user/sh.c: getcmd()</code></p>
+</li>
 </ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">getcmd</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>buf, <span style="color:#66d9ef">int</span> nbuf)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">write</span>(<span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#34;$ &#34;</span>, <span style="color:#ae81ff">2</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">memset</span>(buf, <span style="color:#ae81ff">0</span>, nbuf);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">gets</span>(buf, nbuf);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(buf[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) <span style="color:#75715e">// EOF
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>kernel/sysfile.c: sys_write()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_write</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>f;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>  uint64 p;
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argaddr</span>(<span style="color:#ae81ff">1</span>, <span style="color:#f92672">&amp;</span>p);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">2</span>, <span style="color:#f92672">&amp;</span>n);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">argfd</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>f) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">filewrite</span>(f, p, n);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>kernel/file.c: filewrite()</code>: 這是屬於 <code>f-&gt;type == FD_DEVICE</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Write to file f.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// addr is a user virtual address.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">filewrite</span>(<span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>f, uint64 addr, <span style="color:#66d9ef">int</span> n)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> r, ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(f<span style="color:#f92672">-&gt;</span>writable <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(f<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">==</span> FD_PIPE){
+</span></span><span style="display:flex;"><span>    ret <span style="color:#f92672">=</span> <span style="color:#a6e22e">pipewrite</span>(f<span style="color:#f92672">-&gt;</span>pipe, addr, n);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span>(f<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">==</span> FD_DEVICE){ <span style="color:#75715e">// &lt;-------------------
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(f<span style="color:#f92672">-&gt;</span>major <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> f<span style="color:#f92672">-&gt;</span>major <span style="color:#f92672">&gt;=</span> NDEV <span style="color:#f92672">||</span> <span style="color:#f92672">!</span>devsw[f<span style="color:#f92672">-&gt;</span>major].write)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    ret <span style="color:#f92672">=</span> devsw[f<span style="color:#f92672">-&gt;</span>major].<span style="color:#a6e22e">write</span>(<span style="color:#ae81ff">1</span>, addr, n); <span style="color:#75715e">// &lt;--------------------
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span>(f<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">==</span> FD_INODE){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// write a few blocks at a time to avoid exceeding
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// the maximum log transaction size, including
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// i-node, indirect block, allocation blocks,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// and 2 blocks of slop for non-aligned writes.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// this really belongs lower down, since writei()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// might be writing a device like the console.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> max <span style="color:#f92672">=</span> ((MAXOPBLOCKS<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span><span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">*</span> BSIZE;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> n){
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">int</span> n1 <span style="color:#f92672">=</span> n <span style="color:#f92672">-</span> i;
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(n1 <span style="color:#f92672">&gt;</span> max)
+</span></span><span style="display:flex;"><span>        n1 <span style="color:#f92672">=</span> max;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">begin_op</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">ilock</span>(f<span style="color:#f92672">-&gt;</span>ip);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> ((r <span style="color:#f92672">=</span> <span style="color:#a6e22e">writei</span>(f<span style="color:#f92672">-&gt;</span>ip, <span style="color:#ae81ff">1</span>, addr <span style="color:#f92672">+</span> i, f<span style="color:#f92672">-&gt;</span>off, n1)) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        f<span style="color:#f92672">-&gt;</span>off <span style="color:#f92672">+=</span> r;
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">iunlock</span>(f<span style="color:#f92672">-&gt;</span>ip);
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(r <span style="color:#f92672">!=</span> n1){
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// error from writei
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>      i <span style="color:#f92672">+=</span> r;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    ret <span style="color:#f92672">=</span> (i <span style="color:#f92672">==</span> n <span style="color:#f92672">?</span> n : <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;filewrite&#34;</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> ret;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>kernel/console.c: consolewrite()</code>: (來到這裡的機制？)</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">//
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// user write()s to the console go here.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">consolewrite</span>(<span style="color:#66d9ef">int</span> user_src, uint64 src, <span style="color:#66d9ef">int</span> n)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> i;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">char</span> c;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">either_copyin</span>(<span style="color:#f92672">&amp;</span>c, user_src, src<span style="color:#f92672">+</span>i, <span style="color:#ae81ff">1</span>) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">uartputc</span>(c); <span style="color:#f92672">&lt;&lt;----------------</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> i;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>kernel/uart.c: uartputc()</code>: 實際上的對於一些 register 做動作</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// the transmit output buffer.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> spinlock uart_tx_lock;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define UART_TX_BUF_SIZE 32
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">char</span> uart_tx_buf[UART_TX_BUF_SIZE];
+</span></span><span style="display:flex;"><span>uint64 uart_tx_w; <span style="color:#75715e">// write next to uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>uint64 uart_tx_r; <span style="color:#75715e">// read next from uart_tx_buf[uart_tx_r % UART_TX_BUF_SIZE]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// add a character to the output buffer and tell the
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// UART to start sending if it isn&#39;t already.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// blocks if the output buffer is full.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// because it may block, it can&#39;t be called
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// from interrupts; it&#39;s only suitable for use
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// by write().
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uartputc</span>(<span style="color:#66d9ef">int</span> c)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(panicked){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span>(;;)
+</span></span><span style="display:flex;"><span>      ;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span>(uart_tx_w <span style="color:#f92672">==</span> uart_tx_r <span style="color:#f92672">+</span> UART_TX_BUF_SIZE){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// buffer is full.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// wait for uartstart() to open up space in the buffer.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">sleep</span>(<span style="color:#f92672">&amp;</span>uart_tx_r, <span style="color:#f92672">&amp;</span>uart_tx_lock);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  uart_tx_buf[uart_tx_w <span style="color:#f92672">%</span> UART_TX_BUF_SIZE] <span style="color:#f92672">=</span> c;
+</span></span><span style="display:flex;"><span>  uart_tx_w <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uartstart</span>();
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>這裡的 buffer 有分 consumer/producer</p>
+<ul>
+<li><code>kernel/uart.c: uartstart()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// if the UART is idle, and a character is waiting
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// in the transmit buffer, send it.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// caller must hold uart_tx_lock.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// called from both the top- and bottom-half.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uartstart</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span>(<span style="color:#ae81ff">1</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(uart_tx_w <span style="color:#f92672">==</span> uart_tx_r){
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// transmit buffer is empty.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((<span style="color:#a6e22e">ReadReg</span>(LSR) <span style="color:#f92672">&amp;</span> LSR_TX_IDLE) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// the UART transmit holding register is full,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#75715e">// so we cannot give it another byte.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#75715e">// it will interrupt when it&#39;s ready for a new byte.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> c <span style="color:#f92672">=</span> uart_tx_buf[uart_tx_r <span style="color:#f92672">%</span> UART_TX_BUF_SIZE];
+</span></span><span style="display:flex;"><span>    uart_tx_r <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// maybe uartputc() is waiting for space in the buffer.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">wakeup</span>(<span style="color:#f92672">&amp;</span>uart_tx_r);
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WriteReg</span>(THR, c); <span style="color:#f92672">&lt;&lt;-</span> <span style="color:#960050;background-color:#1e0010">把要寫進去的東西放到</span> transmission <span style="color:#66d9ef">register</span>
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>(54:43)</p>
 <h2 id="interrupt-hw">Interrupt (HW)<a hidden class="anchor" aria-hidden="true" href="#interrupt-hw">#</a></h2>
 <h3 id="user-press-l-key">user press <code>l</code> key<a hidden class="anchor" aria-hidden="true" href="#user-press-l-key">#</a></h3>
 <ol>
