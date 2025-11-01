@@ -157,6 +157,34 @@ class Solution { public: ListNode* reverseList(ListNode* head) { if (!head) retu
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：136. Single Number
+解題思路 這題是一個蠻神奇蠻剛好的一題，同時使用了 xor 與「出現兩次」這兩個元素，因為
+同一個數字 xor 在一起會變成 0 這題就用這樣的特性解決 程式碼 class Solution { public: int singleNumber(vector&lt;int&gt;&amp; nums) { int n = 0; for (int num : nums) n ^= num; return n; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 09:21:12 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)" href="http://localhost:1313/leetcode/136-single-number/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：746. Min Cost Climbing Stairs
+解題思路 這題利用 DP 的方式，「有了前兩天的資訊可以推測出今天」依此類推的得知最後的答案。
+程式碼 class Solution { public: int minCostClimbingStairs(vector&lt;int&gt;&amp; cost) { int n = cost.size(); vector&lt;int&gt; dp(n, 0); dp[0] = cost[0]; dp[1] = cost[1]; for (int i = 2; i &lt; n; i&#43;&#43;) dp[i] = min(dp[i - 1], dp[i - 2]) &#43; cost[i]; return min(dp[n - 1], dp[n - 2]); } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 09:04:58 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)" href="http://localhost:1313/leetcode/746-min-cost-climbing-stairs/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)
     </h2>
   </header>

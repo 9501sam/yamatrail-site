@@ -202,6 +202,34 @@ Expand Method 1 - Git Clone </p>
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：136. Single Number
+解題思路 這題是一個蠻神奇蠻剛好的一題，同時使用了 xor 與「出現兩次」這兩個元素，因為
+同一個數字 xor 在一起會變成 0 這題就用這樣的特性解決 程式碼 class Solution { public: int singleNumber(vector&lt;int&gt;&amp; nums) { int n = 0; for (int num : nums) n ^= num; return n; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 09:21:12 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)" href="http://localhost:1313/leetcode/136-single-number/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：746. Min Cost Climbing Stairs
+解題思路 這題利用 DP 的方式，「有了前兩天的資訊可以推測出今天」依此類推的得知最後的答案。
+程式碼 class Solution { public: int minCostClimbingStairs(vector&lt;int&gt;&amp; cost) { int n = cost.size(); vector&lt;int&gt; dp(n, 0); dp[0] = cost[0]; dp[1] = cost[1]; for (int i = 2; i &lt; n; i&#43;&#43;) dp[i] = min(dp[i - 1], dp[i - 2]) &#43; cost[i]; return min(dp[n - 1], dp[n - 2]); } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 09:04:58 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)" href="http://localhost:1313/leetcode/746-min-cost-climbing-stairs/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)
     </h2>
   </header>
@@ -245,37 +273,6 @@ length = right - left &#43; 1 也就是 6 - 2 &#43; 1 == 5
   </div>
   <footer class="entry-footer"><span title='2025-10-16 11:08:09 +0800 CST'>October 16, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/345-reverse-vowels-of-a-string/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>題目連結：334. Increasing Triplet Subsequence
-解題思路 這題我剛開始是朝著先找出 i 與 k 之後再檢查 j 是否存在，想了幾遍都覺得有些瑕疵，後來發現依照 i, j, k 的順序尋找會比較合理一些，可以用很 greedy 的方式去尋找。
-如果再來一次的話，我應該會先列出以下兩種可能：
-先找出最大最小的 i 與 k, 再找出中間的 j 依照順序尋找 i, j, k 評估之後挑選較有可能的順序，並且保持另一個方案的可能性。
-程式碼 class Solution { public: bool increasingTriplet(vector&lt;int&gt;&amp; nums) { if (nums.size() &lt; 3) return false; int i = 0; int j = -1; for (int l = 1; l &lt; nums.size(); l&#43;&#43;) { if (nums[l] &lt; nums[i]) { i = l; } else if (j &gt; 0 &amp;&amp; nums[l] &gt; nums[j]) { return true; } else if (nums[l] &gt; nums[i]) { j = l; } } return false; } }; </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-30 11:13:47 +0800 CST'>September 30, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)" href="http://localhost:1313/leetcode/334-increasing-triplet-subsequence/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">架設 Kubernetes cluster
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>sudo apt-get update sudo apt-get install -y kubelet kubeadm kubectl sudo apt-mark hold kubelet kubeadm kubectl https://stackoverflow.com/questions/52893111/no-endpoints-available-for-service-kubernetes-dashboard
-nodes: https://120.108.205.137:9999/ui/
-192.168.1.115 ssh k1 # ssh user@192.168.1.11 ssh k2 # ssh user@192.168.1.12 ssh k3 # ssh user@192.168.1.13 ssh k4 # ssh user@192.168.1.14 sudo vim /etc/hosts # /etc/hosts 192.168.1.115 asus 192.168.1.11 k1 192.168.1.12 k2 192.168.1.13 k3 192.168.1.14 k4 # for cluster on virtualbox 192.168.56.1 thinkpad # my thinkpad 192.168.56.101 node1 # vm on virtualbox sudo systemctl restart systemd-resolved docker installation https://docs.docker.com/engine/install/ubuntu/ CRI (container runtime interface) 是 container 用來互相溝通的 API
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-27 00:00:40 +0800 CST'>September 27, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to 架設 Kubernetes cluster" href="http://localhost:1313/k8s/setup-cluster/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">
