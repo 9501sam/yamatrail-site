@@ -225,17 +225,15 @@ Memory allocator (moderate) Your job is to implement per-CPU freelists, and stea
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 09-1] file system 相關程式碼解析
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 09-1] File System 相關程式碼解析
     </h2>
   </header>
   <div class="entry-content">
-    <p>一個 file 在 disk 中的樣子 在這張圖片中，每一個 “data” 都是一個 BSIZE (兩個 block)，即大小為，1024 bytes
-也可以推論出在 xv6 中，一個檔案的最大的 size 為 12 &#43; 256 = 268 blocks
-kernel/fs.h // On-disk inode structure struct dinode { short type; // File type short major; // Major device number (T_DEVICE only) short minor; // Minor device number (T_DEVICE only) short nlink; // Number of links to inode in file system uint size; // Size of file (bytes) uint addrs[NDIRECT&#43;1]; // Data block addresses }; #define NINDIRECT (BSIZE / sizeof(uint)) NINDIRECT (TODO) 知道一個檔案在 disk 中長什麼樣子之後，下一個要思考的問題會是如何跟 memory 中的資訊做連結
+    <p>// Init fs void fsinit(int dev) { readsb(dev, &amp;sb); if(sb.magic != FSMAGIC) panic(&#34;invalid file system&#34;); initlog(dev, &amp;sb); } // Zero a block. static void bzero(int dev, int bno) { struct buf *bp; bp = bread(dev, bno); memset(bp-&gt;data, 0, BSIZE); log_write(bp); brelse(bp); } balloc() 與 bfree() // Blocks. // Allocate a zeroed disk block. // returns 0 if out of disk space. static uint balloc(uint dev) { int b, bi, m; struct buf *bp; bp = 0; // 掃過 super block for(b = 0; b &lt; sb.size; b &#43;= BPB){ bp = bread(dev, BBLOCK(b, sb)); for(bi = 0; bi &lt; BPB &amp;&amp; b &#43; bi &lt; sb.size; bi&#43;&#43;){ m = 1 &lt;&lt; (bi % 8); if((bp-&gt;data[bi/8] &amp; m) == 0){ // Is block free? bp-&gt;data[bi/8] |= m; // Mark block in use. log_write(bp); brelse(bp); bzero(dev, b &#43; bi); return b &#43; bi; } } brelse(bp); } printf(&#34;balloc: out of blocks\n&#34;); return 0; } balloc() 是 block allocate 的意思
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-31 17:28:19 +0800 CST'>October 31, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-1] file system 相關程式碼解析" href="http://localhost:1313/xv6/filesystem/"></a>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-1] File System 相關程式碼解析" href="http://localhost:1313/xv6/filesystem/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
@@ -251,10 +249,27 @@ Large files (moderate) Modify bmap() so that it implements a doubly-indirect blo
   <footer class="entry-footer"><span title='2025-11-01 11:48:29 +0800 CST'>November 1, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09] Lab: file system" href="http://localhost:1313/xv6/lab9/"></a>
 </article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 10] Lab: mmap
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: mmap
+Lab: mmap (hard) The mmap and munmap system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you’ll add mmap and munmap to xv6, focusing on memory-mapped files.
+目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 12:05:39 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 10] Lab: mmap" href="http://localhost:1313/xv6/lab10/"></a>
+</article>
 <footer class="page-footer">
   <nav class="pagination">
     <a class="prev" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/">
       «&nbsp;Prev&nbsp;
+    </a>
+    <a class="next" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/page/3/">Next&nbsp;&nbsp;»
     </a>
   </nav>
 </footer>

@@ -141,7 +141,7 @@ The mmap and munmap system calls allow UNIX programs to exert detailed control o
 <p>You should implement enough <code>mmap</code> and <code>munmap</code> functionality to make the <code>mmaptest</code> test program work. If <code>mmaptest</code> doesn&rsquo;t use a mmap feature, you don&rsquo;t need to implement that feature.</p></blockquote>
 <p>這一題要我們實做出 mmap</p>
 <blockquote>
-<p>mmap can be called in many ways, but this lab requires only a subset of its features relevant to memory-mapping a file. You can assume that addr will always be zero, meaning that the kernel should decide the virtual address at which to map the file. mmap returns that address, or 0xffffffffffffffff if it fails. length is the number of bytes to map; it might not be the same as the file&rsquo;s length. prot indicates whether the memory should be mapped readable, writeable, and/or executable; you can assume that prot is PROT_READ or PROT_WRITE or both. flags will be either MAP_SHARED, meaning that modifications to the mapped memory should be written back to the file, or MAP_PRIVATE, meaning that they should not. You don&rsquo;t have to implement any other bits in flags. fd is the open file descriptor of the file to map. You can assume offset is zero (it&rsquo;s the starting point in the file at which to map).</p></blockquote>
+<p><code>mmap</code> can be called in many ways, but this lab requires only a subset of its features relevant to memory-mapping a file. You can assume that addr will always be zero, meaning that the kernel should decide the virtual address at which to map the file. <code>mmap</code> returns that address, or <code>0xffffffffffffffff</code> if it fails. length is the number of bytes to map; it might not be the same as the file&rsquo;s length. prot indicates whether the memory should be mapped readable, writeable, and/or executable; you can assume that prot is <code>PROT_READ</code> or <code>PROT_WRITE</code> or both. flags will be either <code>MAP_SHARED</code>, meaning that modifications to the mapped memory should be written back to the file, or <code>MAP_PRIVATE</code>, meaning that they should not. You don&rsquo;t have to implement any other bits in flags. fd is the open file descriptor of the file to map. You can assume offset is zero (it&rsquo;s the starting point in the file at which to map).</p></blockquote>
 <blockquote>
 <ul>
 <li>Start by adding _mmaptest to UPROGS, and mmap and munmap system calls, in order to get user/mmaptest.c to compile. For now, just return errors from mmap and munmap. We defined PROT_READ etc for you in kernel/fcntl.h. Run mmaptest, which will fail at the first mmap call.</li>
@@ -153,29 +153,43 @@ The mmap and munmap system calls allow UNIX programs to exert detailed control o
 </ul></blockquote>
 <blockquote>
 <ul>
-<li>Implement mmap: find an unused region in the process&rsquo;s address space in which to map the file, and add a VMA to the process&rsquo;s table of mapped regions. The VMA should contain a pointer to a struct file for the file being mapped; mmap should increase the file&rsquo;s reference count so that the structure doesn&rsquo;t disappear when the file is closed (hint: see filedup). Run mmaptest: the first mmap should succeed, but the first access to the mmap-ed memory will cause a page fault and kill mmaptest.</li>
+<li>Implement <code>mmap</code>: find an unused region in the process&rsquo;s address space in which to map the file, and add a VMA to the process&rsquo;s table of mapped regions. The VMA should contain a pointer to a <code>struct file</code> for the file being mapped; <code>mmap</code> should increase the file&rsquo;s reference count so that the structure doesn&rsquo;t disappear when the file is closed (hint: see <code>filedup</code>). Run <code>mmaptest</code>: the first <code>mmap</code> should succeed, but the first access to the mmap-ed memory will cause a page fault and kill <code>mmaptest</code>.</li>
+</ul></blockquote>
+<p>這裡在說需要在 process 的 address space 中找一塊沒有用的來當作 map to the file 的區塊</p>
+<blockquote>
+<ul>
+<li>Add code to cause a page-fault in a mmap-ed region to allocate a page of physical memory, read 4096 bytes of the relevant file into that page, and map it into the user address space. Read the file with <code>readi</code>, which takes an offset argument at which to read in the file (but you will have to <code>lock/unlock</code> the inode passed to <code>readi</code>). Don&rsquo;t forget to set the permissions correctly on the page. Run mmaptest; it should get to the first <code>munmap</code>.</li>
+</ul></blockquote>
+<p>使用 page-fault 的策略</p>
+<blockquote>
+<ul>
+<li>Implement <code>munmap</code>: find the VMA for the address range and <code>unmap</code> the specified pages (hint: use <code>uvmunmap</code>). If <code>munmap</code> removes all pages of a previous <code>mmap</code>, it should decrement the reference count of the corresponding struct file. If an unmapped page has been modified and the file is mapped <code>MAP_SHARED</code>, write the page back to the file. Look at <code>filewrite</code> for inspiration.</li>
 </ul></blockquote>
 <blockquote>
 <ul>
-<li>Add code to cause a page-fault in a mmap-ed region to allocate a page of physical memory, read 4096 bytes of the relevant file into that page, and map it into the user address space. Read the file with readi, which takes an offset argument at which to read in the file (but you will have to lock/unlock the inode passed to readi). Don&rsquo;t forget to set the permissions correctly on the page. Run mmaptest; it should get to the first munmap.</li>
+<li>Ideally your implementation would only write back <code>MAP_SHARED</code> pages that the program actually modified. The dirty bit (D) in the RISC-V PTE indicates whether a page has been written. However, mmaptest does not check that non-dirty pages are not written back; thus you can get away with writing pages back without looking at D bits.</li>
 </ul></blockquote>
 <blockquote>
 <ul>
-<li>Implement munmap: find the VMA for the address range and unmap the specified pages (hint: use uvmunmap). If munmap removes all pages of a previous mmap, it should decrement the reference count of the corresponding struct file. If an unmapped page has been modified and the file is mapped MAP_SHARED, write the page back to the file. Look at filewrite for inspiration.</li>
+<li>Modify exit to unmap the process&rsquo;s mapped regions as if <code>munmap</code> had been called. Run <code>mmaptest</code>; <code>mmap_test</code> should pass, but probably not <code>fork_test</code>.</li>
 </ul></blockquote>
 <blockquote>
 <ul>
-<li>Ideally your implementation would only write back MAP_SHARED pages that the program actually modified. The dirty bit (D) in the RISC-V PTE indicates whether a page has been written. However, mmaptest does not check that non-dirty pages are not written back; thus you can get away with writing pages back without looking at D bits.</li>
+<li>Modify fork to ensure that the child has the same mapped regions as the parent. Don&rsquo;t forget to increment the reference count for a VMA&rsquo;s struct file. In the page fault handler of the child, it is OK to allocate a new physical page instead of sharing a page with the parent. The latter would be cooler, but it would require more implementation work. Run <code>mmaptest</code>; it should pass both <code>mmap_test</code> and <code>fork_test</code>.</li>
 </ul></blockquote>
-<blockquote>
-<ul>
-<li>Modify exit to unmap the process&rsquo;s mapped regions as if munmap had been called. Run mmaptest; mmap_test should pass, but probably not fork_test.</li>
-</ul></blockquote>
-<blockquote>
-<ul>
-<li>Modify fork to ensure that the child has the same mapped regions as the parent. Don&rsquo;t forget to increment the reference count for a VMA&rsquo;s struct file. In the page fault handler of the child, it is OK to allocate a new physical page instead of sharing a page with the parent. The latter would be cooler, but it would require more implementation work. Run mmaptest; it should pass both mmap_test and fork_test.</li>
-</ul></blockquote>
-
+<p>需要先了解 <code>filedup()</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Increment ref count for file f.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> file<span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">filedup</span>(<span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>f)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>ftable.lock);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(f<span style="color:#f92672">-&gt;</span>ref <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;filedup&#34;</span>);
+</span></span><span style="display:flex;"><span>  f<span style="color:#f92672">-&gt;</span>ref<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>ftable.lock);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> f;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>
 
   </div>
 

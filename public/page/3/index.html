@@ -173,17 +173,15 @@ Memory allocator (moderate) Your job is to implement per-CPU freelists, and stea
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 09-1] file system 相關程式碼解析
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 09-1] File System 相關程式碼解析
     </h2>
   </header>
   <div class="entry-content">
-    <p>一個 file 在 disk 中的樣子 在這張圖片中，每一個 “data” 都是一個 BSIZE (兩個 block)，即大小為，1024 bytes
-也可以推論出在 xv6 中，一個檔案的最大的 size 為 12 &#43; 256 = 268 blocks
-kernel/fs.h // On-disk inode structure struct dinode { short type; // File type short major; // Major device number (T_DEVICE only) short minor; // Minor device number (T_DEVICE only) short nlink; // Number of links to inode in file system uint size; // Size of file (bytes) uint addrs[NDIRECT&#43;1]; // Data block addresses }; #define NINDIRECT (BSIZE / sizeof(uint)) NINDIRECT (TODO) 知道一個檔案在 disk 中長什麼樣子之後，下一個要思考的問題會是如何跟 memory 中的資訊做連結
+    <p>// Init fs void fsinit(int dev) { readsb(dev, &amp;sb); if(sb.magic != FSMAGIC) panic(&#34;invalid file system&#34;); initlog(dev, &amp;sb); } // Zero a block. static void bzero(int dev, int bno) { struct buf *bp; bp = bread(dev, bno); memset(bp-&gt;data, 0, BSIZE); log_write(bp); brelse(bp); } balloc() 與 bfree() // Blocks. // Allocate a zeroed disk block. // returns 0 if out of disk space. static uint balloc(uint dev) { int b, bi, m; struct buf *bp; bp = 0; // 掃過 super block for(b = 0; b &lt; sb.size; b &#43;= BPB){ bp = bread(dev, BBLOCK(b, sb)); for(bi = 0; bi &lt; BPB &amp;&amp; b &#43; bi &lt; sb.size; bi&#43;&#43;){ m = 1 &lt;&lt; (bi % 8); if((bp-&gt;data[bi/8] &amp; m) == 0){ // Is block free? bp-&gt;data[bi/8] |= m; // Mark block in use. log_write(bp); brelse(bp); bzero(dev, b &#43; bi); return b &#43; bi; } } brelse(bp); } printf(&#34;balloc: out of blocks\n&#34;); return 0; } balloc() 是 block allocate 的意思
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-31 17:28:19 +0800 CST'>October 31, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-1] file system 相關程式碼解析" href="http://localhost:1313/xv6/filesystem/"></a>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-1] File System 相關程式碼解析" href="http://localhost:1313/xv6/filesystem/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -216,6 +214,34 @@ Expand Method 1 - Git Clone </p>
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 10] Lab: mmap
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: mmap
+Lab: mmap (hard) The mmap and munmap system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you’ll add mmap and munmap to xv6, focusing on memory-mapped files.
+目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 12:05:39 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 10] Lab: mmap" href="http://localhost:1313/xv6/lab10/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11] Lab net: Network driver
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Background You’ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the “guest”) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you’re running qemu (the “host”).
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 13:01:44 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11] Lab net: Network driver" href="http://localhost:1313/xv6/lab11/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)
     </h2>
   </header>
@@ -240,39 +266,6 @@ Expand Method 1 - Git Clone </p>
   </div>
   <footer class="entry-footer"><span title='2025-11-01 09:04:58 +0800 CST'>November 1, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)" href="http://localhost:1313/leetcode/746-min-cost-climbing-stairs/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>題目連結：1004. Max Consecutive Ones III
-解題思路 這題使用兩個 pointer left 與 right 來紀錄當前的 array 大小，像是：
-0 1 2 3 4 5 6 7 8 9 ↑ ↑ l r 這個時候 left == 2, right == 6 長度的計算為
-length = right - left &#43; 1 也就是 6 - 2 &#43; 1 == 5
-如何表達 length == 0 這樣的設計會碰到的下一個問題是
-假設 right == 6 如何表達 length == 0 的情況?? 會像是下面這個樣子：
-0 1 2 3 4 5 6 7 8 9 ↑ ↑ r l 雖然是 left 不過卻在 right 的右邊，但這樣做的好處就在於我們計算長度的公式：
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-16 13:14:24 +0800 CST'>October 16, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1004-max-consecutive-ones-iii/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>題目連結：1679. Max Number of K-Sum Pairs
-解題思路 這一題跟 11. Container With Most Water 的感覺還蠻像的，都是先把兩的 pointer 放在兩端，並且根據不同的情況，用 greedy 的方式判斷下一步要做什麼。還有這個問題是配對到了就刪除掉，所以也不會有重複的問題。
-程式碼 class Solution { public: int maxOperations(vector&lt;int&gt;&amp; nums, int k) { int left = 0; int right = nums.size() - 1; int count = 0; sort(nums.begin(), nums.end()); while (left &lt; right) { if (nums[left] &#43; nums[right] == k) { count&#43;&#43;; left&#43;&#43;; right--; } else if (nums[left] &#43; nums[right] &lt; k) { left&#43;&#43;; } else { right--; } } return count; } }; </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-16 11:30:41 +0800 CST'>October 16, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1679-max-number-of-k-sum-pairs/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

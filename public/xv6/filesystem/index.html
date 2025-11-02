@@ -5,29 +5,60 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>[xv6 學習紀錄 09-1] file system 相關程式碼解析 | Yama&#39;s Trail</title>
+<title>[xv6 學習紀錄 09-1] File System 相關程式碼解析 | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
-<meta name="description" content="一個 file 在 disk 中的樣子
+<meta name="description" content="// Init fs
+void
+fsinit(int dev) {
+  readsb(dev, &amp;sb);
+  if(sb.magic != FSMAGIC)
+    panic(&#34;invalid file system&#34;);
+  initlog(dev, &amp;sb);
+}
 
-在這張圖片中，每一個 &ldquo;data&rdquo; 都是一個 BSIZE (兩個 block)，即大小為，1024 bytes
-也可以推論出在 xv6 中，一個檔案的最大的 size 為 12 &#43; 256 = 268 blocks
+// Zero a block.
+static void
+bzero(int dev, int bno)
+{
+  struct buf *bp;
 
-kernel/fs.h
+  bp = bread(dev, bno);
+  memset(bp-&gt;data, 0, BSIZE);
+  log_write(bp);
+  brelse(bp);
+}
+balloc() 與 bfree()
+// Blocks.
 
-// On-disk inode structure
-struct dinode {
-  short type;           // File type
-  short major;          // Major device number (T_DEVICE only)
-  short minor;          // Minor device number (T_DEVICE only)
-  short nlink;          // Number of links to inode in file system
-  uint size;            // Size of file (bytes)
-  uint addrs[NDIRECT&#43;1];   // Data block addresses
-};
-#define NINDIRECT (BSIZE / sizeof(uint))
+// Allocate a zeroed disk block.
+// returns 0 if out of disk space.
+static uint
+balloc(uint dev)
+{
+  int b, bi, m;
+  struct buf *bp;
 
-NINDIRECT (TODO)
+  bp = 0;
 
-知道一個檔案在 disk 中長什麼樣子之後，下一個要思考的問題會是如何跟 memory 中的資訊做連結">
+  // 掃過 super block 
+  for(b = 0; b &lt; sb.size; b &#43;= BPB){
+    bp = bread(dev, BBLOCK(b, sb));
+    for(bi = 0; bi &lt; BPB &amp;&amp; b &#43; bi &lt; sb.size; bi&#43;&#43;){
+      m = 1 &lt;&lt; (bi % 8);
+      if((bp-&gt;data[bi/8] &amp; m) == 0){  // Is block free?
+        bp-&gt;data[bi/8] |= m;  // Mark block in use.
+        log_write(bp);
+        brelse(bp);
+        bzero(dev, b &#43; bi);
+        return b &#43; bi;
+      }
+    }
+    brelse(bp);
+  }
+  printf(&#34;balloc: out of blocks\n&#34;);
+  return 0;
+}
+balloc() 是 block allocate 的意思">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/xv6/filesystem/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
@@ -142,13 +173,81 @@ NINDIRECT (TODO)
   <header class="post-header">
     
     <h1 class="post-title entry-hint-parent">
-      [xv6 學習紀錄 09-1] file system 相關程式碼解析
+      [xv6 學習紀錄 09-1] File System 相關程式碼解析
     </h1>
     <div class="post-meta"><span title='2025-10-31 17:28:19 +0800 CST'>October 31, 2025</span>
 
 </div>
   </header> 
-  <div class="post-content"><h3 id="一個-file-在-disk-中的樣子">一個 file 在 disk 中的樣子<a hidden class="anchor" aria-hidden="true" href="#一個-file-在-disk-中的樣子">#</a></h3>
+  <div class="post-content"><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Init fs
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fsinit</span>(<span style="color:#66d9ef">int</span> dev) {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">readsb</span>(dev, <span style="color:#f92672">&amp;</span>sb);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(sb.magic <span style="color:#f92672">!=</span> FSMAGIC)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;invalid file system&#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">initlog</span>(dev, <span style="color:#f92672">&amp;</span>sb);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Zero a block.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">bzero</span>(<span style="color:#66d9ef">int</span> dev, <span style="color:#66d9ef">int</span> bno)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(dev, bno);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">memset</span>(bp<span style="color:#f92672">-&gt;</span>data, <span style="color:#ae81ff">0</span>, BSIZE);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">log_write</span>(bp);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="balloc-與-bfree"><code>balloc()</code> 與 <code>bfree()</code><a hidden class="anchor" aria-hidden="true" href="#balloc-與-bfree">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Blocks.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Allocate a zeroed disk block.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// returns 0 if out of disk space.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> uint
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">balloc</span>(uint dev)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> b, bi, m;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  bp <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 掃過 super block 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(b <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; b <span style="color:#f92672">&lt;</span> sb.size; b <span style="color:#f92672">+=</span> BPB){
+</span></span><span style="display:flex;"><span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(dev, <span style="color:#a6e22e">BBLOCK</span>(b, sb));
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span>(bi <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; bi <span style="color:#f92672">&lt;</span> BPB <span style="color:#f92672">&amp;&amp;</span> b <span style="color:#f92672">+</span> bi <span style="color:#f92672">&lt;</span> sb.size; bi<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>      m <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> (bi <span style="color:#f92672">%</span> <span style="color:#ae81ff">8</span>);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>((bp<span style="color:#f92672">-&gt;</span>data[bi<span style="color:#f92672">/</span><span style="color:#ae81ff">8</span>] <span style="color:#f92672">&amp;</span> m) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){  <span style="color:#75715e">// Is block free?
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bp<span style="color:#f92672">-&gt;</span>data[bi<span style="color:#f92672">/</span><span style="color:#ae81ff">8</span>] <span style="color:#f92672">|=</span> m;  <span style="color:#75715e">// Mark block in use.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">log_write</span>(bp);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">bzero</span>(dev, b <span style="color:#f92672">+</span> bi);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> b <span style="color:#f92672">+</span> bi;
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;balloc: out of blocks</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>balloc()</code> 是 block allocate 的意思</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Free a disk block.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">bfree</span>(<span style="color:#66d9ef">int</span> dev, uint b)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> bi, m;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(dev, <span style="color:#a6e22e">BBLOCK</span>(b, sb));
+</span></span><span style="display:flex;"><span>  bi <span style="color:#f92672">=</span> b <span style="color:#f92672">%</span> BPB;
+</span></span><span style="display:flex;"><span>  m <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> (bi <span style="color:#f92672">%</span> <span style="color:#ae81ff">8</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>((bp<span style="color:#f92672">-&gt;</span>data[bi<span style="color:#f92672">/</span><span style="color:#ae81ff">8</span>] <span style="color:#f92672">&amp;</span> m) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;freeing free block&#34;</span>);
+</span></span><span style="display:flex;"><span>  bp<span style="color:#f92672">-&gt;</span>data[bi<span style="color:#f92672">/</span><span style="color:#ae81ff">8</span>] <span style="color:#f92672">&amp;=</span> <span style="color:#f92672">~</span>m;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">log_write</span>(bp);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="一個-file-在-disk-中的樣子">一個 file 在 disk 中的樣子<a hidden class="anchor" aria-hidden="true" href="#一個-file-在-disk-中的樣子">#</a></h3>
 <p><img alt="dinode.png" loading="lazy" src="/xv6/filesystem/dinode.png">
 在這張圖片中，每一個 &ldquo;data&rdquo; 都是一個 <code>BSIZE</code> (兩個 block)，即大小為，1024 bytes</p>
 <p>也可以推論出在 xv6 中，一個檔案的最大的 size 為 12 + 256 = 268 blocks</p>
@@ -204,28 +303,48 @@ NINDIRECT (TODO)
 </span></span><span style="display:flex;"><span>  uint addr, <span style="color:#f92672">*</span>a;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NDIRECT){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// direct 的情形
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NDIRECT){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 直接拿第 bn 個 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 例如 bn == 0 就拿 ip-&gt;addrs[0]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 一直到第 12 個的 bn == 11 就拿取 ip-&gt;addrs[11]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 現在 addr 拿到了 block address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 如果 addr 不存在 (addr == 0) balloc 一個新的 block 給 ip-&gt;addrs[bn]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
 </span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[bn] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 原本沒有內容的 ip-&gt;addrs[bn] 現在有了一個新的 block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      ip<span style="color:#f92672">-&gt;</span>addrs[bn] <span style="color:#f92672">=</span> addr;
 </span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 拿到了 addr 之後就回傳，這也是 bmap() 最重要的任務
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 得知一個 inode 中的第 bn 個 block 的 block address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> addr;
 </span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  bn <span style="color:#f92672">-=</span> NDIRECT;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NINDIRECT){
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 如果不是 direct mapping，例如想知道第 bn == 12 個 block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 實際上這是 indirect mapping 中的第 (12 - NDIRECT) == 0 個 block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  bn <span style="color:#f92672">-=</span> NDIRECT;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// bn 照理來說不應該超過 256
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NINDIRECT){
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Load indirect block, allocating if necessary.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 先取得圖片中 &#34;indirect&#34; 的那一個 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 如果為 0 則一樣 balloc() 一個新的 block 給他
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
 </span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
 </span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT] <span style="color:#f92672">=</span> addr;
 </span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, addr);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 往下尋找 bmap() 需要回傳的 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 要從 addr = ip-&gt;addrs[NDIRECT] 的這個 block 中尋找
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 使用 bread() 讀取這個 block 的資料
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, addr);
 </span></span><span style="display:flex;"><span>    a <span style="color:#f92672">=</span> (uint<span style="color:#f92672">*</span>)bp<span style="color:#f92672">-&gt;</span>data;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> a[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 還是一樣的套路，沒有資料則 balloc 一個新的 block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 現在的 addr 就會是 bmap() 要回傳的 address 了
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> a[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
 </span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
 </span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr){
 </span></span><span style="display:flex;"><span>        a[bn] <span style="color:#f92672">=</span> addr;
@@ -236,44 +355,45 @@ NINDIRECT (TODO)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> addr;
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;bmap: out of range&#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 如果不是 direct or indirect, panic()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;bmap: out of range&#34;</span>);
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p><code>bmap()</code> 回傳一個 inode 中的第 <code>bn</code> 個 block 的 address</p>
-<ul>
-<li><code>indirect</code> 與 <code>direct</code> 的情形要分開考慮</li>
-</ul>
-<h4 id="ndirect-direct-的情形"><code>NDIRECT</code> (direct) 的情形<a hidden class="anchor" aria-hidden="true" href="#ndirect-direct-的情形">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NDIRECT){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[bn] <span style="color:#f92672">=</span> addr;
+</span></span></code></pre></div><h3 id="itrunc"><code>itrunc()</code><a hidden class="anchor" aria-hidden="true" href="#itrunc">#</a></h3>
+<p><code>itrunc()</code> 負責把 <code>inode</code> 中的資料刪除，包含 direct and indirect</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Truncate inode (discard contents).
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Caller must hold ip-&gt;lock.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">itrunc</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>ip)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> i, j;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp;
+</span></span><span style="display:flex;"><span>  uint <span style="color:#f92672">*</span>a;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 刪除 12 個 direct
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> NDIRECT; i<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(ip<span style="color:#f92672">-&gt;</span>addrs[i]){
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[i]);
+</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[i] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> addr;
 </span></span><span style="display:flex;"><span>  }
-</span></span></code></pre></div><p>addr 的資訊基本上都會存放在 <code>inode</code> 中，像是這裡也就只是去 inode 中尋找所需的資訊</p>
-<h4 id="indirect-的資訊">indirect 的資訊<a hidden class="anchor" aria-hidden="true" href="#indirect-的資訊">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NINDIRECT){
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Load indirect block, allocating if necessary.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT] <span style="color:#f92672">=</span> addr;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, addr);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 刪除 indirect 的部份
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]){
+</span></span><span style="display:flex;"><span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]);
 </span></span><span style="display:flex;"><span>    a <span style="color:#f92672">=</span> (uint<span style="color:#f92672">*</span>)bp<span style="color:#f92672">-&gt;</span>data;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> a[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr){
-</span></span><span style="display:flex;"><span>        a[bn] <span style="color:#f92672">=</span> addr;
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log_write</span>(bp);
-</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 刪除 indirect block 中 0 ~ 511 的 data block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span>(j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; j <span style="color:#f92672">&lt;</span> NINDIRECT; j<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(a[j])
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, a[j]);
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">brelse</span>(bp);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]);
+</span></span><span style="display:flex;"><span>    ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  ip<span style="color:#f92672">-&gt;</span>size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">iupdate</span>(ip);
+</span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div>
 
   </div>

@@ -209,8 +209,7 @@ When each process is created, map one read-only page at USYSCALL (a virtual addr
     <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。 2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
 先在其中一個終端機輸入
 make qemu-gdb #　這是被 debug 的對象 在另一個終端機輸入
-gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 不知道也沒關係的點：gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的
-# .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 動機：$ 的出現 make qemu 後 xv6 開機時，會顯示的畫面
+gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的 # .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 動機：$ 的出現 make qemu 後 xv6 開機時，會顯示的畫面
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer>
@@ -272,8 +271,7 @@ Interrupts 從哪裡來? 一些 CPU 的 fig
 programming device,
 memory mapped I/O
 UART store/load to registers
-Case Study: $ ls 的出現 kerenl/main.c
-kernel/console.c: consoleinit() kernel/uart.c: uartinit() kernel/plic.c: plicinit() kernel/plic.c: plicinithart() kernel/proc.c: scheduler() user/sh.c: getcmd()
+Case Study: $ ls 的出現 kerenl/main.c kernel/console.c: consoleinit() kernel/uart.c: uartinit() kernel/plic.c: plicinit() kernel/plic.c: plicinithart() kernel/proc.c: scheduler() void main() { if(cpuid() == 0){ consoleinit(); // &lt;-- printfinit(); printf(&#34;\n&#34;); printf(&#34;xv6 kernel is booting\n&#34;); printf(&#34;\n&#34;); kinit(); // physical page allocator kvminit(); // create kernel page table kvminithart(); // turn on paging procinit(); // process table trapinit(); // trap vectors trapinithart(); // install kernel trap vector plicinit(); // set up interrupt controller plicinithart(); // ask PLIC for device interrupts binit(); // buffer cache iinit(); // inode table fileinit(); // file table virtio_disk_init(); // emulated hard disk userinit(); // first user process __sync_synchronize(); started = 1; } else { while(started == 0) ; __sync_synchronize(); printf(&#34;hart %d starting\n&#34;, cpuid()); kvminithart(); // turn on paging trapinithart(); // install kernel trap vector plicinithart(); // ask PLIC for device interrupts } scheduler(); } UART kernel/console.c: consoleinit() void consoleinit(void) { initlock(&amp;cons.lock, &#34;cons&#34;); uartinit(); // &lt;-- // connect read and write system calls // to consoleread and consolewrite. devsw[CONSOLE].read = consoleread; devsw[CONSOLE].write = consolewrite; } kernel/uart.c: uartinit() void uartinit(void) { // disable interrupts. WriteReg(IER, 0x00); // special mode to set baud rate. WriteReg(LCR, LCR_BAUD_LATCH); // LSB for baud rate of 38.4K. WriteReg(0, 0x03); // MSB for baud rate of 38.4K. WriteReg(1, 0x00); // leave set-baud mode, // and set word length to 8 bits, no parity. WriteReg(LCR, LCR_EIGHT_BITS); // reset and enable FIFOs. WriteReg(FCR, FCR_FIFO_ENABLE | FCR_FIFO_CLEAR); // enable transmit and receive interrupts. WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE); initlock(&amp;uart_tx_lock, &#34;uart&#34;); } 在這裡可以設定一些 UART 的參數，像是 baud rate 等等
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-16 15:52:53 +0800 CST'>October 16, 2025</span></footer>
