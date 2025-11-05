@@ -135,7 +135,7 @@ The mmap and munmap system calls allow UNIX programs to exert detailed control o
   <div class="post-content"><p>Lab 連結：<a href="https://pdos.csail.mit.edu/6.S081/2022/labs/mmap.html">Lab: mmap</a></p>
 <h2 id="lab-mmap-hard">Lab: mmap (hard)<a hidden class="anchor" aria-hidden="true" href="#lab-mmap-hard">#</a></h2>
 <blockquote>
-<p>The mmap and munmap system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you&rsquo;ll add mmap and munmap to xv6, focusing on memory-mapped files.</p></blockquote>
+<p>The <code>mmap</code> and <code>munmap</code> system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you&rsquo;ll add <code>mmap</code> and <code>munmap</code> to xv6, focusing on memory-mapped files.</p></blockquote>
 <p>目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處</p>
 <blockquote>
 <p>You should implement enough <code>mmap</code> and <code>munmap</code> functionality to make the <code>mmaptest</code> test program work. If <code>mmaptest</code> doesn&rsquo;t use a mmap feature, you don&rsquo;t need to implement that feature.</p></blockquote>
@@ -144,11 +144,15 @@ The mmap and munmap system calls allow UNIX programs to exert detailed control o
 <p><code>mmap</code> can be called in many ways, but this lab requires only a subset of its features relevant to memory-mapping a file. You can assume that addr will always be zero, meaning that the kernel should decide the virtual address at which to map the file. <code>mmap</code> returns that address, or <code>0xffffffffffffffff</code> if it fails. length is the number of bytes to map; it might not be the same as the file&rsquo;s length. prot indicates whether the memory should be mapped readable, writeable, and/or executable; you can assume that prot is <code>PROT_READ</code> or <code>PROT_WRITE</code> or both. flags will be either <code>MAP_SHARED</code>, meaning that modifications to the mapped memory should be written back to the file, or <code>MAP_PRIVATE</code>, meaning that they should not. You don&rsquo;t have to implement any other bits in flags. fd is the open file descriptor of the file to map. You can assume offset is zero (it&rsquo;s the starting point in the file at which to map).</p></blockquote>
 <blockquote>
 <ul>
-<li>Start by adding _mmaptest to UPROGS, and mmap and munmap system calls, in order to get user/mmaptest.c to compile. For now, just return errors from mmap and munmap. We defined PROT_READ etc for you in kernel/fcntl.h. Run mmaptest, which will fail at the first mmap call.</li>
+<li>Start by adding <code>_mmaptest</code> to <code>UPROGS</code>, and <code>mmap</code> and <code>munmap</code> system calls, in order to get <code>user/mmaptest.c</code> to compile. For now, just return errors from mmap and munmap. We defined <code>PROT_READ</code> etc for you in <code>kernel/fcntl.h</code>. Run <code>mmaptest</code>, which will fail at the first mmap call.</li>
 </ul></blockquote>
 <blockquote>
 <ul>
-<li>Fill in the page table lazily, in response to page faults. That is, mmap should not allocate physical memory or read the file. Instead, do that in page fault handling code in (or called by) usertrap, as in the lazy page allocation lab. The reason to be lazy is to ensure that mmap of a large file is fast, and that mmap of a file larger than physical memory is possible.</li>
+<li>Fill in the page table lazily, in response to page faults. That is, <code>mmap</code> should not allocate physical memory or read the file. Instead, do that in page fault handling code in (or called by) <code>usertrap</code>, as in the lazy page allocation lab. The reason to be lazy is to ensure that <code>mmap</code> of a large file is fast, and that <code>mmap</code> of a file larger than physical memory is possible.</li>
+</ul></blockquote>
+<p>這裡會用到 lazy allocation 的技巧</p>
+<blockquote>
+<ul>
 <li>Keep track of what mmap has mapped for each process. Define a structure corresponding to the VMA (virtual memory area) described in Lecture 15, recording the address, length, permissions, file, etc. for a virtual memory range created by mmap. Since the xv6 kernel doesn&rsquo;t have a memory allocator in the kernel, it&rsquo;s OK to declare a fixed-size array of VMAs and allocate from that array as needed. A size of 16 should be sufficient.</li>
 </ul></blockquote>
 <blockquote>
@@ -171,7 +175,7 @@ The mmap and munmap system calls allow UNIX programs to exert detailed control o
 </ul></blockquote>
 <blockquote>
 <ul>
-<li>Modify exit to unmap the process&rsquo;s mapped regions as if <code>munmap</code> had been called. Run <code>mmaptest</code>; <code>mmap_test</code> should pass, but probably not <code>fork_test</code>.</li>
+<li>Modify exit to <code>unmap</code> the process&rsquo;s mapped regions as if <code>munmap</code> had been called. Run <code>mmaptest</code>; <code>mmap_test</code> should pass, but probably not <code>fork_test</code>.</li>
 </ul></blockquote>
 <blockquote>
 <ul>

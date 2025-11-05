@@ -186,6 +186,18 @@ Memory allocator (moderate) Your job is to implement per-CPU freelists, and stea
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Lec14 File Systems
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程連結：6.S081 Fall 2020 Lecture 14: File Systems </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-04 12:49:14 +0800 CST'>November 4, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Lec14 File Systems" href="http://localhost:1313/xv6/lec14-fs/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[xv6 學習紀錄 09] Lab: file system
     </h2>
   </header>
@@ -196,6 +208,19 @@ Large files (moderate) Modify bmap() so that it implements a doubly-indirect blo
   </div>
   <footer class="entry-footer"><span title='2025-11-01 11:48:29 +0800 CST'>November 1, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09] Lab: file system" href="http://localhost:1313/xv6/lab9/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Lec17 vm for app
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程連結：6.S081 Lecture 17: Virtual Memory for Applications
+</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-04 19:20:31 +0800 CST'>November 4, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Lec17 vm for app" href="http://localhost:1313/xv6/lec17-vm-for-app/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -233,39 +258,12 @@ Lab: mmap (hard) The mmap and munmap system calls allow UNIX programs to exert d
     </h2>
   </header>
   <div class="entry-content">
-    <p>Background You’ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the “guest”) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you’re running qemu (the “host”).
+    <p>Lab 連結：Lab net: Network driver
+Background You’ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the “guest”) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you’re running qemu (the “host”).
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-11-01 13:01:44 +0800 CST'>November 1, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11] Lab net: Network driver" href="http://localhost:1313/xv6/lab11/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>題目連結：136. Single Number
-解題思路 這題是一個蠻神奇蠻剛好的一題，同時使用了 xor 與「出現兩次」這兩個元素，因為
-同一個數字 xor 在一起會變成 0 這題就用這樣的特性解決 程式碼 class Solution { public: int singleNumber(vector&lt;int&gt;&amp; nums) { int n = 0; for (int num : nums) n ^= num; return n; } }; </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-01 09:21:12 +0800 CST'>November 1, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)" href="http://localhost:1313/leetcode/136-single-number/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>題目連結：746. Min Cost Climbing Stairs
-解題思路 這題利用 DP 的方式，「有了前兩天的資訊可以推測出今天」依此類推的得知最後的答案。
-程式碼 class Solution { public: int minCostClimbingStairs(vector&lt;int&gt;&amp; cost) { int n = cost.size(); vector&lt;int&gt; dp(n, 0); dp[0] = cost[0]; dp[1] = cost[1]; for (int i = 2; i &lt; n; i&#43;&#43;) dp[i] = min(dp[i - 1], dp[i - 2]) &#43; cost[i]; return min(dp[n - 1], dp[n - 2]); } }; </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-01 09:04:58 +0800 CST'>November 1, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)" href="http://localhost:1313/leetcode/746-min-cost-climbing-stairs/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

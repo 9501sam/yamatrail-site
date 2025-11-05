@@ -6,7 +6,7 @@ series = ["xv6 學習紀錄"]
 weight = 94
 +++
 
-Lab 連結：[Lab: file system](https://pdos.csail.mit.edu/6.S081/2020/labs/fs.html)
+Lab 連結：[Lab: file system](https://pdos.csail.mit.edu/6.S081/2022/labs/fs.html)
 
 ## Large files (moderate)
 >  Modify `bmap()` so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You'll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you're not allowed to change the size of an on-disk inode. The first 11 elements of `ip->addrs[]` should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when `bigfile` writes 65803 blocks and usertests runs successfully: 
@@ -376,38 +376,272 @@ itrunc(struct inode *ip)
 ```
 
 ## Symbolic links (moderate)
-> You will implement the symlink(`char *target, char *path`) system call, which creates a new symbolic link at path that refers to file named by target. For further information, see the man page symlink. To test, add symlinktest to the Makefile and run it. Your solution is complete when the tests produce the following output (including usertests succeeding). 
+> In this exercise you will add symbolic links to xv6. Symbolic links (or soft links) refer to a linked file by pathname; when a symbolic link is opened, the kernel follows the link to the referred file. Symbolic links resembles hard links, but hard links are restricted to pointing to file on the same disk, while symbolic links can cross disk devices. Although xv6 doesn't support multiple devices, implementing this system call is a good exercise to understand how pathname lookup works. 
 
-這題的重點會在於新增一個 type
+hard link 只限縮在同一個 disk，symbolic link (soft link) 則可以跨 disk，這一題要做的是 soft link，雖然 xv6 並沒有支援多個 devices，不過實做這個 system call 可以很好的了解 pathname 的尋找過程
 
+> You will implement the `symlink(char *target, char *path)` system call, which creates a new symbolic link at `path` that refers to file named by `target`. For further information, see the `man` page `symlink`. To test, add `symlinktest` to the `Makefile` and run it. Your solution is complete when the tests produce the following output (including `usertests` succeeding). 
+
+例如原本有一個檔案 `target`，在 `symlink(char *target, char *path)` 之後，`path` 就會也指向 `target` 這個檔案
+* 現在的策略是把這個 `target` (或是 `target` 的 `inum`) 存放於這個 type 為 `T_SYMLINK` 的檔案，在拿到 `target` 之後，再用原先的方式把檔案開啟，所以這裡需要先了解有了 `target` (or `inum`) 之後，原本的檔案開啟流程為何？
+
+> * First, create a new system call number for `symlink`, add an entry to `user/usys.pl`, `user/user.h`, and implement an empty `sys_symlink` in `kernel/sysfile.c`.
+
+* `user/usys.pl`
+```perl
+entry("symlink");
+```
+
+* `user/user.h`
 ```c
-// in-memory copy of an inode
-struct inode {
-  uint dev;           // Device number
-  uint inum;          // Inode number
-  int ref;            // Reference count
-  struct sleeplock lock; // protects everything below here
-  int valid;          // inode has been read from disk?
+int symlink(char *target, char *path);
+```
 
-  short type;         // copy of disk inode
-  short major;
-  short minor;
-  short nlink;
-  uint size;
-  uint addrs[NDIRECT+1];
+* `kernel/syscall.h`
+```c
+#define SYS_symlink 22
+```
+
+* `kernel/syscall.c`
+```c
+extern uint64 sys_symlink(void);
+
+static uint64 (*syscalls[])(void) = {
+// ...
+[SYS_symlink] sys_symlink,
 };
 ```
 
-目前的猜測會是修改這裡的 type 因為如果是 disk 的 `dinode`
+* `kernel/sysfile.c`
 ```c
-// On-disk inode structure
-struct dinode {
-  short type;           // File type
-  short major;          // Major device number (T_DEVICE only)
-  short minor;          // Minor device number (T_DEVICE only)
-  short nlink;          // Number of links to inode in file system
-  uint size;            // Size of file (bytes)
-  uint addrs[NDIRECT+1];   // Data block addresses
+uint64
+sys_symlink(void)
+{
+  // TODO
+  return 0;
+}
+```
+
+> * Add a new file type (`T_SYMLINK`) to `kernel/stat.h` to represent a symbolic link.
+
+```c
+#define T_DIR     1   // Directory
+#define T_FILE    2   // File
+#define T_DEVICE  3   // Device
+#define T_SYMLINK 4   // Symbolic link
+
+struct stat {
+  int dev;     // File system's disk device
+  uint ino;    // Inode number
+  short type;  // Type of file
+  short nlink; // Number of links to file
+  uint64 size; // Size of file in bytes
 };
 ```
-disk 中的應該就只是純粹的存放資料，是沒有 type 一說的
+
+> * Add a new flag to `kernel/fcntl.h`, (`O_NOFOLLOW`), that can be used with the open system call. Note that flags passed to open are combined using a bitwise OR operator, so your new flag should not overlap with any existing flags. This will let you compile `user/symlinktest.c` once you add it to the `Makefile`.
+
+例如這個使用情形
+* `user/symlinktest.c`
+```c
+// stat a symbolic link using O_NOFOLLOW
+static int
+stat_slink(char *pn, struct stat *st)
+{
+  int fd = open(pn, O_RDONLY | O_NOFOLLOW);
+  if(fd < 0)
+    return -1;
+  if(fstat(fd, st) != 0)
+    return -1;
+  return 0;
+}
+```
+使用 flag `O_NOFOLLOW`，代表的意義為，如果打開了一個 `symlink`，不要跟著 follow 下去打開這個 link
+
+> * Implement the `symlink(target, path)` system call to create a new symbolic link at `path` that refers to `target`. Note that `target` does not need to exist for the system call to succeed. You will need to choose somewhere to store the `target` path of a symbolic link, for example, in the inode's data blocks. `symlink` should `return` an integer representing success (0) or failure (-1) similar to `link` and `unlink`.
+
+* 需要找個地方存放 the `target` path of a symbolic link，會像是 inode 中的 data blocks
+* `return 0` 代表 success; `return -1` 代表 failure，這跟 `link` and `unlink` 一樣
+* 就算 `target` 不存在，這個 system call 也算是成功
+    * 我想失敗應該會失敗在接下去的 open or 就真的是失敗？
+
+> * Modify the open system call to handle the case where the `path` refers to a symbolic link. If the file does not exist, `open` must fail. When a process specifies `O_NOFOLLOW` in the flags to open, open should open the `symlink` (and not follow the symbolic link).
+
+* `O_NOFOLLOW` 的用意在於還是要有一個方法可以打開這個 `symlink` 本身
+
+> * If the linked file is also a symbolic link, you must recursively follow it until a non-link file is reached. If the links form a cycle, you must return an error code. You may approximate this by returning an error code if the depth of links reaches some threshold (e.g., 10).
+
+symbolic link 也可以指向一個 symbolic link，需要 recursive 的方式解析
+* 可以設定一個 threshold，畢竟也有可能發生 circular 的事情發生
+
+> * Other system calls (e.g., `link` and `unlink`) must not follow symbolic links; these system calls operate on the symbolic link itself.
+
+why?
+
+> * You do not have to handle symbolic links to directories for this lab. 
+
+* 這個 lab 不需要處理 directories 的 symbolic link
+
+### 程式實做
+* `kernel/stat.h`
+```c
+#define T_DIR     1   // Directory
+#define T_FILE    2   // File
+#define T_DEVICE  3   // Device
+#define T_SYMLINK 4   // Symbolic link
+
+struct stat {
+  int dev;     // File system's disk device
+  uint ino;    // Inode number
+  short type;  // Type of file
+  short nlink; // Number of links to file
+  uint64 size; // Size of file in bytes
+};
+```
+
+* `kernle/fcntl.h`: 新增 `O_NOFOLLOW`
+```c
+#define O_RDONLY   0x000
+#define O_WRONLY   0x001
+#define O_RDWR     0x002
+#define O_CREATE   0x200
+#define O_TRUNC    0x400
+#define O_NOFOLLOW 0x800
+```
+
+* `kernel/sysfile.c: sys_symlink()`
+這裡的目的在於把 `target` 存放於此 `T_SYMLINK` 的 file 中
+```c
+uint64
+sys_symlink(void)
+{
+  char path[MAXPATH], target[MAXPATH];
+  struct inode *ip;
+  int n;
+
+  if(argstr(0, target, MAXPATH) < 0 || argstr(1, path, MAXPATH) < 0)
+    return -1;
+  begin_op();
+  if ((ip = create(path, T_SYMLINK, 0, 0)) == 0) {
+    end_op();
+    return -1;
+  }
+  n = writei(ip, 0, (uint64) target, 0, strlen(target));
+  if (n < strlen(target)) {
+    ip->nlink = 0;
+    iupdate(ip);
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+  iunlockput(ip);
+  end_op();
+  return 0;
+}
+```
+
+* `kernel/sysfile.c: sys_open()`
+```c
+uint64
+sys_open(void)
+{
+  char path[MAXPATH];
+  char current_path[MAXPATH];
+  char next_path[MAXPATH];
+  int fd, omode;
+  struct file *f;
+  struct inode *ip;
+  int n;
+  int depth;
+
+  argint(1, &omode);
+  if((n = argstr(0, path, MAXPATH)) < 0)
+    return -1;
+
+  begin_op();
+
+  if(omode & O_CREATE){
+    ip = create(path, T_FILE, 0, 0);
+    if(ip == 0){
+      end_op();
+      return -1;
+    }
+  } else {
+    strncpy(current_path, path, MAXPATH);
+    depth = 0;
+    while (1) {
+      if((ip = namei(current_path)) == 0){
+        end_op();
+        return -1;
+      }
+      ilock(ip);
+      if (ip->type != T_SYMLINK)
+        break;
+      if (omode & O_NOFOLLOW)
+        break;
+      if (++depth > 10) {
+        iunlockput(ip);
+        end_op();
+        return -1;
+      }
+
+      // read the `target`
+      memset(next_path, 0, MAXPATH);
+      n = readi(ip, 0, (uint64) next_path, 0, sizeof(next_path) - 1);
+
+      iunlockput(ip);
+      end_op();
+      if (n <= 0)
+        return -1;
+      strncpy(current_path, next_path, MAXPATH);
+      begin_op();
+    }
+    if(ip->type == T_DIR && omode != O_RDONLY){
+      iunlockput(ip);
+      end_op();
+      return -1;
+    }
+  }
+
+  if(ip->type == T_DEVICE && (ip->major < 0 || ip->major >= NDEV)){
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+
+  if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
+    if(f)
+      fileclose(f);
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+
+  if(ip->type == T_DEVICE){
+    f->type = FD_DEVICE;
+    f->major = ip->major;
+  } else {
+    f->type = FD_INODE;
+    f->off = 0;
+  }
+  f->ip = ip;
+  f->readable = !(omode & O_WRONLY);
+  f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+
+  if((omode & O_TRUNC) && ip->type == T_FILE){
+    itrunc(ip);
+  }
+
+  iunlock(ip);
+  end_op();
+
+  return fd;
+}
+```
+
+![ac.png](ac.png)
+
+## 心得
+這個 lab 對我來說的課題是抓重點程式碼，其實不必了解到所有到底層的流程，更多的時候了解各個主要功能 function 之間的互動會更重要一些
+
+

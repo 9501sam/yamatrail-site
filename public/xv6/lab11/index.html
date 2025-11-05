@@ -7,7 +7,8 @@
 <meta name="robots" content="noindex, nofollow">
 <title>[xv6 學習紀錄 11] Lab net: Network driver | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
-<meta name="description" content="Background
+<meta name="description" content="Lab 連結：Lab net: Network driver
+Background
 
 You&rsquo;ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the &ldquo;guest&rdquo;) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you&rsquo;re running qemu (the &ldquo;host&rdquo;).">
 <meta name="author" content="">
@@ -130,7 +131,8 @@ You&rsquo;ll use a network device called the E1000 to handle network communicati
 
 </div>
   </header> 
-  <div class="post-content"><h2 id="background">Background<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
+  <div class="post-content"><p>Lab 連結：<a href="https://pdos.csail.mit.edu/6.S081/2022/labs/net.html">Lab net: Network driver</a></p>
+<h2 id="background">Background<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
 <blockquote>
 <p>You&rsquo;ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the &ldquo;guest&rdquo;) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you&rsquo;re running qemu (the &ldquo;host&rdquo;).</p></blockquote>
 <p>對於 xv6 來說，這就如同是連接上真正的 Ethernet</p>

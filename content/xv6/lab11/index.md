@@ -5,6 +5,7 @@ title = '[xv6 學習紀錄 11] Lab net: Network driver'
 series = ["xv6 學習紀錄"]
 weight = 114
 +++
+Lab 連結：[Lab net: Network driver](https://pdos.csail.mit.edu/6.S081/2022/labs/net.html)
 
 ## Background
 

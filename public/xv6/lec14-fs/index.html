@@ -5,12 +5,15 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>xv6 學習紀錄 | Yama&#39;s Trail</title>
+<title>Lec14 File Systems | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
-<meta name="description" content="xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的解題紀錄，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。
-課程連結">
+<meta name="description" content="課程連結：6.S081 Fall 2020 Lecture 14: File Systems
+
+      
+    
+">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/xv6/">
+<link rel="canonical" href="http://localhost:1313/xv6/lec14-fs/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
@@ -19,8 +22,7 @@
 <link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/xv6/index.xml">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/lec14-fs/">
 <noscript>
     <style>
         #theme-toggle,
@@ -60,7 +62,7 @@
 </noscript>
 </head>
 
-<body class="list" id="top">
+<body class="" id="top">
 <script>
     if (localStorage.getItem("pref-theme") === "dark") {
         document.body.classList.add('dark');
@@ -112,72 +114,51 @@
             </li>
             <li>
                 <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
-                    <span class="active">xv6 學習紀錄</span>
+                    <span>xv6 學習紀錄</span>
                 </a>
             </li>
         </ul>
     </nav>
 </header>
-<main class="main"> 
-<header class="page-header">
-  <h1>
-    xv6 學習紀錄
-  </h1>
-</header>
-<div class="post-content"><p>xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的<a href="https://hackmd.io/@xv6">解題紀錄</a>，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。</p>
-<p><a href="https://pdos.csail.mit.edu/6.S081/2022/schedule.html">課程連結</a></p>
+<main class="main">
 
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Lec14 File Systems
+    </h1>
+    <div class="post-meta"><span title='2025-11-04 12:49:14 +0800 CST'>November 4, 2025</span>
 
 </div>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Lec17 vm for app
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>課程連結：6.S081 Lecture 17: Virtual Memory for Applications
+  </header> 
+  <div class="post-content"><p>課程連結：<a href="https://www.youtube.com/watch?v=ADzLv1nRtR8">6.S081 Fall 2020 Lecture 14: File Systems</a>
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+      <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/ADzLv1nRtR8?autoplay=0&amp;controls=1&amp;end=0&amp;loop=0&amp;mute=0&amp;start=0" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video"></iframe>
+    </div>
 </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-04 19:20:31 +0800 CST'>November 4, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to Lec17 vm for app" href="http://localhost:1313/xv6/lec17-vm-for-app/"></a>
-</article>
 
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 10] Lab: mmap
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結：Lab: mmap
-Lab: mmap (hard) The mmap and munmap system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you’ll add mmap and munmap to xv6, focusing on memory-mapped files.
-目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-01 12:05:39 +0800 CST'>November 1, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 10] Lab: mmap" href="http://localhost:1313/xv6/lab10/"></a>
-</article>
 
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 11] Lab net: Network driver
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結：Lab net: Network driver
-Background You’ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the “guest”) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you’re running qemu (the “host”).
-...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-11-01 13:01:44 +0800 CST'>November 1, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11] Lab net: Network driver" href="http://localhost:1313/xv6/lab11/"></a>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/xv6/filesystem/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>[xv6 學習紀錄 09-1] File System 相關程式碼解析</span>
+  </a>
+  <a class="next" href="http://localhost:1313/xv6/lab9/">
+    <span class="title">Next »</span>
+    <br>
+    <span>[xv6 學習紀錄 09] Lab: file system</span>
+  </a>
+</nav>
+
+  </footer>
 </article>
-<footer class="page-footer">
-  <nav class="pagination">
-    <a class="prev" href="http://localhost:1313/xv6/page/2/">
-      «&nbsp;Prev&nbsp;
-    </a>
-  </nav>
-</footer>
     </main>
     
 <footer class="footer">
@@ -248,6 +229,53 @@ Background You’ll use a network device called the E1000 to handle network comm
         }
     })
 
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
 </script>
 </body>
 

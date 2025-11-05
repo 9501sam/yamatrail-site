@@ -6,7 +6,7 @@
     <description>Recent content in xv6 學習紀錄 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Sat, 01 Nov 2025 13:01:44 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 04 Nov 2025 19:20:31 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/xv6/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities</title>
@@ -1028,14 +1028,35 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;balloc()&lt;/code&gt; 是 block allocate 的意思&lt;/p&gt;</description>
     </item>
     <item>
+      <title>Lec14 File Systems</title>
+      <link>http://localhost:1313/xv6/lec14-fs/</link>
+      <pubDate>Tue, 04 Nov 2025 12:49:14 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lec14-fs/</guid>
+      <description>&lt;p&gt;課程連結：&lt;a href=&#34;https://www.youtube.com/watch?v=ADzLv1nRtR8&#34;&gt;6.S081 Fall 2020 Lecture 14: File Systems&lt;/a&gt;
+&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
+      &lt;iframe allow=&#34;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&#34; loading=&#34;eager&#34; referrerpolicy=&#34;strict-origin-when-cross-origin&#34; src=&#34;https://www.youtube.com/embed/ADzLv1nRtR8?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; title=&#34;YouTube video&#34;&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+&lt;/p&gt;</description>
+    </item>
+    <item>
       <title>[xv6 學習紀錄 09] Lab: file system</title>
       <link>http://localhost:1313/xv6/lab9/</link>
       <pubDate>Sat, 01 Nov 2025 11:48:29 +0800</pubDate>
       <guid>http://localhost:1313/xv6/lab9/</guid>
-      <description>&lt;p&gt;Lab 連結：&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2020/labs/fs.html&#34;&gt;Lab: file system&lt;/a&gt;&lt;/p&gt;
+      <description>&lt;p&gt;Lab 連結：&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/fs.html&#34;&gt;Lab: file system&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;large-files-moderate&#34;&gt;Large files (moderate)&lt;/h2&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Modify &lt;code&gt;bmap()&lt;/code&gt; so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You&amp;rsquo;ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you&amp;rsquo;re not allowed to change the size of an on-disk inode. The first 11 elements of &lt;code&gt;ip-&amp;gt;addrs[]&lt;/code&gt; should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when &lt;code&gt;bigfile&lt;/code&gt; writes 65803 blocks and usertests runs successfully:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Lec17 vm for app</title>
+      <link>http://localhost:1313/xv6/lec17-vm-for-app/</link>
+      <pubDate>Tue, 04 Nov 2025 19:20:31 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lec17-vm-for-app/</guid>
+      <description>&lt;p&gt;課程連結：&lt;a href=&#34;https://www.youtube.com/watch?v=YNQghIvk0jc&#34;&gt;6.S081 Lecture 17: Virtual Memory for Applications&lt;/a&gt;&lt;/p&gt;
+&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
+      &lt;iframe allow=&#34;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&#34; loading=&#34;eager&#34; referrerpolicy=&#34;strict-origin-when-cross-origin&#34; src=&#34;https://www.youtube.com/embed/YNQghIvk0jc?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; title=&#34;YouTube video&#34;&gt;&lt;/iframe&gt;
+    &lt;/div&gt;</description>
     </item>
     <item>
       <title>[xv6 學習紀錄 10] Lab: mmap</title>
@@ -1045,7 +1066,7 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
       <description>&lt;p&gt;Lab 連結：&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/mmap.html&#34;&gt;Lab: mmap&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;lab-mmap-hard&#34;&gt;Lab: mmap (hard)&lt;/h2&gt;
 &lt;blockquote&gt;
-&lt;p&gt;The mmap and munmap system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you&amp;rsquo;ll add mmap and munmap to xv6, focusing on memory-mapped files.&lt;/p&gt;&lt;/blockquote&gt;
+&lt;p&gt;The &lt;code&gt;mmap&lt;/code&gt; and &lt;code&gt;munmap&lt;/code&gt; system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you&amp;rsquo;ll add &lt;code&gt;mmap&lt;/code&gt; and &lt;code&gt;munmap&lt;/code&gt; to xv6, focusing on memory-mapped files.&lt;/p&gt;&lt;/blockquote&gt;
 &lt;p&gt;目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處&lt;/p&gt;</description>
     </item>
     <item>
@@ -1053,7 +1074,8 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
       <link>http://localhost:1313/xv6/lab11/</link>
       <pubDate>Sat, 01 Nov 2025 13:01:44 +0800</pubDate>
       <guid>http://localhost:1313/xv6/lab11/</guid>
-      <description>&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;
+      <description>&lt;p&gt;Lab 連結：&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/net.html&#34;&gt;Lab net: Network driver&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;
 &lt;blockquote&gt;
 &lt;p&gt;You&amp;rsquo;ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the &amp;ldquo;guest&amp;rdquo;) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you&amp;rsquo;re running qemu (the &amp;ldquo;host&amp;rdquo;).&lt;/p&gt;</description>
     </item>
