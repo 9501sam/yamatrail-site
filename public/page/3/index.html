@@ -254,16 +254,16 @@ Lab: mmap (hard) The mmap and munmap system calls allow UNIX programs to exert d
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 11] Lab net: Network driver
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers
     </h2>
   </header>
   <div class="entry-content">
-    <p>Lab 連結：Lab net: Network driver
-Background You’ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the “guest”) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you’re running qemu (the “host”).
+    <p>這一篇筆記主要是為了 lab: network driver 中，要我們先讀一下 xv6 book ch5: Interrupts and device drivers，這篇文章是我自己的筆記
+Interrupts and device drivers Driver 需要了解 device 的 interface，可能很複雜或是文件寫得很差 Device 通常可以製造一些 interrupt, 在 xv6 中，這在 devintr() 中處理 kernel/trap.c: devintr(): 像是這裡回傳是否為 device interrupt // check if it&#39;s an external interrupt or software interrupt, // and handle it. // returns 2 if timer interrupt, // 1 if other device, // 0 if not recognized. int devintr() { uint64 scause = r_scause(); if((scause &amp; 0x8000000000000000L) &amp;&amp; (scause &amp; 0xff) == 9){ // this is a supervisor external interrupt, via PLIC. // irq indicates which device interrupted. int irq = plic_claim(); if(irq == UART0_IRQ){ uartintr(); } else if(irq == VIRTIO0_IRQ){ virtio_disk_intr(); } #ifdef LAB_NET else if(irq == E1000_IRQ){ e1000_intr(); } #endif else if(irq){ printf(&#34;unexpected interrupt irq=%d\n&#34;, irq); } // the PLIC allows each device to raise at most one // interrupt at a time; tell the PLIC the device is // now allowed to interrupt again. if(irq) plic_complete(irq); return 1; } else if(scause == 0x8000000000000001L){ // software interrupt from a machine-mode timer interrupt, // forwarded by timervec in kernelvec.S. if(cpuid() == 0){ clockintr(); } // acknowledge the software interrupt by clearing // the SSIP bit in sip. w_sip(r_sip() &amp; ~2); return 2; } else { return 0; } } 許多 device driver 分為兩個部份： process’s kernel thread interrupt time 接著分別使用 Console input/output 來看 driver 如何運作
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-11-01 13:01:44 +0800 CST'>November 1, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11] Lab net: Network driver" href="http://localhost:1313/xv6/lab11/"></a>
+  <footer class="entry-footer"><span title='2025-11-06 13:40:57 +0800 CST'>November 6, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers" href="http://localhost:1313/xv6/ch5-interrupt-and-device-drivers/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

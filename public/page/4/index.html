@@ -131,6 +131,36 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-1] Networking
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程連結：6.S081 Fall 2020 Lecture 21: Networking Protocal nesting header 的 type 決定了之後的內容要如何解讀 The OS network stack tcpdump 的解析 Queue 的使用 影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的
+可能會有一個 buffer allocator MBUF
+E1000 NIC 這在 lab: network driver 中會運用的一個 NIC, 影片中有提及跟現代的 NIC 比較起來
+現在的 NIC 當中有做一些 check Livelock Problem 最後的結論是用 Polling 來解決
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-06 12:45:24 +0800 CST'>November 6, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-1] Networking" href="http://localhost:1313/xv6/lec21-networking/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11] Lab net: Network driver
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab net: Network driver
+Background You’ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the “guest”) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you’re running qemu (the “host”).
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 13:01:44 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11] Lab net: Network driver" href="http://localhost:1313/xv6/lab11/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)
     </h2>
   </header>

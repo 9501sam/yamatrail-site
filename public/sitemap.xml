@@ -89,17 +89,23 @@
     <loc>http://localhost:1313/xv6/lab10/</loc>
     <lastmod>2025-11-01T12:05:39+08:00</lastmod>
   </url><url>
+    <loc>http://localhost:1313/xv6/ch5-interrupt-and-device-drivers/</loc>
+    <lastmod>2025-11-06T13:40:57+08:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/xv6/lec21-networking/</loc>
+    <lastmod>2025-11-06T12:45:24+08:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/xv6/lab11/</loc>
     <lastmod>2025-11-01T13:01:44+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/series/</loc>
-    <lastmod>2025-11-04T19:20:31+08:00</lastmod>
+    <lastmod>2025-11-06T13:40:57+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/</loc>
-    <lastmod>2025-11-04T19:20:31+08:00</lastmod>
+    <lastmod>2025-11-06T13:40:57+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/</loc>
-    <lastmod>2025-11-04T19:20:31+08:00</lastmod>
+    <lastmod>2025-11-06T13:40:57+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/leetcode/136-single-number/</loc>
     <lastmod>2025-11-01T09:21:12+08:00</lastmod>
