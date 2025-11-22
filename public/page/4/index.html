@@ -131,18 +131,30 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-1] Networking
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers
     </h2>
   </header>
   <div class="entry-content">
-    <p>課程連結：6.S081 Fall 2020 Lecture 21: Networking Protocal nesting header 的 type 決定了之後的內容要如何解讀 The OS network stack tcpdump 的解析 Queue 的使用 影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的
-可能會有一個 buffer allocator MBUF
-E1000 NIC 這在 lab: network driver 中會運用的一個 NIC, 影片中有提及跟現代的 NIC 比較起來
-現在的 NIC 當中有做一些 check Livelock Problem 最後的結論是用 Polling 來解決
+    <p>這一篇筆記主要是為了 lab: network driver 中，要我們先讀一下 xv6 book ch5: Interrupts and device drivers，這篇文章是我自己的筆記
+Interrupts and device drivers Driver 需要了解 device 的 interface，可能很複雜或是文件寫得很差 Device 通常可以製造一些 interrupt, 在 xv6 中，這在 devintr() 中處理 kernel/trap.c: devintr(): 像是這裡回傳是否為 device interrupt // check if it&#39;s an external interrupt or software interrupt, // and handle it. // returns 2 if timer interrupt, // 1 if other device, // 0 if not recognized. int devintr() { uint64 scause = r_scause(); if((scause &amp; 0x8000000000000000L) &amp;&amp; (scause &amp; 0xff) == 9){ // this is a supervisor external interrupt, via PLIC. // irq indicates which device interrupted. int irq = plic_claim(); if(irq == UART0_IRQ){ uartintr(); } else if(irq == VIRTIO0_IRQ){ virtio_disk_intr(); } #ifdef LAB_NET else if(irq == E1000_IRQ){ e1000_intr(); } #endif else if(irq){ printf(&#34;unexpected interrupt irq=%d\n&#34;, irq); } // the PLIC allows each device to raise at most one // interrupt at a time; tell the PLIC the device is // now allowed to interrupt again. if(irq) plic_complete(irq); return 1; } else if(scause == 0x8000000000000001L){ // software interrupt from a machine-mode timer interrupt, // forwarded by timervec in kernelvec.S. if(cpuid() == 0){ clockintr(); } // acknowledge the software interrupt by clearing // the SSIP bit in sip. w_sip(r_sip() &amp; ~2); return 2; } else { return 0; } } 許多 device driver 分為兩個部份： process’s kernel thread interrupt time 接著分別使用 Console input/output 來看 driver 如何運作
 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-11-06 12:45:24 +0800 CST'>November 6, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-1] Networking" href="http://localhost:1313/xv6/lec21-networking/"></a>
+  <footer class="entry-footer"><span title='2025-11-06 13:40:57 +0800 CST'>November 6, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers" href="http://localhost:1313/xv6/ch5-interrupt-and-device-drivers/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Initialize kernel/main.c: main()
+kernel/pci.c: pci_init() kernel/e1000.c: e1000_init(uint32 *xregs) regs[XXX] = OOO kernel/sysnet.c: sockinit() initlock() kernel/pci.c: pci_init()
+void pci_init() { // we&#39;ll place the e1000 registers at this address. // vm.c maps this range. // 我們會把 e1000 registers 放到這個位置 // 如下圖，他會被放在 unused and other I/O devices 的區塊 // vm.c 會負責做這個 mapping uint64 e1000_regs = 0x40000000L; // qemu -machine virt puts PCIe config space here. // vm.c maps this range. // 這裡則是在 mapping PCIe config // 跟前面一樣，是放在 unused and other I/O devices 的區塊 // ECAM for Extended Configuration Access Mechanism uint32 *ecam = (uint32 *) 0x30000000L; // look at each possible PCI device on bus 0. // bus == 0 是固定的，只掃描 Primary Bus // dev: 0 ~ 31 設備號碼，每一個代表一個獨立設備例如 E1000 網卡、顯示卡，現在要尋找 E1000 // func: 功能號碼，每一個設備可以有多個 function, 這裡只需要尋找第 0 個功能，E1000 也只有一個功能 // offset: 指向配置空間中特定 4 位元組暫存器的偏移量, 設為 0 // off: 透過上面的資訊取得總 offset for(int dev = 0; dev &lt; 32; dev&#43;&#43;){ int bus = 0; int func = 0; int offset = 0; uint32 off = (bus &lt;&lt; 16) | (dev &lt;&lt; 11) | (func &lt;&lt; 8) | (offset); volatile uint32 *base = ecam &#43; off; uint32 id = base[0]; // 100e:8086 is an e1000 if(id == 0x100e8086){ // command and status register. // bit 0 : I/O access enable // bit 1 : memory access enable // bit 2 : enable mastering base[1] = 7; __sync_synchronize(); for(int i = 0; i &lt; 6; i&#43;&#43;){ uint32 old = base[4&#43;i]; // writing all 1&#39;s to the BAR causes it to be // replaced with its size. base[4&#43;i] = 0xffffffff; __sync_synchronize(); base[4&#43;i] = old; } // tell the e1000 to reveal its registers at // physical address 0x40000000. base[4&#43;0] = e1000_regs; e1000_init((uint32*)e1000_regs); } } } ...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-21 15:49:48 +0800 CST'>November 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做" href="http://localhost:1313/xv6/e1000-mannual/"></a>
 </article>
 
 <article class="post-entry"> 
@@ -264,24 +276,12 @@ nodes: https://120.108.205.137:9999/ui/
   <footer class="entry-footer"><span title='2025-09-27 00:00:40 +0800 CST'>September 27, 2025</span></footer>
   <a class="entry-link" aria-label="post link to 架設 Kubernetes cluster" href="http://localhost:1313/k8s/setup-cluster/"></a>
 </article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Hello World
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>This is my first article!
-所以我說那個醬汁呢？
-</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-09-20 21:52:54 +0800 CST'>September 20, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to Hello World" href="http://localhost:1313/posts/hello-world/"></a>
-</article>
 <footer class="page-footer">
   <nav class="pagination">
     <a class="prev" href="http://localhost:1313/page/3/">
       «&nbsp;Prev&nbsp;
+    </a>
+    <a class="next" href="http://localhost:1313/page/5/">Next&nbsp;&nbsp;»
     </a>
   </nav>
 </footer>

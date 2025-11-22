@@ -134,24 +134,56 @@ You&rsquo;ll use a network device called the E1000 to handle network communicati
   <div class="post-content"><p>Lab 連結：<a href="https://pdos.csail.mit.edu/6.S081/2022/labs/net.html">Lab net: Network driver</a></p>
 <h2 id="background">Background<a hidden class="anchor" aria-hidden="true" href="#background">#</a></h2>
 <blockquote>
-<p>You&rsquo;ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the &ldquo;guest&rdquo;) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you&rsquo;re running qemu (the &ldquo;host&rdquo;).</p></blockquote>
-<p>對於 xv6 來說，這就如同是連接上真正的 Ethernet</p>
+<p>You&rsquo;ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the &ldquo;guest&rdquo;) has an IP address of <code>10.0.2.15</code>. Qemu also arranges for the computer running qemu to appear on the LAN with IP address <code>10.0.2.2</code>. When xv6 uses the E1000 to send a packet to <code>10.0.2.2</code>, qemu delivers the packet to the appropriate application on the (real) computer on which you&rsquo;re running qemu (the &ldquo;host&rdquo;).</p></blockquote>
+<ul>
+<li>對於 xv6 來說，這就如同是連接上真正的 Ethernet</li>
+<li>這個 E1000 是透過 qemu 提供模擬的</li>
+<li>guest IP: <code>10.0.2.15</code></li>
+<li>我的筆電的 IP: <code>10.0.2.2</code>
+<ul>
+<li>所以當 xv6 傳送資料給 <code>10.0.2.2</code> 的時候，實際上就是跟我筆電上的某個對應到的 application</li>
+</ul>
+</li>
+</ul>
 <blockquote>
-<p>You will use QEMU&rsquo;s &ldquo;user-mode network stack&rdquo;. QEMU&rsquo;s documentation has more about the user-mode stack here. We&rsquo;ve updated the Makefile to enable QEMU&rsquo;s user-mode network stack and the E1000 network card.</p></blockquote>
-<p>需要先了解一些 QEMU 的文件</p>
+<p>You will use QEMU&rsquo;s &ldquo;user-mode network stack&rdquo;. QEMU&rsquo;s documentation has more about the user-mode stack <a href="https://wiki.qemu.org/Documentation/Networking">here</a>. We&rsquo;ve updated the <code>Makefile</code> to enable QEMU&rsquo;s user-mode network stack and the E1000 network card.</p></blockquote>
+<p>這個 lab 使用 QEMU&rsquo;s &ldquo;user-mode network stack&rdquo; 的功能，相關的功能已經在 <code>Makefile</code> 中設定了</p>
 <blockquote>
-<p>The Makefile configures QEMU to record all incoming and outgoing packets to the file packets.pcap in your lab directory. It may be helpful to review these recordings to confirm that xv6 is transmitting and receiving the packets you expect. To display the recorded packets:</p>
+<p>The <code>Makefile</code> configures QEMU to record all incoming and outgoing packets to the file <code>packets.pcap</code> in your lab directory. It may be helpful to review these recordings to confirm that xv6 is transmitting and receiving the packets you expect. To display the recorded packets:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>tcpdump -XXnr packets.pcap
 </span></span></code></pre></div></blockquote>
+<p><code>Makefile</code> 設定了所有進來與出去的 packet 都紀錄在 <code>packets.pcap</code>，使用 <code>tcpdump -XXnr packets.pcap</code> 可以顯示出裡面的內容，例如：</p>
+<p><img alt="pcap-example.png" loading="lazy" src="/xv6/lab11/pcap-example.png"></p>
 <blockquote>
-<p>We&rsquo;ve added some files to the xv6 repository for this lab. The file <code>kernel/e1000.c</code> contains initialization code for the E1000 as well as empty functions for transmitting and receiving packets, which you&rsquo;ll fill in. kernel/e1000_dev.h contains definitions for registers and flag bits defined by the E1000 and described in the Intel E1000 Software Developer&rsquo;s Manual. kernel/net.c and kernel/net.h contain a simple network stack that implements the IP, UDP, and ARP protocols. These files also contain code for a flexible data structure to hold packets, called an mbuf. Finally, kernel/pci.c contains code that searches for an E1000 card on the PCI bus when xv6 boots.</p></blockquote>
-<p><code>kernel/e1000.c</code> 中有 E1000 的初始話過程</p>
+<p>We&rsquo;ve added some files to the xv6 repository for this lab. The file <code>kernel/e1000.c</code> contains initialization code for the E1000 as well as empty functions for transmitting and receiving packets, which you&rsquo;ll fill in. <code>kernel/e1000_dev.h</code> contains definitions for registers and flag bits defined by the E1000 and described in the Intel E1000 Software Developer&rsquo;s Manual. <code>kernel/net.c</code> and <code>kernel/net.h</code> contain a simple network stack that implements the IP, UDP, and ARP protocols. These files also contain code for a flexible data structure to hold packets, called an <code>mbuf</code>. Finally, <code>kernel/pci.c</code> contains code that searches for an E1000 card on the PCI bus when xv6 boots.</p></blockquote>
+<p>相關程式碼與檔案：</p>
+<ul>
+<li><code>kernel/e1000.c</code>
+<ul>
+<li><code>e1000_init()</code></li>
+<li><code>e1000_transmit()</code> (empty)</li>
+<li><code>e1000_recv()</code> (empty)</li>
+</ul>
+</li>
+<li><code>kernel/e1000_dev.h</code>
+<ul>
+<li>registers</li>
+<li>flag bits</li>
+</ul>
+</li>
+<li><code>mbuf</code> flexible data structure to hold packets</li>
+<li><code>kernel/pci.c</code>
+<ul>
+<li>searches for an E1000 card on the PCI bus when xv6 boots</li>
+</ul>
+</li>
+</ul>
 <h2 id="lab-networking-hard">Lab: networking (hard)<a hidden class="anchor" aria-hidden="true" href="#lab-networking-hard">#</a></h2>
 <blockquote>
 <p>Your job is to complete <code>e1000_transmit()</code> and <code>e1000_recv()</code>, both in <code>kernel/e1000.c</code>, so that the driver can transmit and receive packets. You are done when <code>make grade</code> says your solution passes all the tests.</p></blockquote>
 <p>這一題所需的背景知識真的很多</p>
 <blockquote>
-<p>Browse the E1000 Software Developer&rsquo;s Manual. This manual covers several closely related Ethernet controllers. QEMU emulates the 82540EM. Skim Chapter 2 now to get a feel for the device. To write your driver, you&rsquo;ll need to be familiar with Chapters 3 and 14, as well as 4.1 (though not 4.1&rsquo;s subsections). You&rsquo;ll also need to use Chapter 13 as a reference. The other chapters mostly cover components of the E1000 that your driver won&rsquo;t have to interact with. Don&rsquo;t worry about the details at first; just get a feel for how the document is structured so you can find things later. The E1000 has many advanced features, most of which you can ignore. Only a small set of basic features is needed to complete this lab.</p></blockquote>
+<p>Browse the <a href="https://pdos.csail.mit.edu/6.S081/2022/readings/8254x_GBe_SDM.pdf">E1000 Software Developer&rsquo;s Manual</a>. This manual covers several closely related Ethernet controllers. QEMU emulates the 82540EM. Skim Chapter 2 now to get a feel for the device. To write your driver, you&rsquo;ll need to be familiar with Chapters 3 and 14, as well as 4.1 (though not 4.1&rsquo;s subsections). You&rsquo;ll also need to use Chapter 13 as a reference. The other chapters mostly cover components of the E1000 that your driver won&rsquo;t have to interact with. Don&rsquo;t worry about the details at first; just get a feel for how the document is structured so you can find things later. The E1000 has many advanced features, most of which you can ignore. Only a small set of basic features is needed to complete this lab.</p></blockquote>
 <ul>
 <li>
 <p>skim Chapter 2 可以先稍微知道這個 device 的概念</p>
@@ -181,20 +213,162 @@ You&rsquo;ll use a network device called the E1000 to handle network communicati
 <li>這裡使用 DMA 的技術，意思是我們都是透過 RAM 來跟 devices 做溝通</li>
 </ul>
 <blockquote>
-<p>Because bursts of packets might arrive faster than the driver can process them, <code>e1000_init()</code> provides the E1000 with multiple buffers into which the E1000 can write packets. The E1000 requires these buffers to be described by an array of &ldquo;descriptors&rdquo; in RAM; each descriptor contains an address in RAM where the E1000 can write a received packet. struct rx_desc describes the descriptor format. The array of descriptors is called the receive ring, or receive queue. It&rsquo;s a circular ring in the sense that when the card or driver reaches the end of the array, it wraps back to the beginning. e1000_init() allocates mbuf packet buffers for the E1000 to DMA into, using mbufalloc(). There is also a transmit ring into which the driver should place packets it wants the E1000 to send. e1000_init() configures the two rings to have size RX_RING_SIZE and TX_RING_SIZE.</p></blockquote>
+<p>Because bursts of packets might arrive faster than the driver can process them, <code>e1000_init()</code> provides the E1000 with multiple buffers into which the E1000 can write packets. The E1000 requires these buffers to be described by an array of &ldquo;descriptors&rdquo; in RAM; each descriptor contains an address in RAM where the E1000 can write a received packet. struct rx_desc describes the descriptor format. The array of descriptors is called the receive ring, or receive queue. It&rsquo;s a circular ring in the sense that when the card or driver reaches the end of the array, it wraps back to the beginning. <code>e1000_init()</code> allocates mbuf packet buffers for the E1000 to DMA into, using mbufalloc(). There is also a transmit ring into which the driver should place packets it wants the E1000 to send. <code>e1000_init()</code> configures the two rings to have size <code>RX_RING_SIZE</code> and <code>TX_RING_SIZE</code>.</p></blockquote>
 <p>因為度太快了，所以會有多個 buffer 需要注意</p>
 <blockquote>
-<p>When the network stack in <code>net.c</code> needs to send a packet, it calls <code>e1000_transmit()</code> with an mbuf that holds the packet to be sent. Your transmit code must place a pointer to the packet data in a descriptor in the TX (transmit) ring. struct tx_desc describes the descriptor format. You will need to ensure that each mbuf is eventually freed, but only after the E1000 has finished transmitting the packet (the E1000 sets the E<code>1000_TXD_STAT_DD</code> bit in the descriptor to indicate this).</p></blockquote>
+<p>When the network stack in <code>net.c</code> needs to send a packet, it calls <code>e1000_transmit()</code> with an <code>mbuf</code> that holds the packet to be sent. Your transmit code must place a pointer to the packet data in a descriptor in the TX (transmit) ring. <code>struct tx_desc</code> describes the descriptor format. You will need to ensure that each <code>mbuf</code> is eventually freed, but only after the E1000 has finished transmitting the packet (the E1000 sets the E<code>1000_TXD_STAT_DD</code> bit in the descriptor to indicate this).</p></blockquote>
 <p>在 <code>net.c</code> 中有 network stack</p>
 <blockquote>
-<p>In addition to reading and writing the descriptor rings in RAM, your driver will need to interact with the E1000 through its memory-mapped control registers, to detect when received packets are available and to inform the E1000 that the driver has filled in some TX descriptors with packets to send. The global variable regs holds a pointer to the E1000&rsquo;s first control register; your driver can get at the other registers by indexing regs as an array. You&rsquo;ll need to use indices E1000_RDT and E1000_TDT in particular.</p></blockquote>
+<p>In addition to reading and writing the descriptor rings in RAM, your driver will need to interact with the E1000 through its memory-mapped control registers, to detect when received packets are available and to inform the E1000 that the driver has filled in some TX descriptors with packets to send. The global variable regs holds a pointer to the E1000&rsquo;s first control register; your driver can get at the other registers by indexing regs as an array. You&rsquo;ll need to use indices <code>E1000_RDT</code> and <code>E1000_TDT</code> in particular.</p></blockquote>
 <p>對於 descriptor rings 好像有一些印象</p>
 <blockquote>
-<p>To test your driver, run <code>make server</code> in one window, and in another window run <code>make qemu</code> and then run <code>nettests</code> in xv6. The first test in nettests tries to send a UDP packet to the host operating system, addressed to the program that <code>make server</code> runs. If you haven&rsquo;t completed the lab, the E1000 driver won&rsquo;t actually send the packet, and nothing much will happen.</p></blockquote>
-<p>還蠻好奇 <code>make server</code> 在做什麼</p>
+<p>To test your driver, run <code>make server</code> in one window, and in another window run <code>make qemu</code> and then run <code>nettests</code> in xv6. The first test in <code>nettests</code> tries to send a UDP packet to the host operating system, addressed to the program that <code>make server</code> runs. If you haven&rsquo;t completed the lab, the E1000 driver won&rsquo;t actually send the packet, and nothing much will happen.</p></blockquote>
+<p>要測試 driver 時：</p>
+<ol>
+<li>terminal 1: <code>make server</code></li>
+<li>terminal 2: <code>make qemu</code> then <code>nettests</code> (in xv6)</li>
+</ol>
+<ul>
+<li>第一個 test in <code>nettests</code> 是傳送一個 UDP packet 到我的筆電上 (run <code>make server</code> 的地方)，但目前還沒有實做的狀態，還不會真的傳任何的 packets</li>
+</ul>
 <blockquote>
-<p>After you&rsquo;ve completed the lab, the E1000 driver will send the packet, qemu will deliver it to your host computer, make server will see it, it will send a response packet, and the E1000 driver and then nettests will see the response packet. Before the host sends the reply, however, it sends an &ldquo;ARP&rdquo; request packet to xv6 to find out its 48-bit Ethernet address, and expects xv6 to respond with an ARP reply. kernel/net.c will take care of this once you have finished your work on the E1000 driver. If all goes well, nettests will print testing ping: OK, and make server will print a message from xv6!.</p></blockquote>
-<p>在完成這個 lab 之後會 print <code>a message from xv6!</code></p>
+<p>After you&rsquo;ve completed the lab, the E1000 driver will send the packet, qemu will deliver it to your host computer, <code>make server</code> will see it, it will send a response packet, and the E1000 driver and then <code>nettests</code> will see the response packet. Before the host sends the reply, however, it sends an &ldquo;ARP&rdquo; request packet to xv6 to find out its 48-bit Ethernet address, and expects xv6 to respond with an ARP reply. <code>kernel/net.c</code> will take care of this once you have finished your work on the E1000 driver. If all goes well, <code>nettests</code> will print <code>testing ping: OK</code>, and <code>make server</code> will print <code>a message from xv6!</code>.</p></blockquote>
+<p>在完成這個 lab 之後，理想的狀態為：</p>
+<ol>
+<li>xv6 send the packet to host computer via driver</li>
+<li><code>make server</code> see the packet</li>
+<li><code>make server</code> send ARP reqeust to xv6 to find out its 48-bit Ethernet address and expects xv6 to respond with and ARP
+<ul>
+<li><code>kernel/net.c</code> 會處理這部份的東西</li>
+</ul>
+</li>
+<li>response packet (from <code>make server</code>) -&gt; E1000 driver -&gt; <code>nettests</code> see the response packet</li>
+</ol>
+<p>最後的結果：</p>
+<ul>
+<li>
+<p><code>nettests</code>: print <code>testing ping: OK</code></p>
+</li>
+<li>
+<p><code>make server</code>: print <code>a message from xv6!</code></p>
+</li>
+<li>
+<p><code>tcpdump -XXnr packets.pcap</code> 應該顯示：</p>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>reading from file packets.pcap, link-type EN10MB <span style="color:#f92672">(</span>Ethernet<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>15:27:40.861988 IP 10.0.2.15.2000 &gt; 10.0.2.2.25603: UDP, length <span style="color:#ae81ff">19</span>
+</span></span><span style="display:flex;"><span>        0x0000:  ffff ffff ffff <span style="color:#ae81ff">5254</span> <span style="color:#ae81ff">0012</span> <span style="color:#ae81ff">3456</span> <span style="color:#ae81ff">0800</span> <span style="color:#ae81ff">4500</span>  ......RT..4V..E.
+</span></span><span style="display:flex;"><span>        0x0010:  002f <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">6411</span> 3eae 0a00 020f 0a00  ./....d.&gt;.......
+</span></span><span style="display:flex;"><span>        0x0020:  <span style="color:#ae81ff">0202</span> 07d0 <span style="color:#ae81ff">6403</span> 001b <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">6120</span> 6d65 <span style="color:#ae81ff">7373</span>  ....d.....a.mess
+</span></span><span style="display:flex;"><span>        0x0030:  <span style="color:#ae81ff">6167</span> <span style="color:#ae81ff">6520</span> <span style="color:#ae81ff">6672</span> 6f6d <span style="color:#ae81ff">2078</span> <span style="color:#ae81ff">7636</span> <span style="color:#ae81ff">21</span>         age.from.xv6!
+</span></span><span style="display:flex;"><span>15:27:40.862370 ARP, Request who-has 10.0.2.15 tell 10.0.2.2, length <span style="color:#ae81ff">28</span>
+</span></span><span style="display:flex;"><span>        0x0000:  ffff ffff ffff <span style="color:#ae81ff">5255</span> 0a00 <span style="color:#ae81ff">0202</span> <span style="color:#ae81ff">0806</span> <span style="color:#ae81ff">0001</span>  ......RU........
+</span></span><span style="display:flex;"><span>        0x0010:  <span style="color:#ae81ff">0800</span> <span style="color:#ae81ff">0604</span> <span style="color:#ae81ff">0001</span> <span style="color:#ae81ff">5255</span> 0a00 <span style="color:#ae81ff">0202</span> 0a00 <span style="color:#ae81ff">0202</span>  ......RU........
+</span></span><span style="display:flex;"><span>        0x0020:  <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> 0a00 020f                 ..........
+</span></span><span style="display:flex;"><span>15:27:40.862844 ARP, Reply 10.0.2.15 is-at 52:54:00:12:34:56, length <span style="color:#ae81ff">28</span>
+</span></span><span style="display:flex;"><span>        0x0000:  ffff ffff ffff <span style="color:#ae81ff">5254</span> <span style="color:#ae81ff">0012</span> <span style="color:#ae81ff">3456</span> <span style="color:#ae81ff">0806</span> <span style="color:#ae81ff">0001</span>  ......RT..4V....
+</span></span><span style="display:flex;"><span>        0x0010:  <span style="color:#ae81ff">0800</span> <span style="color:#ae81ff">0604</span> <span style="color:#ae81ff">0002</span> <span style="color:#ae81ff">5254</span> <span style="color:#ae81ff">0012</span> <span style="color:#ae81ff">3456</span> 0a00 020f  ......RT..4V....
+</span></span><span style="display:flex;"><span>        0x0020:  <span style="color:#ae81ff">5255</span> 0a00 <span style="color:#ae81ff">0202</span> 0a00 <span style="color:#ae81ff">0202</span>                 RU........
+</span></span><span style="display:flex;"><span>15:27:40.863036 IP 10.0.2.2.25603 &gt; 10.0.2.15.2000: UDP, length <span style="color:#ae81ff">17</span>
+</span></span><span style="display:flex;"><span>        0x0000:  <span style="color:#ae81ff">5254</span> <span style="color:#ae81ff">0012</span> <span style="color:#ae81ff">3456</span> <span style="color:#ae81ff">5255</span> 0a00 <span style="color:#ae81ff">0202</span> <span style="color:#ae81ff">0800</span> <span style="color:#ae81ff">4500</span>  RT..4VRU......E.
+</span></span><span style="display:flex;"><span>        0x0010:  002d <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">4011</span> 62b0 0a00 <span style="color:#ae81ff">0202</span> 0a00  .-....@.b.......
+</span></span><span style="display:flex;"><span>        0x0020:  020f <span style="color:#ae81ff">6403</span> 07d0 <span style="color:#ae81ff">0019</span> <span style="color:#ae81ff">3406</span> <span style="color:#ae81ff">7468</span> <span style="color:#ae81ff">6973</span> <span style="color:#ae81ff">2069</span>  ..d.....4.this.i
+</span></span><span style="display:flex;"><span>        0x0030:  <span style="color:#ae81ff">7320</span> <span style="color:#ae81ff">7468</span> <span style="color:#ae81ff">6520</span> 686f <span style="color:#ae81ff">7374</span> <span style="color:#ae81ff">21</span>              s.the.host!
+</span></span></code></pre></div><p>可能會有一點不一，但主要會有</p>
+<ol>
+<li><code>ARP, Request</code></li>
+<li><code>ARP, Reply</code></li>
+<li><code>UDP</code></li>
+<li><code>a.message.from.xv6</code></li>
+<li><code>this.is.the.host</code></li>
+</ol>
+<blockquote>
+<p><code>nettests</code> performs some other tests, culminating in a DNS request sent over the (real) Internet to one of Google&rsquo;s name servers. You should ensure that your code passes all these tests, after which you should see this output:</p></blockquote>
+<p>還有一些如向 google&rsquo;s name servers 發出請求的 test，最終 <code>nettests</code> 的結果應為：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ nettests
+</span></span><span style="display:flex;"><span>nettests running on port <span style="color:#ae81ff">25603</span>
+</span></span><span style="display:flex;"><span>testing ping: OK
+</span></span><span style="display:flex;"><span>testing single-process pings: OK
+</span></span><span style="display:flex;"><span>testing multi-process pings: OK
+</span></span><span style="display:flex;"><span>testing DNS
+</span></span><span style="display:flex;"><span>DNS arecord <span style="color:#66d9ef">for</span> pdos.csail.mit.edu. is 128.52.129.126
+</span></span><span style="display:flex;"><span>DNS OK
+</span></span><span style="display:flex;"><span>all tests passed.
+</span></span></code></pre></div><h2 id="hints">Hints<a hidden class="anchor" aria-hidden="true" href="#hints">#</a></h2>
+<blockquote>
+<p>Start by adding print statements to <code>e1000_transmit()</code> and <code>e1000_recv()</code>, and running <code>make server</code> and (in xv6) <code>nettests</code>. You should see from your print statements that <code>nettests</code> generates a call to <code>e1000_transmit</code>.</p></blockquote>
+<p><img alt="hint-0.png" loading="lazy" src="/xv6/lab11/hint-0.png">
+從上圖可以看到 <code>nettests</code> 最開始的時候會呼叫到 <code>e1000_transmit()</code></p>
+<h3 id="some-hints-for-implementing-e1000_transmit">Some hints for implementing <code>e1000_transmit</code>:<a hidden class="anchor" aria-hidden="true" href="#some-hints-for-implementing-e1000_transmit">#</a></h3>
+<blockquote>
+<ul>
+<li>First ask the E1000 for the TX ring index at which it&rsquo;s expecting the next packet, by reading the <code>E1000_TDT</code> control register.</li>
+</ul></blockquote>
+<p>詢問 <code>E1000_TDT</code> control register 可以得知下一個預期的 TX ring index</p>
+<blockquote>
+<ul>
+<li>Then check if the the ring is overflowing. If <code>E1000_TXD_STAT_DD</code> is not set in the descriptor indexed by <code>E1000_TDT</code>, the E1000 hasn&rsquo;t finished the corresponding previous transmission request, so return an error.</li>
+</ul></blockquote>
+<p>上一個 hint 提及的 <code>E1000_TDT</code> 無法得知是否 overflowing，必須要透過 <code>E1000_TXD_STAT_DD</code> 才可以知道 if overflowing</p>
+<blockquote>
+<ul>
+<li>Otherwise, use <code>mbuffree()</code> to free the last <code>mbuf</code> that was transmitted from that descriptor (if there was one).</li>
+</ul></blockquote>
+<p>如果 overflow 要使用 <code>mbuffree()</code> 把最後一個 <code>mbuf</code> free 掉</p>
+<blockquote>
+<ul>
+<li>Then fill in the descriptor. <code>m-&gt;head</code> points to the packet&rsquo;s content in memory, and <code>m-&gt;len</code> is the packet length. Set the necessary <code>cmd</code> flags (look at Section 3.3 in the E1000 manual) and stash away a pointer to the <code>mbuf</code> for later freeing.</li>
+</ul></blockquote>
+<ul>
+<li>descriptor? memory?</li>
+</ul>
+<blockquote>
+<ul>
+<li>Finally, update the ring position by adding one to <code>E1000_TDT</code> modulo <code>TX_RING_SIZE</code>.</li>
+</ul></blockquote>
+<p>更新 ring 的狀態</p>
+<blockquote>
+<ul>
+<li>If <code>e1000_transmit()</code> added the <code>mbuf</code> successfully to the ring, return 0. On failure (e.g., there is no descriptor available to transmit the mbuf), return -1 so that the caller knows to free the mbuf.</li>
+</ul></blockquote>
+<p><code>return 0</code> (if sucess) or <code>return -1</code> (if failed)</p>
+<h3 id="some-hints-for-implementing-e1000_recv">Some hints for implementing <code>e1000_recv</code>:<a hidden class="anchor" aria-hidden="true" href="#some-hints-for-implementing-e1000_recv">#</a></h3>
+<blockquote>
+<ul>
+<li>First ask the E1000 for the ring index at which the next waiting received packet (if any) is located, by fetching the <code>E1000_RDT</code> control register and adding one modulo <code>RX_RING_SIZE</code>.</li>
+</ul></blockquote>
+<p>下一個 ring index 的計算方式為 <code>E1000_RDT + 1 % RX_RING_SIZE</code></p>
+<blockquote>
+<ul>
+<li>Then check if a new packet is available by checking for the <code>E1000_RXD_STAT_DD</code> bit in the status portion of the descriptor. If not, stop.</li>
+</ul></blockquote>
+<p>check if a new packet is available by checking <code>E1000_RXD_STAT_DD</code></p>
+<blockquote>
+<ul>
+<li>Otherwise, update the <code>mbuf</code>&rsquo;s <code>m-&gt;len</code> to the length reported in the descriptor. Deliver the mbuf to the network stack using <code>net_rx()</code>.</li>
+</ul></blockquote>
+<p>這裡要關注的是與 <code>net_rx()</code> 進行 network stack 的互動</p>
+<blockquote>
+<ul>
+<li>Then allocate a new mbuf using <code>mbufalloc()</code> to replace the one just given to <code>net_rx()</code>. Program its data pointer (<code>m-&gt;head</code>) into the descriptor. Clear the descriptor&rsquo;s status bits to zero.</li>
+</ul></blockquote>
+<p>使用 <code>mbufalloc()</code> 並且把他放到 <code>net_rx()</code> 最後 update <code>m-&gt;head</code></p>
+<blockquote>
+<ul>
+<li>Finally, update the <code>E1000_RDT</code> register to be the index of the last ring descriptor processed.</li>
+</ul></blockquote>
+<p><code>E1000_RDT</code> 要我們自己自行更改</p>
+<blockquote>
+<ul>
+<li><code>e1000_init()</code> initializes the RX ring with <code>mbuf</code>s, and you&rsquo;ll want to look at how it does that and perhaps borrow code.</li>
+</ul></blockquote>
+<p>閱讀 <code>e1000_init()</code> 對於 <code>mbuf</code> 的理解有幫助</p>
+<blockquote>
+<ul>
+<li>At some point the total number of packets that have ever arrived will exceed the ring size (16); make sure your code can handle that.</li>
+</ul></blockquote>
+<p>要支援 packets 超過 ring size 的情況</p>
 
 
   </div>
@@ -203,10 +377,10 @@ You&rsquo;ll use a network device called the E1000 to handle network communicati
     <ul class="post-tags">
     </ul>
 <nav class="paginav">
-  <a class="prev" href="http://localhost:1313/xv6/lec21-networking/">
+  <a class="prev" href="http://localhost:1313/xv6/e1000-mannual/">
     <span class="title">« Prev</span>
     <br>
-    <span>[xv6 學習紀錄 11-1] Networking</span>
+    <span>[xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做</span>
   </a>
   <a class="next" href="http://localhost:1313/leetcode/136-single-number/">
     <span class="title">Next »</span>

@@ -3,7 +3,7 @@ date = '2025-11-06T13:40:57+08:00'
 draft = false
 title = '[xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers'
 series = ["xv6 學習紀錄"]
-weight = 110
+weight = 112
 +++
 這一篇筆記主要是為了 lab: network driver 中，要我們先讀一下 xv6 book ch5: Interrupts and device drivers，這篇文章是我自己的筆記
 

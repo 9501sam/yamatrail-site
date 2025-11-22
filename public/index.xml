@@ -6,7 +6,7 @@
     <description>Recent content in Yama 的網站 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Thu, 06 Nov 2025 13:40:57 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 21 Nov 2025 15:49:48 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</title>
@@ -1298,6 +1298,33 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
 &lt;p&gt;目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處&lt;/p&gt;</description>
     </item>
     <item>
+      <title>[xv6 學習紀錄 11-1] Networking</title>
+      <link>http://localhost:1313/xv6/lec21-networking/</link>
+      <pubDate>Thu, 06 Nov 2025 12:45:24 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/lec21-networking/</guid>
+      <description>&lt;p&gt;課程連結：&lt;a href=&#34;https://www.youtube.com/watch?v=Fcjychg4Tvk&#34;&gt;6.S081 Fall 2020 Lecture 21: Networking&lt;/a&gt;
+&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
+      &lt;iframe allow=&#34;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&#34; loading=&#34;eager&#34; referrerpolicy=&#34;strict-origin-when-cross-origin&#34; src=&#34;https://www.youtube.com/embed/Fcjychg4Tvk?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; title=&#34;YouTube video&#34;&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+&lt;/p&gt;
+&lt;h2 id=&#34;protocal-nesting&#34;&gt;Protocal nesting&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;header 的 type 決定了之後的內容要如何解讀&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;the-os-network-stack&#34;&gt;The OS network stack&lt;/h2&gt;
+&lt;h2 id=&#34;tcpdump-的解析&#34;&gt;&lt;code&gt;tcpdump&lt;/code&gt; 的解析&lt;/h2&gt;
+&lt;h2 id=&#34;queue-的使用&#34;&gt;Queue 的使用&lt;/h2&gt;
+&lt;p&gt;影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的&lt;/p&gt;
+&lt;p&gt;可能會有一個 buffer allocator &lt;code&gt;MBUF&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&#34;e1000-nic&#34;&gt;E1000 NIC&lt;/h2&gt;
+&lt;p&gt;這在 lab: network driver 中會運用的一個 NIC, 影片中有提及跟現代的 NIC 比較起來&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;現在的 NIC 當中有做一些 check&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;livelock-problem&#34;&gt;Livelock Problem&lt;/h2&gt;
+&lt;p&gt;最後的結論是用 Polling 來解決&lt;/p&gt;</description>
+    </item>
+    <item>
       <title>[xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers</title>
       <link>http://localhost:1313/xv6/ch5-interrupt-and-device-drivers/</link>
       <pubDate>Thu, 06 Nov 2025 13:40:57 +0800</pubDate>
@@ -1375,31 +1402,95 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
 &lt;p&gt;接著分別使用 Console input/output 來看 driver 如何運作&lt;/p&gt;</description>
     </item>
     <item>
-      <title>[xv6 學習紀錄 11-1] Networking</title>
-      <link>http://localhost:1313/xv6/lec21-networking/</link>
-      <pubDate>Thu, 06 Nov 2025 12:45:24 +0800</pubDate>
-      <guid>http://localhost:1313/xv6/lec21-networking/</guid>
-      <description>&lt;p&gt;課程連結：&lt;a href=&#34;https://www.youtube.com/watch?v=Fcjychg4Tvk&#34;&gt;6.S081 Fall 2020 Lecture 21: Networking&lt;/a&gt;
-&lt;div style=&#34;position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;&#34;&gt;
-      &lt;iframe allow=&#34;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share&#34; loading=&#34;eager&#34; referrerpolicy=&#34;strict-origin-when-cross-origin&#34; src=&#34;https://www.youtube.com/embed/Fcjychg4Tvk?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0&#34; style=&#34;position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;&#34; title=&#34;YouTube video&#34;&gt;&lt;/iframe&gt;
-    &lt;/div&gt;
-&lt;/p&gt;
-&lt;h2 id=&#34;protocal-nesting&#34;&gt;Protocal nesting&lt;/h2&gt;
+      <title>[xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做</title>
+      <link>http://localhost:1313/xv6/e1000-mannual/</link>
+      <pubDate>Fri, 21 Nov 2025 15:49:48 +0800</pubDate>
+      <guid>http://localhost:1313/xv6/e1000-mannual/</guid>
+      <description>&lt;h3 id=&#34;initialize&#34;&gt;Initialize&lt;/h3&gt;
 &lt;ul&gt;
-&lt;li&gt;header 的 type 決定了之後的內容要如何解讀&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&#34;the-os-network-stack&#34;&gt;The OS network stack&lt;/h2&gt;
-&lt;h2 id=&#34;tcpdump-的解析&#34;&gt;&lt;code&gt;tcpdump&lt;/code&gt; 的解析&lt;/h2&gt;
-&lt;h2 id=&#34;queue-的使用&#34;&gt;Queue 的使用&lt;/h2&gt;
-&lt;p&gt;影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的&lt;/p&gt;
-&lt;p&gt;可能會有一個 buffer allocator &lt;code&gt;MBUF&lt;/code&gt;&lt;/p&gt;
-&lt;h2 id=&#34;e1000-nic&#34;&gt;E1000 NIC&lt;/h2&gt;
-&lt;p&gt;這在 lab: network driver 中會運用的一個 NIC, 影片中有提及跟現代的 NIC 比較起來&lt;/p&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;kernel/main.c: main()&lt;/code&gt;&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;現在的 NIC 當中有做一些 check&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kernel/pci.c: pci_init()&lt;/code&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;kernel/e1000.c: e1000_init(uint32 *xregs)&lt;/code&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;regs[XXX] = OOO&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h2 id=&#34;livelock-problem&#34;&gt;Livelock Problem&lt;/h2&gt;
-&lt;p&gt;最後的結論是用 Polling 來解決&lt;/p&gt;</description>
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kernel/sysnet.c: sockinit()&lt;/code&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;initlock()&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;kernel/pci.c: pci_init()&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;pci_init&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// we&amp;#39;ll place the e1000 registers at this address.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// vm.c maps this range.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 我們會把 e1000 registers 放到這個位置
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 如下圖，他會被放在 unused and other I/O devices 的區塊
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// vm.c 會負責做這個 mapping
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  uint64 e1000_regs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x40000000L&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// qemu -machine virt puts PCIe config space here.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// vm.c maps this range.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 這裡則是在 mapping PCIe config
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// 跟前面一樣，是放在 unused and other I/O devices 的區塊
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// ECAM for Extended Configuration Access Mechanism
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  uint32  &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;ecam &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (uint32 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;) &lt;span style=&#34;color:#ae81ff&#34;&gt;0x30000000L&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// look at each possible PCI device on bus 0.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// bus == 0 是固定的，只掃描 Primary Bus
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// dev: 0 ~ 31 設備號碼，每一個代表一個獨立設備例如 E1000 網卡、顯示卡，現在要尋找 E1000
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// func: 功能號碼，每一個設備可以有多個 function, 這裡只需要尋找第 0 個功能，E1000 也只有一個功能
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// offset: 指向配置空間中特定 4 位元組暫存器的偏移量, 設為 0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// off: 透過上面的資訊取得總 offset
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; dev &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; dev &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;; dev&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; bus &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; func &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; offset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    uint32 off &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (bus &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;|&lt;/span&gt; (dev &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;11&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;|&lt;/span&gt; (func &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;|&lt;/span&gt; (offset);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;volatile&lt;/span&gt; uint32 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;base &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ecam &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; off;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    uint32 id &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// 100e:8086 is an e1000
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(id &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x100e8086&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#75715e&#34;&gt;// command and status register.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;      &lt;span style=&#34;color:#75715e&#34;&gt;// bit 0 : I/O access enable
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;      &lt;span style=&#34;color:#75715e&#34;&gt;// bit 1 : memory access enable
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;      &lt;span style=&#34;color:#75715e&#34;&gt;// bit 2 : enable mastering
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;      base[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#a6e22e&#34;&gt;__sync_synchronize&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;){
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        uint32 old &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base[&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;i];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// writing all 1&amp;#39;s to the BAR causes it to be
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;// replaced with its size.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;        base[&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xffffffff&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#a6e22e&#34;&gt;__sync_synchronize&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        base[&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;i] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; old;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#75715e&#34;&gt;// tell the e1000 to reveal its registers at
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;      &lt;span style=&#34;color:#75715e&#34;&gt;// physical address 0x40000000.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;      base[&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; e1000_regs;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#a6e22e&#34;&gt;e1000_init&lt;/span&gt;((uint32&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)e1000_regs);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/xv6/e1000-mannual/kernel_layout.png&#34;&gt;&lt;/p&gt;</description>
     </item>
     <item>
       <title>[xv6 學習紀錄 11] Lab net: Network driver</title>
@@ -1409,7 +1500,7 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
       <description>&lt;p&gt;Lab 連結：&lt;a href=&#34;https://pdos.csail.mit.edu/6.S081/2022/labs/net.html&#34;&gt;Lab net: Network driver&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;
 &lt;blockquote&gt;
-&lt;p&gt;You&amp;rsquo;ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the &amp;ldquo;guest&amp;rdquo;) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you&amp;rsquo;re running qemu (the &amp;ldquo;host&amp;rdquo;).&lt;/p&gt;</description>
+&lt;p&gt;You&amp;rsquo;ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the &amp;ldquo;guest&amp;rdquo;) has an IP address of &lt;code&gt;10.0.2.15&lt;/code&gt;. Qemu also arranges for the computer running qemu to appear on the LAN with IP address &lt;code&gt;10.0.2.2&lt;/code&gt;. When xv6 uses the E1000 to send a packet to &lt;code&gt;10.0.2.2&lt;/code&gt;, qemu delivers the packet to the appropriate application on the (real) computer on which you&amp;rsquo;re running qemu (the &amp;ldquo;host&amp;rdquo;).&lt;/p&gt;</description>
     </item>
     <item>
       <title>[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)</title>

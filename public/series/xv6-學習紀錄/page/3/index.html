@@ -154,6 +154,22 @@ Lab: mmap (hard) The mmap and munmap system calls allow UNIX programs to exert d
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-1] Networking
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程連結：6.S081 Fall 2020 Lecture 21: Networking Protocal nesting header 的 type 決定了之後的內容要如何解讀 The OS network stack tcpdump 的解析 Queue 的使用 影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的
+可能會有一個 buffer allocator MBUF
+E1000 NIC 這在 lab: network driver 中會運用的一個 NIC, 影片中有提及跟現代的 NIC 比較起來
+現在的 NIC 當中有做一些 check Livelock Problem 最後的結論是用 Polling 來解決
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-06 12:45:24 +0800 CST'>November 6, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-1] Networking" href="http://localhost:1313/xv6/lec21-networking/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers
     </h2>
   </header>
@@ -168,18 +184,16 @@ Interrupts and device drivers Driver 需要了解 device 的 interface，可能�
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-1] Networking
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做
     </h2>
   </header>
   <div class="entry-content">
-    <p>課程連結：6.S081 Fall 2020 Lecture 21: Networking Protocal nesting header 的 type 決定了之後的內容要如何解讀 The OS network stack tcpdump 的解析 Queue 的使用 影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的
-可能會有一個 buffer allocator MBUF
-E1000 NIC 這在 lab: network driver 中會運用的一個 NIC, 影片中有提及跟現代的 NIC 比較起來
-現在的 NIC 當中有做一些 check Livelock Problem 最後的結論是用 Polling 來解決
-...</p>
+    <p>Initialize kernel/main.c: main()
+kernel/pci.c: pci_init() kernel/e1000.c: e1000_init(uint32 *xregs) regs[XXX] = OOO kernel/sysnet.c: sockinit() initlock() kernel/pci.c: pci_init()
+void pci_init() { // we&#39;ll place the e1000 registers at this address. // vm.c maps this range. uint64 e1000_regs = 0x40000000L; // qemu -machine virt puts PCIe config space here. // vm.c maps this range. uint32 *ecam = (uint32 *) 0x30000000L; // look at each possible PCI device on bus 0. for(int dev = 0; dev &lt; 32; dev&#43;&#43;){ int bus = 0; int func = 0; int offset = 0; uint32 off = (bus &lt;&lt; 16) | (dev &lt;&lt; 11) | (func &lt;&lt; 8) | (offset); volatile uint32 *base = ecam &#43; off; uint32 id = base[0]; // 100e:8086 is an e1000 if(id == 0x100e8086){ // command and status register. // bit 0 : I/O access enable // bit 1 : memory access enable // bit 2 : enable mastering base[1] = 7; __sync_synchronize(); for(int i = 0; i &lt; 6; i&#43;&#43;){ uint32 old = base[4&#43;i]; // writing all 1&#39;s to the BAR causes it to be // replaced with its size. base[4&#43;i] = 0xffffffff; __sync_synchronize(); base[4&#43;i] = old; } // tell the e1000 to reveal its registers at // physical address 0x40000000. base[4&#43;0] = e1000_regs; e1000_init((uint32*)e1000_regs); } } } kernel/e1000.c: e1000_init(uint32 *xregs) // called by pci_init(). // xregs is the memory address at which the // e1000&#39;s registers are mapped. void e1000_init(uint32 *xregs) { int i; initlock(&amp;e1000_lock, &#34;e1000&#34;); regs = xregs; // Reset the device regs[E1000_IMS] = 0; // disable interrupts regs[E1000_CTL] |= E1000_CTL_RST; regs[E1000_IMS] = 0; // redisable interrupts __sync_synchronize(); // [E1000 14.5] Transmit initialization memset(tx_ring, 0, sizeof(tx_ring)); for (i = 0; i &lt; TX_RING_SIZE; i&#43;&#43;) { tx_ring[i].status = E1000_TXD_STAT_DD; tx_mbufs[i] = 0; } regs[E1000_TDBAL] = (uint64) tx_ring; if(sizeof(tx_ring) % 128 != 0) panic(&#34;e1000&#34;); regs[E1000_TDLEN] = sizeof(tx_ring); regs[E1000_TDH] = regs[E1000_TDT] = 0; // [E1000 14.4] Receive initialization memset(rx_ring, 0, sizeof(rx_ring)); for (i = 0; i &lt; RX_RING_SIZE; i&#43;&#43;) { rx_mbufs[i] = mbufalloc(0); if (!rx_mbufs[i]) panic(&#34;e1000&#34;); rx_ring[i].addr = (uint64) rx_mbufs[i]-&gt;head; } regs[E1000_RDBAL] = (uint64) rx_ring; if(sizeof(rx_ring) % 128 != 0) panic(&#34;e1000&#34;); regs[E1000_RDH] = 0; regs[E1000_RDT] = RX_RING_SIZE - 1; regs[E1000_RDLEN] = sizeof(rx_ring); // filter by qemu&#39;s MAC address, 52:54:00:12:34:56 regs[E1000_RA] = 0x12005452; regs[E1000_RA&#43;1] = 0x5634 | (1&lt;&lt;31); // multicast table for (int i = 0; i &lt; 4096/32; i&#43;&#43;) regs[E1000_MTA &#43; i] = 0; // transmitter control bits. regs[E1000_TCTL] = E1000_TCTL_EN | // enable E1000_TCTL_PSP | // pad short packets (0x10 &lt;&lt; E1000_TCTL_CT_SHIFT) | // collision stuff (0x40 &lt;&lt; E1000_TCTL_COLD_SHIFT); regs[E1000_TIPG] = 10 | (8&lt;&lt;10) | (6&lt;&lt;20); // inter-pkt gap // receiver control bits. regs[E1000_RCTL] = E1000_RCTL_EN | // enable receiver E1000_RCTL_BAM | // enable broadcast E1000_RCTL_SZ_2048 | // 2048-byte rx buffers E1000_RCTL_SECRC; // strip CRC // ask e1000 for receive interrupts. regs[E1000_RDTR] = 0; // interrupt after every received packet (no timer) regs[E1000_RADV] = 0; // interrupt after every packet (no timer) regs[E1000_IMS] = (1 &lt;&lt; 7); // RXDW -- Receiver Descriptor Write Back } </p>
   </div>
-  <footer class="entry-footer"><span title='2025-11-06 12:45:24 +0800 CST'>November 6, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-1] Networking" href="http://localhost:1313/xv6/lec21-networking/"></a>
+  <footer class="entry-footer"><span title='2025-11-21 15:49:48 +0800 CST'>November 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做" href="http://localhost:1313/xv6/e1000-mannual/"></a>
 </article>
 
 <article class="post-entry tag-entry"> 
