@@ -305,70 +305,125 @@ You&rsquo;ll use a network device called the E1000 to handle network communicati
 <ul>
 <li>First ask the E1000 for the TX ring index at which it&rsquo;s expecting the next packet, by reading the <code>E1000_TDT</code> control register.</li>
 </ul></blockquote>
-<p>詢問 <code>E1000_TDT</code> control register 可以得知下一個預期的 TX ring index</p>
+<p>詢問 <code>E1000_TDT</code> control register 可以得知 Transmit Descriptor Tail，我們想要知道 Tail 是因為在 transmit 時，我們會想要把 Data 塞到 Tail 的地方，之後再交給 E1000 處理</p>
 <blockquote>
 <ul>
 <li>Then check if the the ring is overflowing. If <code>E1000_TXD_STAT_DD</code> is not set in the descriptor indexed by <code>E1000_TDT</code>, the E1000 hasn&rsquo;t finished the corresponding previous transmission request, so return an error.</li>
 </ul></blockquote>
-<p>上一個 hint 提及的 <code>E1000_TDT</code> 無法得知是否 overflowing，必須要透過 <code>E1000_TXD_STAT_DD</code> 才可以知道 if overflowing</p>
+<p>接著 check：</p>
+<ol>
+<li>Ring 是否 overflowing，(<code>(tail + 1 % ring_size) == head</code>)</li>
+<li><code>E1000_TXD_STAT_DD</code>: 是否 Descriptor Done，沒有 Done 就回傳 Error</li>
+</ol>
 <blockquote>
 <ul>
 <li>Otherwise, use <code>mbuffree()</code> to free the last <code>mbuf</code> that was transmitted from that descriptor (if there was one).</li>
 </ul></blockquote>
-<p>如果 overflow 要使用 <code>mbuffree()</code> 把最後一個 <code>mbuf</code> free 掉</p>
+<p>如果有 Error 要使用 <code>mbuffree()</code> 把最後一個 <code>mbuf</code> free 掉</p>
 <blockquote>
 <ul>
 <li>Then fill in the descriptor. <code>m-&gt;head</code> points to the packet&rsquo;s content in memory, and <code>m-&gt;len</code> is the packet length. Set the necessary <code>cmd</code> flags (look at Section 3.3 in the E1000 manual) and stash away a pointer to the <code>mbuf</code> for later freeing.</li>
 </ul></blockquote>
+<p>如果到目前都沒問題，就可以來設定 Descriptor 了</p>
 <ul>
-<li>descriptor? memory?</li>
+<li><code>m-&gt;head</code>: 這代表的是 packet 的位置，應該就是所對應的 <code>mbuf</code></li>
+<li><code>m-&gt;len</code>: packet 的大小</li>
+<li><code>cmd</code>: 設定 flag</li>
 </ul>
 <blockquote>
 <ul>
 <li>Finally, update the ring position by adding one to <code>E1000_TDT</code> modulo <code>TX_RING_SIZE</code>.</li>
 </ul></blockquote>
-<p>更新 ring 的狀態</p>
+<p>我們在 Tail 的地方填入之後要傳送的資料之後，更新代表 Tail 的 <code>E1000_TDT</code></p>
 <blockquote>
 <ul>
 <li>If <code>e1000_transmit()</code> added the <code>mbuf</code> successfully to the ring, return 0. On failure (e.g., there is no descriptor available to transmit the mbuf), return -1 so that the caller knows to free the mbuf.</li>
 </ul></blockquote>
-<p><code>return 0</code> (if sucess) or <code>return -1</code> (if failed)</p>
+<p>如果成功 <code>return 0</code>; 失敗 <code>return -1</code></p>
 <h3 id="some-hints-for-implementing-e1000_recv">Some hints for implementing <code>e1000_recv</code>:<a hidden class="anchor" aria-hidden="true" href="#some-hints-for-implementing-e1000_recv">#</a></h3>
 <blockquote>
 <ul>
 <li>First ask the E1000 for the ring index at which the next waiting received packet (if any) is located, by fetching the <code>E1000_RDT</code> control register and adding one modulo <code>RX_RING_SIZE</code>.</li>
 </ul></blockquote>
-<p>下一個 ring index 的計算方式為 <code>E1000_RDT + 1 % RX_RING_SIZE</code></p>
+<p>下一個 ring index 的計算方式為 <code>E1000_RDT + 1 % RX_RING_SIZE</code>
+這裡的差別在於 <code>RDT</code> 是<strong>上一個</strong>完成的位置</p>
 <blockquote>
 <ul>
 <li>Then check if a new packet is available by checking for the <code>E1000_RXD_STAT_DD</code> bit in the status portion of the descriptor. If not, stop.</li>
 </ul></blockquote>
-<p>check if a new packet is available by checking <code>E1000_RXD_STAT_DD</code></p>
+<p>check if a new packet is available by checking <code>E1000_RXD_STAT_DD</code>
+我想這裡的意思是說如果 <code>E1000_RXD_STAT_DD</code> 代表資料已經在 <code>rx_ring</code> 當中等著我們去處理了</p>
 <blockquote>
 <ul>
-<li>Otherwise, update the <code>mbuf</code>&rsquo;s <code>m-&gt;len</code> to the length reported in the descriptor. Deliver the mbuf to the network stack using <code>net_rx()</code>.</li>
+<li>Otherwise, update the <code>mbuf</code>&rsquo;s <code>m-&gt;len</code> to the length reported in the descriptor. Deliver the <code>mbuf</code> to the network stack using <code>net_rx()</code>.</li>
 </ul></blockquote>
-<p>這裡要關注的是與 <code>net_rx()</code> 進行 network stack 的互動</p>
+<p>如果 <code>E1000_RXD_STAT_DD</code> (Descriptor Done) 則把 <code>mbuf</code> 的 <code>m-&gt;len</code> 更新為 descriptor 上所紀錄的 length，並且把 <code>mbuf</code> 送到 <code>net_rx()</code> 做後續的處理</p>
 <blockquote>
 <ul>
-<li>Then allocate a new mbuf using <code>mbufalloc()</code> to replace the one just given to <code>net_rx()</code>. Program its data pointer (<code>m-&gt;head</code>) into the descriptor. Clear the descriptor&rsquo;s status bits to zero.</li>
+<li>Then allocate a new <code>mbuf</code> using <code>mbufalloc()</code> to replace the one just given to <code>net_rx()</code>. Program its data pointer (<code>m-&gt;head</code>) into the descriptor. Clear the descriptor&rsquo;s status bits to zero.</li>
 </ul></blockquote>
-<p>使用 <code>mbufalloc()</code> 並且把他放到 <code>net_rx()</code> 最後 update <code>m-&gt;head</code></p>
+<p>使用 <code>mbufalloc()</code> 出新的 <code>mbuf</code>，以取代剛剛送到 <code>net_rx()</code> 的 <code>mbuf</code>，把 <code>m-&gt;head</code> 指向對應的 descriptor，並把 desciptor 的 status set to zero</p>
 <blockquote>
 <ul>
 <li>Finally, update the <code>E1000_RDT</code> register to be the index of the last ring descriptor processed.</li>
 </ul></blockquote>
-<p><code>E1000_RDT</code> 要我們自己自行更改</p>
+<p><code>E1000_RDT</code> 要我們自己自行更改 (這裡還是沒有很確定 RDT 的角色為何)</p>
 <blockquote>
 <ul>
 <li><code>e1000_init()</code> initializes the RX ring with <code>mbuf</code>s, and you&rsquo;ll want to look at how it does that and perhaps borrow code.</li>
 </ul></blockquote>
-<p>閱讀 <code>e1000_init()</code> 對於 <code>mbuf</code> 的理解有幫助</p>
+<p>閱讀 <code>e1000_init()</code> 對於 <code>mbuf</code> 的理解有幫助，也可以借用 <code>e1000_init()</code> 的 code</p>
 <blockquote>
 <ul>
 <li>At some point the total number of packets that have ever arrived will exceed the ring size (16); make sure your code can handle that.</li>
 </ul></blockquote>
-<p>要支援 packets 超過 ring size 的情況</p>
+<p>要處理 packets 超過 ring size 的情況</p>
+<h3 id="程式實做">程式實做<a hidden class="anchor" aria-hidden="true" href="#程式實做">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">e1000_transmit</span>(<span style="color:#66d9ef">struct</span> mbuf <span style="color:#f92672">*</span>m)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>e1000_lock);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  uint32 idx <span style="color:#f92672">=</span> regs[E1000_TDT]; 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#f92672">!</span>(tx_ring[idx].status <span style="color:#f92672">&amp;</span> E1000_TXD_STAT_DD)) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>e1000_lock);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (tx_mbufs[idx]) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mbuffree</span>(tx_mbufs[idx]);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  tx_ring[idx].addr <span style="color:#f92672">=</span> (uint64) m<span style="color:#f92672">-&gt;</span>head;
+</span></span><span style="display:flex;"><span>  tx_ring[idx].length <span style="color:#f92672">=</span> (uint16) m<span style="color:#f92672">-&gt;</span>len;
+</span></span><span style="display:flex;"><span>  tx_ring[idx].cmd <span style="color:#f92672">=</span> E1000_TXD_CMD_EOP <span style="color:#f92672">|</span> E1000_TXD_CMD_RS;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  tx_mbufs[idx] <span style="color:#f92672">=</span> m;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  regs[E1000_TDT] <span style="color:#f92672">=</span> (idx <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">%</span> TX_RING_SIZE;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>e1000_lock);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">e1000_recv</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  uint32 idx <span style="color:#f92672">=</span> (regs[E1000_RDT] <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">%</span> RX_RING_SIZE;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span> (rx_ring[idx].status <span style="color:#f92672">&amp;</span> E1000_RXD_STAT_DD) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>e1000_lock);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> mbuf <span style="color:#f92672">*</span>m <span style="color:#f92672">=</span> <span style="color:#a6e22e">mbufalloc</span>(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>    m<span style="color:#f92672">-&gt;</span>len <span style="color:#f92672">=</span> rx_ring[idx].length;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memmove</span>(m<span style="color:#f92672">-&gt;</span>head, (<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>) rx_ring[idx].addr, m<span style="color:#f92672">-&gt;</span>len);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    rx_ring[idx].status <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>e1000_lock);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">net_rx</span>(m);
+</span></span><span style="display:flex;"><span>    regs[E1000_RDT] <span style="color:#f92672">=</span> idx;
+</span></span><span style="display:flex;"><span>    idx <span style="color:#f92672">=</span> (regs[E1000_RDT] <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">%</span> RX_RING_SIZE;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><img alt="ac.png" loading="lazy" src="/xv6/lab11/ac.png"></p>
 
 
   </div>

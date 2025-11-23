@@ -1406,7 +1406,8 @@ Read the code in &lt;code&gt;call.asm&lt;/code&gt; for the functions &lt;code&gt
       <link>http://localhost:1313/xv6/e1000-mannual/</link>
       <pubDate>Fri, 21 Nov 2025 15:49:48 +0800</pubDate>
       <guid>http://localhost:1313/xv6/e1000-mannual/</guid>
-      <description>&lt;h3 id=&#34;initialize&#34;&gt;Initialize&lt;/h3&gt;
+      <description>&lt;h2 id=&#34;initialize&#34;&gt;Initialize&lt;/h2&gt;
+&lt;p&gt;我們首先觀察 lab net 所提供的初始化過程，大致上了解要如何從 E1000 manual 轉換到程式碼&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;&lt;code&gt;kernel/main.c: main()&lt;/code&gt;&lt;/p&gt;

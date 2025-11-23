@@ -155,55 +155,113 @@ all tests passed.
 
 > * First ask the E1000 for the TX ring index at which it's expecting the next packet, by reading the `E1000_TDT` control register.
 
-詢問 `E1000_TDT` control register 可以得知下一個預期的 TX ring index
+詢問 `E1000_TDT` control register 可以得知 Transmit Descriptor Tail，我們想要知道 Tail 是因為在 transmit 時，我們會想要把 Data 塞到 Tail 的地方，之後再交給 E1000 處理
 
 > * Then check if the the ring is overflowing. If `E1000_TXD_STAT_DD` is not set in the descriptor indexed by `E1000_TDT`, the E1000 hasn't finished the corresponding previous transmission request, so return an error.
 
-上一個 hint 提及的 `E1000_TDT` 無法得知是否 overflowing，必須要透過 `E1000_TXD_STAT_DD` 才可以知道 if overflowing
+接著 check：
+1. Ring 是否 overflowing，(`(tail + 1 % ring_size) == head`)
+1. `E1000_TXD_STAT_DD`: 是否 Descriptor Done，沒有 Done 就回傳 Error
 
 > * Otherwise, use `mbuffree()` to free the last `mbuf` that was transmitted from that descriptor (if there was one).
 
-如果 overflow 要使用 `mbuffree()` 把最後一個 `mbuf` free 掉
+如果有 Error 要使用 `mbuffree()` 把最後一個 `mbuf` free 掉
 
 > * Then fill in the descriptor. `m->head` points to the packet's content in memory, and `m->len` is the packet length. Set the necessary `cmd` flags (look at Section 3.3 in the E1000 manual) and stash away a pointer to the `mbuf` for later freeing.
 
-* descriptor? memory?
+如果到目前都沒問題，就可以來設定 Descriptor 了
+* `m->head`: 這代表的是 packet 的位置，應該就是所對應的 `mbuf`
+* `m->len`: packet 的大小
+* `cmd`: 設定 flag
 
 > * Finally, update the ring position by adding one to `E1000_TDT` modulo `TX_RING_SIZE`.
 
-更新 ring 的狀態
+我們在 Tail 的地方填入之後要傳送的資料之後，更新代表 Tail 的 `E1000_TDT`
 
 > * If `e1000_transmit()` added the `mbuf` successfully to the ring, return 0. On failure (e.g., there is no descriptor available to transmit the mbuf), return -1 so that the caller knows to free the mbuf. 
 
-`return 0` (if sucess) or `return -1` (if failed)
+如果成功 `return 0`; 失敗 `return -1`
 
 ### Some hints for implementing `e1000_recv`: 
-
-
 > * First ask the E1000 for the ring index at which the next waiting received packet (if any) is located, by fetching the `E1000_RDT` control register and adding one modulo `RX_RING_SIZE`.
 
 下一個 ring index 的計算方式為 `E1000_RDT + 1 % RX_RING_SIZE` 
+這裡的差別在於 `RDT` 是**上一個**完成的位置
 
 > * Then check if a new packet is available by checking for the `E1000_RXD_STAT_DD` bit in the status portion of the descriptor. If not, stop.
 
 check if a new packet is available by checking `E1000_RXD_STAT_DD`
+我想這裡的意思是說如果 `E1000_RXD_STAT_DD` 代表資料已經在 `rx_ring` 當中等著我們去處理了
 
-> * Otherwise, update the `mbuf`'s `m->len` to the length reported in the descriptor. Deliver the mbuf to the network stack using `net_rx()`.
+> * Otherwise, update the `mbuf`'s `m->len` to the length reported in the descriptor. Deliver the `mbuf` to the network stack using `net_rx()`.
 
-這裡要關注的是與 `net_rx()` 進行 network stack 的互動
+如果 `E1000_RXD_STAT_DD` (Descriptor Done) 則把 `mbuf` 的 `m->len` 更新為 descriptor 上所紀錄的 length，並且把 `mbuf` 送到 `net_rx()` 做後續的處理
 
-> * Then allocate a new mbuf using `mbufalloc()` to replace the one just given to `net_rx()`. Program its data pointer (`m->head`) into the descriptor. Clear the descriptor's status bits to zero.
+> * Then allocate a new `mbuf` using `mbufalloc()` to replace the one just given to `net_rx()`. Program its data pointer (`m->head`) into the descriptor. Clear the descriptor's status bits to zero.
 
-使用 `mbufalloc()` 並且把他放到 `net_rx()` 最後 update `m->head`
+使用 `mbufalloc()` 出新的 `mbuf`，以取代剛剛送到 `net_rx()` 的 `mbuf`，把 `m->head` 指向對應的 descriptor，並把 desciptor 的 status set to zero
 
 > * Finally, update the `E1000_RDT` register to be the index of the last ring descriptor processed.
 
-`E1000_RDT` 要我們自己自行更改
+`E1000_RDT` 要我們自己自行更改 (這裡還是沒有很確定 RDT 的角色為何)
 
 > * `e1000_init()` initializes the RX ring with `mbuf`s, and you'll want to look at how it does that and perhaps borrow code.
 
-閱讀 `e1000_init()` 對於 `mbuf` 的理解有幫助
+閱讀 `e1000_init()` 對於 `mbuf` 的理解有幫助，也可以借用 `e1000_init()` 的 code
 
 > * At some point the total number of packets that have ever arrived will exceed the ring size (16); make sure your code can handle that. 
 
-要支援 packets 超過 ring size 的情況
+要處理 packets 超過 ring size 的情況
+
+### 程式實做
+```c
+int
+e1000_transmit(struct mbuf *m)
+{
+  acquire(&e1000_lock);
+
+  uint32 idx = regs[E1000_TDT]; 
+
+  if(!(tx_ring[idx].status & E1000_TXD_STAT_DD)) {
+    release(&e1000_lock);
+    return -1;
+  } else if (tx_mbufs[idx]) {
+    mbuffree(tx_mbufs[idx]);
+  }
+
+  tx_ring[idx].addr = (uint64) m->head;
+  tx_ring[idx].length = (uint16) m->len;
+  tx_ring[idx].cmd = E1000_TXD_CMD_EOP | E1000_TXD_CMD_RS;
+
+  tx_mbufs[idx] = m;
+
+  regs[E1000_TDT] = (idx + 1) % TX_RING_SIZE;
+
+  release(&e1000_lock);
+
+  return 0;
+}
+```
+
+```c
+static void
+e1000_recv(void)
+{
+  uint32 idx = (regs[E1000_RDT] + 1) % RX_RING_SIZE;
+  while (rx_ring[idx].status & E1000_RXD_STAT_DD) {
+    acquire(&e1000_lock);
+    struct mbuf *m = mbufalloc(0);
+    m->len = rx_ring[idx].length;
+    memmove(m->head, (char *) rx_ring[idx].addr, m->len);
+
+    rx_ring[idx].status = 0;
+    release(&e1000_lock);
+    net_rx(m);
+    regs[E1000_RDT] = idx;
+    idx = (regs[E1000_RDT] + 1) % RX_RING_SIZE;
+  }
+  return;
+}
+```
+
+![ac.png](ac.png)
