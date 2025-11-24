@@ -401,7 +401,7 @@ console        3 20 0
 </span></span></code></pre></div><h2 id="pingpong-easy">pingpong (easy)<a hidden class="anchor" aria-hidden="true" href="#pingpong-easy">#</a></h2>
 <p>題目敘述：</p>
 <blockquote>
-<p>Write a program that uses UNIX system calls to &lsquo;&lsquo;ping-pong&rsquo;&rsquo; a byte between two processes over a pair of pipes, one for each direction. The parent should send a byte to the child; the child should print &ldquo;<!-- raw HTML omitted -->: received ping&rdquo;, where <!-- raw HTML omitted --> is its process ID, write the byte on the pipe to the parent, and exit; the parent should read the byte from the child, print &ldquo;<!-- raw HTML omitted -->: received pong&rdquo;, and exit. Your solution should be in the file user/pingpong.c. '</p></blockquote>
+<p>Write a program that uses UNIX system calls to &lsquo;&lsquo;ping-pong&rsquo;&rsquo; a byte between two processes over a pair of pipes, one for each direction. The parent should send a byte to the child; the child should print &ldquo;<pid>: received ping&rdquo;, where <pid> is its process ID, write the byte on the pipe to the parent, and exit; the parent should read the byte from the child, print &ldquo;<pid>: received pong&rdquo;, and exit. Your solution should be in the file user/pingpong.c. '</p></blockquote>
 <p>這題的背後要我們學習的有兩個重點：<code>pipe()</code> 與 <code>fork()</code>, 這些在 <a href="https://pdos.csail.mit.edu/6.S081/2022/xv6/book-riscv-rev3.pdf">xv6 book</a> 的第一章都有提及，我們先來看他們如何運行。</p>
 <h3 id="fork-的用法"><code>fork()</code> 的用法<a hidden class="anchor" aria-hidden="true" href="#fork-的用法">#</a></h3>
 <p>用這個程式碼片段應該就能了解 <code>fork()</code> 的基本用法了，</p>
