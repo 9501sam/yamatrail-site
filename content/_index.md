@@ -1,7 +1,8 @@
 ---
-title: "Yama 的網站"
-# 你可以在這裡加入其他 front matter 變數，例如 description
+date: ""
+hideTitle: true
 description: ""
+ShowBreadCrumbs: false
 image: "profile.jpg"
 ---
 <img src="profile.jpg" alt="profile.jpg" width="25%" style="float: right; margin-left: 0px;" />
@@ -33,14 +34,15 @@ C, C++, Linux, Shell, Makefile, gdb, Golang, Kubernetes, Docker, Dockerfile
 * 會使用 `gdb` 做 debugging
     * Hardware: 以 `qemu` 做模擬
     * Operating System: [xv6-riscv](https://github.com/mit-pdos/xv6-riscv)
+    * [[xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程](xv6/gdb)
+* 使用 C 語言寫的坦克射擊遊戲：[tank-game](https://github.com/9501sam/tank-gam://github.com/9501sam/tank-game)
 
 ### Cloud Computing
 
 * 大學專題與研究所的研究領域，
     * 大學專題：**「賽局理論應用於資源分配之實現——以 Apache Yunikorn 為例」**
     * 碩士論文：**「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」**
-* Apache Yunikorn contributor
-    * 在實驗室學長的帶領之下，
+* 參與開源專案 Apache Yunikorn 並貢獻程式碼及文件撰寫
 
 
 ## 作品集與個人經歷
@@ -49,14 +51,23 @@ C, C++, Linux, Shell, Makefile, gdb, Golang, Kubernetes, Docker, Dockerfile
 系列文章連結：[xv6 學習紀錄](./xv6)
 <img src="xv6-demo.png" alt="xv6-demo.png" width="100%" />
 
-### The 2021 Taiwan Online Programming Contest
+### International Collegiate Programming Contest (ICPC) 程式競賽
+大學時期相當喜歡程式競賽這項活動，透過練習及參與程式競賽提昇程式實做能力
+#### The 2021 Taiwan Online Programming Contest
+比賽結果：Honorable Mention (為校內最佳）
 <img src="icpc-online.png" alt="icpc-online.png" width="70%" />
 
-### The 2021 ICPC Asia Taipei Regional Programming Contest
+#### The 2021 ICPC Asia Taipei Regional Programming Contest
+比賽結果：Bronze（銅牌獎，台灣區名次/隊伍數：46/103）
 <img src="icpc-taipei.png" alt="icpc-taipei.png" width="70%" />
 <img src="icpc-taipei.jpg" alt="icpc-taipei.jpg" width="70%" />
 
 * [恭賀！本系大學部曾喜煌、林家羽、顏岑宇同學榮獲第46屆國際大學程式設計競賽(ICPC)銅牌獎！](https://cs.ntcu.edu.tw/announcement/143)
+
+### LeetCode 解題
+除了以實做出題目需求作為目的，也嘗試把解題過程中的思路記錄下來。
+
+系列文章連結：[LeetCode 解題](./leetcode)
 
 ### 2021 iThome 鐵人賽 (主題: C 語言筆記)
 系列文章連結：[C 語言筆記](https://ithelp.ithome.com.tw/users/20137780/ironman/4752)
@@ -64,17 +75,19 @@ C, C++, Linux, Shell, Makefile, gdb, Golang, Kubernetes, Docker, Dockerfile
 
 ### 這個網站的誕生
 * 系列文章連結：[這個網站的誕生](./dev-log)
-* Git Repository Link: [yamatrail-site](https://github.com/9501sam/yamatrail-site)
+* Git Repository: [yamatrail-site](https://github.com/9501sam/yamatrail-site)
 * 學習以下技能：
-    * Google Cloud Platform 建立及管理虛擬機
-    * Cloudflare 註冊 Domain 及產生憑證
-    * Nginx 建立 HTTPS server
-    * Hugo 建立部落格網站
-
-### LeetCode 解題
-系列文章連結：[LeetCode 解題](./leetcode)
+    * **Google Cloud Platform** 建立及管理虛擬機
+    * **Cloudflare** 註冊 Domain 及產生憑證
+    * **Nginx** 建立 HTTPS server
+    * **Hugo** 建立部落格網站
 
 ### Apache Yunikorn contributor
+[Apache Yunikorn](https://yunikorn.apache.org/) 是一個 Kubernetes 的 scheduler 的開源專案，在實驗室學長的帶領之下也進入開源社群進行貢獻，主要讓我學習到
+* 大型專案的 CI/CD 模式
+* 學習大型專案的 trace code 能力
+
+下圖是我貢獻的 issue
 <img src="yunikorn-jira.png" alt="yunikorn-jira.png" width="100%" />
 
 ### 大學專題：**「賽局理論應用於資源分配之實現——以 Apache Yunikorn 為例」**
@@ -90,5 +103,3 @@ C, C++, Linux, Shell, Makefile, gdb, Golang, Kubernetes, Docker, Dockerfile
 - **Email:** [yama.tseng@gmail.com](mailto:yama.tseng@gmail.com)
 - **GitHub:** [@9501sam](https://github.com/9501sam)
 - **IT 邦幫忙:** [https://ithelp.ithome.com.tw/users/20137780](https://ithelp.ithome.com.tw/users/20137780)
-
----

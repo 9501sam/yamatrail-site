@@ -27,6 +27,7 @@ theme = 'PaperMod'
   weight = 3
 
 [params]
+  defaultTheme = "light"
   mainSections = ["posts", "k8s", "dev-log", "leetcode", "xv6"]
   ShowCodeCopyButtons = true
   ShowPostNavLinks = true
