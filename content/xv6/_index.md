@@ -8,3 +8,5 @@ xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 Hac
 
 
 [課程連結](https://pdos.csail.mit.edu/6.S081/2022/schedule.html)
+
+<img src="xv6-demo.png" alt="xv6-demo.png" width="100%" />
