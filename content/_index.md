@@ -96,6 +96,10 @@ C, C++, Linux, Shell, Makefile, gdb, Golang, Kubernetes, Docker, Dockerfile
 <div style="clear: both;"></div>
 
 ### 碩士論文：**「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」**
+研究所的研究領域為微服務架構的效能優化，碩士論文題目為「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」
+* 硬體環境為 Cloud-Edge computing 的異質性架構
+* 軟體環境以 Google Cloud Platform 提供的 benchmark: Online-Boutique, 是一個以微服務架構實做的購物平台
+* 演算法使用離散化粒子群最佳化演算法進行效能（Response time）優化
 <img src="experimental-environment.png" alt="experimental-environment.png" width="80%" />
 
 ## Contact Me

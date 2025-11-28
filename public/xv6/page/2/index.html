@@ -7,8 +7,63 @@
 <meta name="robots" content="noindex, nofollow">
 <title>xv6 學習紀錄 | Yama&#39;s Trail</title>
 <meta name="keywords" content="">
-<meta name="description" content="xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的解題紀錄，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。
-課程連結
+<meta name="description" content="為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 6.1810: Operating System Engineering  做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：
+
+Lab: Xv6 and Unix utilities
+
+學習 xv6 的編譯與運行在 qemu 所模擬的 RISC-V 環境中
+
+
+Lab: system calls
+
+學習 system call 的概念原理、程式實做
+
+
+Lab: page tables
+
+學習 RISC-V 的 3-level page table 架構、memory layout、追蹤及修改 virtual memory 程式碼
+
+
+Lab: traps
+
+學習 Trap 的概念、使用 GDB 追蹤 trap 的過程
+
+
+Lab: xv6 lazy page allocation
+
+使用 page fault 的技術，針對 sbrk() 的優化
+
+
+Lab: Copy-on-write fork
+
+使用 page fault 的技術，針對 fork() 的優化
+
+
+Lab: Multithreading
+
+學習 context switch 的流程與 scheduler 的原理
+
+
+Lab: locks
+
+了解 lock 的運作原理及使用方式
+
+
+Lab: file system
+
+了解 file system 從 disk, bcache, log 一直到 file descriptor level, 修改 inode 以支援更大的 file size
+
+
+Lab: mmap
+
+透過 page fault 與 process 中加入 virtual memory area 的資訊，把 virtual memory 映射到檔案內容
+
+
+Lab: Network driver
+
+學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver
+
+
 ">
 <meta name="author" content="">
 <link rel="canonical" href="http://localhost:1313/xv6/">
@@ -93,9 +148,64 @@
     xv6 學習紀錄
   </h1>
 </header>
-<div class="post-content"><p>xv6 一直是我自己很喜歡的一個專案，在 2023 年時就已經在 HackMD 上紀錄了當時的<a href="https://hackmd.io/@xv6">解題紀錄</a>，但當時都偏向隨筆紀錄而已，如今想來翻新一下，自己是期望可以寫得更清楚一些，另外，之前在 Lab8: networking 之後就沒有再更新了，這次希望可以把後面也補足，希望對於想學習 xv6 的人有幫助。</p>
-<p><a href="https://pdos.csail.mit.edu/6.S081/2022/schedule.html">課程連結</a></p>
-<img src="xv6-demo.png" alt="xv6-demo.png" width="100%" />
+<div class="post-content"><p>為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 <a href="https://pdos.csail.mit.edu/6.S081/2022/schedule.html">6.1810: Operating System Engineering</a>  做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：</p>
+<ul>
+<li>Lab: Xv6 and Unix utilities
+<ul>
+<li>學習 xv6 的編譯與運行在 qemu 所模擬的 RISC-V 環境中</li>
+</ul>
+</li>
+<li>Lab: system calls
+<ul>
+<li>學習 system call 的概念原理、程式實做</li>
+</ul>
+</li>
+<li>Lab: page tables
+<ul>
+<li>學習 RISC-V 的 3-level page table 架構、memory layout、追蹤及修改 virtual memory 程式碼</li>
+</ul>
+</li>
+<li>Lab: traps
+<ul>
+<li>學習 Trap 的概念、使用 GDB 追蹤 trap 的過程</li>
+</ul>
+</li>
+<li>Lab: xv6 lazy page allocation
+<ul>
+<li>使用 page fault 的技術，針對 <code>sbrk()</code> 的優化</li>
+</ul>
+</li>
+<li>Lab: Copy-on-write fork
+<ul>
+<li>使用 page fault 的技術，針對 <code>fork()</code> 的優化</li>
+</ul>
+</li>
+<li>Lab: Multithreading
+<ul>
+<li>學習 context switch 的流程與 scheduler 的原理</li>
+</ul>
+</li>
+<li>Lab: locks
+<ul>
+<li>了解 lock 的運作原理及使用方式</li>
+</ul>
+</li>
+<li>Lab: file system
+<ul>
+<li>了解 file system 從 disk, bcache, log 一直到 file descriptor level, 修改 inode 以支援更大的 file size</li>
+</ul>
+</li>
+<li>Lab: mmap
+<ul>
+<li>透過 page fault 與 process 中加入 virtual memory area 的資訊，把 virtual memory 映射到檔案內容</li>
+</ul>
+</li>
+<li>Lab: Network driver
+<ul>
+<li>學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver</li>
+</ul>
+</li>
+</ul>
 
 
 </div>
