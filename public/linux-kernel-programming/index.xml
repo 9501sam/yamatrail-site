@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Linux Kernel Programming 學習紀錄 on Yama&#39;s Trail</title>
+    <link>http://localhost:1313/linux-kernel-programming/</link>
+    <description>Recent content in Linux Kernel Programming 學習紀錄 on Yama&#39;s Trail</description>
+    <generator>Hugo -- 0.146.0</generator>
+    <language>zh-tw</language>
+    <lastBuildDate>Wed, 03 Dec 2025 20:16:29 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/linux-kernel-programming/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Ch02: Building the 5.x Linux Kernel from Source - Part 1</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch02/</link>
+      <pubDate>Wed, 03 Dec 2025 20:16:29 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch02/</guid>
+      <description>&lt;h1 id=&#34;step-1--obtaining-a-linux-kernel-source-tree&#34;&gt;Step 1 – obtaining a Linux kernel source tree&lt;/h1&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;wget --https-only -O ~/Downloads/linux-5.4.1.tar.xz https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.1.tar.xz
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;step-2--extracting-the-kernel-source-tree&#34;&gt;Step 2 – extracting the kernel source tree&lt;/h1&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd ~/Downloads ; ls -lh linux-5.4.1.tar.xz
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tar xf ~/Downloads/linux-5.4.1.tar.xz
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mkdir -p ~/kernels
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tar xf ~/Downloads/linux-5.4.1.tar.xz --directory&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;HOME&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;/kernels/
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;設定環境變數是一個 good practice，可加入 &lt;code&gt;~/.bashrc&lt;/code&gt; 中:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;export LLKD_KSRC&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;HOME&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;/kernels/linux-5.4
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;現在已經不像以前一定會把 source code 放到 &lt;code&gt;usr/src&lt;/code&gt; 了&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;a-brief-tour-of-the-kernel-source-tree&#34;&gt;A brief tour of the kernel source tree&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@ubuntu:~/kernels/linux-5.4$ ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;COPYING        Kconfig      README  crypto   init    mm       security  virt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;CREDITS        LICENSES     arch    drivers  ipc     net      sound
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Documentation  MAINTAINERS  block   fs       kernel  samples  tools
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Kbuild         Makefile     certs   include  lib     scripts  usr
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;使用 &lt;code&gt;du -m .&lt;/code&gt; 可以看到檔案大小為 &lt;code&gt;1011M&lt;/code&gt; 幾乎是 1 GB 了&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@ubuntu:~/kernels/linux-5.4$ head Makefile
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# SPDX-License-Identifier: GPL-2.0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;VERSION &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PATCHLEVEL &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;SUBLEVEL &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;EXTRAVERSION &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NAME &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Kleptomaniac Octopus
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# *DOCUMENTATION*&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# To see a list of typical targets execute &amp;#34;make help&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# More info can be located in ./README&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;這裡可以知道目前的 source code 版本為 5.4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;最上層的檔案與資料夾&#34;&gt;最上層的檔案與資料夾&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;README&lt;/code&gt;: 告知 documents 的所在位置&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;COPYING&lt;/code&gt;: licence 的所在位置&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;MAINTAINERS&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;major-subsystem-directories&#34;&gt;Major subsystem directories&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Makefile&lt;/code&gt;: 這是 top-level 的 &lt;code&gt;Makefile&lt;/code&gt; 使用 &lt;code&gt;kbuild&lt;/code&gt; 與 kernel modules 使用這個 &lt;code&gt;Makefile&lt;/code&gt; (至少在初始化階段)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kernel&lt;/code&gt;: Core kernel subsystem
+&lt;ul&gt;
+&lt;li&gt;process/thread life cycle&lt;/li&gt;
+&lt;li&gt;CPU scheduling&lt;/li&gt;
+&lt;li&gt;locking&lt;/li&gt;
+&lt;li&gt;cgroups,&lt;/li&gt;
+&lt;li&gt;timers&lt;/li&gt;
+&lt;li&gt;interrupts&lt;/li&gt;
+&lt;li&gt;signaling&lt;/li&gt;
+&lt;li&gt;modules&lt;/li&gt;
+&lt;li&gt;tracing&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;mm&lt;/code&gt;: memory management&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fs&lt;/code&gt;: virtual file system&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;block&lt;/code&gt;: block I/O, file system 的更底層&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;net&lt;/code&gt;: network&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ipc&lt;/code&gt;: inter-processes communication&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sound&lt;/code&gt;: Advanced Linux Sound Architecture (ALSA)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;virt&lt;/code&gt;: virtualization code like KVM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;infrastructuremisc&#34;&gt;Infrastructure/misc&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;arch&lt;/code&gt;: architecture 相關，像是 x86-64, risc-v, arm 等等&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;crypto&lt;/code&gt;: 加密相關&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;include&lt;/code&gt;: arch-independent kernel headers, 但也有例外，像是 &lt;code&gt;arch/&amp;lt;cpu&amp;gt;/include/...&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;init&lt;/code&gt;: 初始化的過程 &lt;code&gt;init/main.c:start_kernel()&lt;/code&gt;, &lt;code&gt;start_kernel()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;lib&lt;/code&gt;: 注意 kernel 並不支援 shared library&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;scripts&lt;/code&gt;: 一些有用的 scripts&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;security&lt;/code&gt;: Linux Security Module (LSM)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;tools&lt;/code&gt;: mostly userspace applications&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@ubuntu:~/kernels/linux-5.4$ cd &lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;LLKD_KSRC&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt; ; ls arch/
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Kconfig  arm    csky     ia64        mips   openrisc  riscv  sparc      x86
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;alpha    arm64  h8300    m68k        nds32  parisc    s390   um         xtensa
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;arc      c6x    hexagon  microblaze  nios2  powerpc   sh     unicore32
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;kernel 所支援的 ISA&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

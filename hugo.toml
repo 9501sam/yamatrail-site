@@ -26,6 +26,12 @@ theme = 'PaperMod'
   url = "/xv6/"
   weight = 3
 
+[[menu.main]]
+  identifier = "linux-kernel-programming"
+  name = "Linux Kernel Programming"
+  url = "/linux-kernel-programming/"
+  weight = 4
+
 [params]
   defaultTheme = "light"
   mainSections = ["posts", "k8s", "dev-log", "leetcode", "xv6"]

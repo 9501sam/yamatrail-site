@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Linux Kernel Programming 學習紀錄 | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="Linux Kernel Programming 學習紀錄 - Yama&#39;s Trail">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/linux-kernel-programming/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/linux-kernel-programming/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/linux-kernel-programming/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
+                    <span class="active">Linux Kernel Programming</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    Linux Kernel Programming 學習紀錄
+  </h1>
+</header>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch02: Building the 5.x Linux Kernel from Source - Part 1
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Step 1 – obtaining a Linux kernel source tree wget --https-only -O ~/Downloads/linux-5.4.1.tar.xz https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.1.tar.xz Step 2 – extracting the kernel source tree cd ~/Downloads ; ls -lh linux-5.4.1.tar.xz tar xf ~/Downloads/linux-5.4.1.tar.xz mkdir -p ~/kernels tar xf ~/Downloads/linux-5.4.1.tar.xz --directory=${HOME}/kernels/ 設定環境變數是一個 good practice，可加入 ~/.bashrc 中:
+export LLKD_KSRC=${HOME}/kernels/linux-5.4 現在已經不像以前一定會把 source code 放到 usr/src 了 A brief tour of the kernel source tree user@ubuntu:~/kernels/linux-5.4$ ls COPYING Kconfig README crypto init mm security virt CREDITS LICENSES arch drivers ipc net sound Documentation MAINTAINERS block fs kernel samples tools Kbuild Makefile certs include lib scripts usr 使用 du -m . 可以看到檔案大小為 1011M 幾乎是 1 GB 了 user@ubuntu:~/kernels/linux-5.4$ head Makefile # SPDX-License-Identifier: GPL-2.0 VERSION = 5 PATCHLEVEL = 4 SUBLEVEL = 1 EXTRAVERSION = NAME = Kleptomaniac Octopus # *DOCUMENTATION* # To see a list of typical targets execute &#34;make help&#34; # More info can be located in ./README 這裡可以知道目前的 source code 版本為 5.4.1 最上層的檔案與資料夾 README: 告知 documents 的所在位置 COPYING: licence 的所在位置 MAINTAINERS Major subsystem directories Makefile: 這是 top-level 的 Makefile 使用 kbuild 與 kernel modules 使用這個 Makefile (至少在初始化階段) kernel: Core kernel subsystem process/thread life cycle CPU scheduling locking cgroups, timers interrupts signaling modules tracing mm: memory management fs: virtual file system block: block I/O, file system 的更底層 net: network ipc: inter-processes communication sound: Advanced Linux Sound Architecture (ALSA) virt: virtualization code like KVM Infrastructure/misc arch: architecture 相關，像是 x86-64, risc-v, arm 等等 crypto: 加密相關 include: arch-independent kernel headers, 但也有例外，像是 arch/&lt;cpu&gt;/include/... init: 初始化的過程 init/main.c:start_kernel(), start_kernel() lib: 注意 kernel 並不支援 shared library scripts: 一些有用的 scripts security: Linux Security Module (LSM) tools: mostly userspace applications user@ubuntu:~/kernels/linux-5.4$ cd ${LLKD_KSRC} ; ls arch/ Kconfig arm csky ia64 mips openrisc riscv sparc x86 alpha arm64 h8300 m68k nds32 parisc s390 um xtensa arc c6x hexagon microblaze nios2 powerpc sh unicore32 kernel 所支援的 ISA
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-03 20:16:29 +0800 CST'>December 3, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch02: Building the 5.x Linux Kernel from Source - Part 1" href="http://localhost:1313/linux-kernel-programming/ch02/"></a>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
