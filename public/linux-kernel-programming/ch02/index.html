@@ -263,7 +263,317 @@ kernel 所支援的 ISA">
 </span></span><span style="display:flex;"><span>arc      c6x    hexagon  microblaze  nios2  powerpc   sh     unicore32
 </span></span></code></pre></div><p>kernel 所支援的 ISA</p>
 <h1 id="step-3--configuring-the-linux-kernel">Step 3 – configuring the Linux kernel<a hidden class="anchor" aria-hidden="true" href="#step-3--configuring-the-linux-kernel">#</a></h1>
+<h2 id="understanding-the-kbuild-build-system">Understanding the kbuild build system<a hidden class="anchor" aria-hidden="true" href="#understanding-the-kbuild-build-system">#</a></h2>
+<h2 id="arriving-at-a-default-configuration">Arriving at a default configuration<a hidden class="anchor" aria-hidden="true" href="#arriving-at-a-default-configuration">#</a></h2>
+<p>有以下三種可以切入的方式</p>
+<ol>
+<li>default</li>
+<li>用現有的 linux 發行版的 config</li>
+<li>看看現在 memory 中所使用的 module, 使用這些 module 就好</li>
+</ol>
+<p>default config 存放於 <code>init/Kconfig:DEFCONFIG_LIST</code> 中：
+<img alt="defconfig.png" loading="lazy" src="/linux-kernel-programming/ch02/defconfig.png">
+這裡代表的意義是</p>
+<ol>
+<li>先 check <code>/lib/modules/$(shell,uname -r)/.config</code> 是否存在</li>
+<li>有的話就使用 <code>/lib/modules/$(shell,uname -r)/.config</code></li>
+<li>沒有的話就檢查 <code>/etc/kernel-config</code> 依此類推</li>
+</ol>
+<h2 id="obtaining-a-good-starting-point-for-kernel-configuration">Obtaining a good starting point for kernel configuration<a hidden class="anchor" aria-hidden="true" href="#obtaining-a-good-starting-point-for-kernel-configuration">#</a></h2>
+<h3 id="kernel-config-for-typical-embedded-linux-systems">Kernel config for typical embedded Linux systems<a hidden class="anchor" aria-hidden="true" href="#kernel-config-for-typical-embedded-linux-systems">#</a></h3>
+<p>例如使用 arm 的話：
+<img alt="armconfig.png" loading="lazy" src="/linux-kernel-programming/ch02/armconfig.png">
+有這些 config 可以用</p>
+<h3 id="kernel-config-using-distribution-config-as-a-starting-point">Kernel config using distribution config as a starting point<a hidden class="anchor" aria-hidden="true" href="#kernel-config-using-distribution-config-as-a-starting-point">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cp /boot/config-5.0.0-36-generic <span style="color:#e6db74">${</span>LLKD_KSRC<span style="color:#e6db74">}</span>/.config
+</span></span></code></pre></div><p>使用這個指令就可以直接用當前 distribution 的 config</p>
+<h3 id="tuned-kernel-config-via-the-localmodconfig-approach">Tuned kernel config via the localmodconfig approach<a hidden class="anchor" aria-hidden="true" href="#tuned-kernel-config-via-the-localmodconfig-approach">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>lsmod &gt; /tmp/lsmod.now
+</span></span><span style="display:flex;"><span>cd <span style="color:#e6db74">${</span>LLKD_KSRC<span style="color:#e6db74">}</span>
+</span></span><span style="display:flex;"><span>make LSMOD<span style="color:#f92672">=</span>/tmp/lsmod.now localmodconfig
+</span></span></code></pre></div><p>這就是使用現在正在運行的 moduel 來作為 config
+<img alt="make-help.png" loading="lazy" src="/linux-kernel-programming/ch02/make-help.png">
+使用 <code>make help</code> 可以獲得一些幫助</p>
+<h2 id="getting-started-with-the-localmodconfig-approach">Getting started with the localmodconfig approach<a hidden class="anchor" aria-hidden="true" href="#getting-started-with-the-localmodconfig-approach">#</a></h2>
+<p>這裡先用先前所提到的第三種方式，也就是 localmodconfig 的方式</p>
+<ul>
+<li>書上這裡有提到，這個作法最好是使用 x86-based 的平台上
+<ul>
+<li>這裡的前提為我們現在使用的也是一個 x86-based 的 VM</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>lsmod &gt; /tmp/lsmod.now
+</span></span><span style="display:flex;"><span>cd <span style="color:#e6db74">${</span>LLKD_KSRC<span style="color:#e6db74">}</span> ; make LSMOD<span style="color:#f92672">=</span>/tmp/lsmod.now localmodconfig
+</span></span></code></pre></div><p><img alt="NEW.png" loading="lazy" src="/linux-kernel-programming/ch02/NEW.png">
+每當有新的 config 時，就會停下來要做選擇就會停下來要做選擇就會停下來要做選擇就會停下來要做選擇，按 [Enter] 就可以選 default selection</p>
+<p><img alt="dot-config.png" loading="lazy" src="/linux-kernel-programming/ch02/dot-config.png">
+最後就會得到一個 <code>.config</code> 的檔案</p>
+<h2 id="tuning-our-kernel-configuration-via-the-make-menuconfig-ui">Tuning our kernel configuration via the make menuconfig UI<a hidden class="anchor" aria-hidden="true" href="#tuning-our-kernel-configuration-via-the-make-menuconfig-ui">#</a></h2>
+<p>針對 localmodconfig 產出的 config 還可以進一步的使用 <code>make menuconfig</code> 進行更加細部的調整
+<img alt="menuconfig.png" loading="lazy" src="/linux-kernel-programming/ch02/menuconfig.png"></p>
+<ul>
+<li><code>[.]</code>: boolean value
+<ul>
+<li><code>[*]</code>: yes</li>
+<li><code>[ ]</code>: no</li>
+</ul>
+</li>
+<li><code>&lt;.&gt;</code>
+<ul>
+<li><code>&lt;*&gt;</code>: 直接跟在 kernel image</li>
+<li><code>&lt;M&gt;</code>: 以 module 的形式</li>
+<li><code>&lt; &gt;</code>: off</li>
+</ul>
+</li>
+<li><code>{.}</code>: 需要 dependency <code>.</code></li>
+<li><code>-*-</code>: 這個選項是別人的 dependency</li>
+<li><code>(...)</code>: 需要打字輸入，按 [Enter] 可進入輸入</li>
+<li><code>&lt;Menu entry&gt;</code>: sub-menu</li>
+</ul>
+<p>書中提及經驗還是很重要，這是下一小節的重點</p>
+<h3 id="sample-usage-of-the-make-menuconfig">Sample usage of the make menuconfig<a hidden class="anchor" aria-hidden="true" href="#sample-usage-of-the-make-menuconfig">#</a></h3>
+<ul>
+<li><code>Kernel .config support</code> 初始時是 <code>off</code> 先把它變成 <code>on</code> (find it under <code>General Setup</code>)</li>
+<li>當這個 <code>Kernel .config support</code> 的選項開啟時 (<code>y</code> or <code>M</code>)，可以用以下兩種方式查看當前運行的 kernel config:
+<ol>
+<li>執行 <code>scripts/extract-ikconfig</code> script</li>
+<li>直接 read <code>/proc/config.gz</code> (pseudo-file)</li>
+</ol>
+</li>
+</ul>
+<p>這裡書中列了一個表格，告訴我們要更改的選項，但是這裡只先告訴我們第二、三項，剩下的要自行去更改，畢竟選項有太多了</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Feature</th>
+          <th style="text-align: left">Effect and location in the menuconfig UI</th>
+          <th style="text-align: left">CONFIG_<FOO> option</th>
+          <th style="text-align: left">Value: original -&gt; new value</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><strong>Kernel config file support</strong></td>
+          <td style="text-align: left">Allows you to see the current kernel configuration details; General Setup / <strong>Kernel .config support</strong></td>
+          <td style="text-align: left"><code>CONFIG_IKCONFIG</code></td>
+          <td style="text-align: left"><code>n -&gt; y</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>The same as the preceding plus access via procfs</strong></td>
+          <td style="text-align: left">Allows you to see the current kernel configuration details via <strong>proc filesystem (procfs)</strong>; General Setup / Enable access to .config through /proc/config.gz</td>
+          <td style="text-align: left"><code>CONFIG_IKCONFIG_PROC</code></td>
+          <td style="text-align: left"><code>n -&gt; y</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Local version</strong></td>
+          <td style="text-align: left">Sets the -EXTRAVERSION component of the kernel release/version (seen with <code>uname -r</code>); General Setup / <strong>Local version - append to kernel release</strong></td>
+          <td style="text-align: left"><code>CONFIG_LOCALVERSION</code></td>
+          <td style="text-align: left"><code>(none) -&gt; -llkd01</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Kernel profiling</strong></td>
+          <td style="text-align: left">Kernel profiling support; General Setup / <strong>Profiling support</strong></td>
+          <td style="text-align: left"><code>CONFIG_PROFILING</code></td>
+          <td style="text-align: left"><code>y -&gt; n</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>HAM radio</strong></td>
+          <td style="text-align: left">Support for HAM radio; Networking support / Amateur Radio support</td>
+          <td style="text-align: left"><code>CONFIG_HAMRADIO</code></td>
+          <td style="text-align: left"><code>y -&gt; n</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>VirtualBox support</strong></td>
+          <td style="text-align: left">(Para)virtualization support for VirtualBox; Device Drivers / Virtualization drivers / <strong>Virtual Box Guest integration support</strong></td>
+          <td style="text-align: left"><code>CONFIG_VBOXGUEST</code></td>
+          <td style="text-align: left"><code>n -&gt; m</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Userspace IO Drivers (UIO)</strong></td>
+          <td style="text-align: left">UIO support; Device Drivers / <strong>Userspace I/O Drivers</strong></td>
+          <td style="text-align: left"><code>CONFIG_UIO</code></td>
+          <td style="text-align: left"><code>n -&gt; m</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>The preceding plus the UIO platform driver with generic IRQ handling</strong></td>
+          <td style="text-align: left">UIO platform driver with generic IRQ handling; Device Drivers / Userspace I/O Drivers / <strong>Userspace I/O platform driver with generic IRQ handling</strong></td>
+          <td style="text-align: left"><code>CONFIG_UIO_PDRV_GENIRQ</code></td>
+          <td style="text-align: left"><code>n -&gt; m</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>MS-DOS filesystem support</strong></td>
+          <td style="text-align: left">File systems / DOS/FAT/NT filesystems / <strong>MSDOS FS support</strong></td>
+          <td style="text-align: left"><code>CONFIG_MSDOS_FS</code></td>
+          <td style="text-align: left"><code>n -&gt; m</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Security: LSMs</strong></td>
+          <td style="text-align: left">Turn off kernel LSMs; Security options / <strong>Enable different security models</strong> (NOTE: it&rsquo;s typically safer to keep this ON for production systems!)</td>
+          <td style="text-align: left"><code>CONFIG_SECURITY</code></td>
+          <td style="text-align: left"><code>y -&gt; n</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Kernel debug: stack utilization info</strong></td>
+          <td style="text-align: left">Kernel hacking / Memory Debugging / <strong>Stack utilization instrumentation</strong></td>
+          <td style="text-align: left"><code>CONFIG_DEBUG_STACK_USAGE</code></td>
+          <td style="text-align: left"><code>y -&gt; n</code></td>
+      </tr>
+  </tbody>
+</table>
+<h4 id="1-先移動到-root-of-kernel-source-tree">1. 先移動到 root of kernel source tree<a hidden class="anchor" aria-hidden="true" href="#1-先移動到-root-of-kernel-source-tree">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd <span style="color:#e6db74">${</span>LLKD_KSRC<span style="color:#e6db74">}</span>
+</span></span></code></pre></div><h4 id="2-產生初始的-kernel-configuration-file">2. 產生初始的 kernel configuration file<a hidden class="anchor" aria-hidden="true" href="#2-產生初始的-kernel-configuration-file">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>lsmod &gt; /tmp/lsmod.now
+</span></span><span style="display:flex;"><span>make LSMOD<span style="color:#f92672">=</span>/tmp/lsmod.now localmodconfig
+</span></span></code></pre></div><h4 id="3-啟動-ui">3. 啟動 UI<a hidden class="anchor" aria-hidden="true" href="#3-啟動-ui">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make menuconfig
+</span></span></code></pre></div><h4 id="4-進入-general-setup-menu">4. 進入 <code>General Setup</code> menu<a hidden class="anchor" aria-hidden="true" href="#4-進入-general-setup-menu">#</a></h4>
+<p><img alt="4.png" loading="lazy" src="/linux-kernel-programming/ch02/4.png"></p>
+<h4 id="5-移動到-kernel-config-support-的選項">5. 移動到 <code>Kernel .config support</code> 的選項<a hidden class="anchor" aria-hidden="true" href="#5-移動到-kernel-config-support-的選項">#</a></h4>
+<p><img alt="5.png" loading="lazy" src="/linux-kernel-programming/ch02/5.png"></p>
+<h4 id="6-m-代表一個-tristate-menu-m-代表用-moduel-的形式">6. <code>&lt;M&gt;</code> 代表一個 tristate menu <code>M</code> 代表用 moduel 的形式<a hidden class="anchor" aria-hidden="true" href="#6-m-代表一個-tristate-menu-m-代表用-moduel-的形式">#</a></h4>
+<h4 id="7-進入到-help">7. 進入到 <code>&lt;Help&gt;</code><a hidden class="anchor" aria-hidden="true" href="#7-進入到-help">#</a></h4>
+<p><img alt="7.png" loading="lazy" src="/linux-kernel-programming/ch02/7.png">
+書中提及有些 <code>&lt;Help&gt;</code> 很有幫助，有些則幫助有限</p>
+<h4 id="8-按下-exit-回到上一頁">8. 按下 <code>&lt;Exit&gt;</code> 回到上一頁<a hidden class="anchor" aria-hidden="true" href="#8-按下-exit-回到上一頁">#</a></h4>
+<h4 id="9-按下-space-可以更改選項把他更改到-">9. 按下 <code>&lt;Space&gt;</code> 可以更改選項，把他更改到 <code>&lt;*&gt;</code><a hidden class="anchor" aria-hidden="true" href="#9-按下-space-可以更改選項把他更改到-">#</a></h4>
+<p><img alt="9.png" loading="lazy" src="/linux-kernel-programming/ch02/9.png"></p>
+<h4 id="10-進一步的選下-enable-access-to-config-through-procconfiggz-的選項">10. 進一步的選下 <code>Enable access to .config through /proc/config.gz</code> 的選項<a hidden class="anchor" aria-hidden="true" href="#10-進一步的選下-enable-access-to-config-through-procconfiggz-的選項">#</a></h4>
+<p><img alt="10.png" loading="lazy" src="/linux-kernel-programming/ch02/10.png"></p>
+<h4 id="11-save-configuration">11. save configuration<a hidden class="anchor" aria-hidden="true" href="#11-save-configuration">#</a></h4>
+<p>這裡我跟書上的 <code>&lt;save&gt;</code> 的位置有一點不一樣，但功能一樣都是儲存變更
+<img alt="11-1.png" loading="lazy" src="/linux-kernel-programming/ch02/11-1.png">
+<img alt="11-2.png" loading="lazy" src="/linux-kernel-programming/ch02/11-2.png">
+<img alt="11-3.png" loading="lazy" src="/linux-kernel-programming/ch02/11-3.png"></p>
+<h4 id="12-檢查存下來的變更">12. 檢查存下來的變更<a hidden class="anchor" aria-hidden="true" href="#12-檢查存下來的變更">#</a></h4>
+<p><img alt="12.png" loading="lazy" src="/linux-kernel-programming/ch02/12.png">
+會存放在 <code>.config</code> 中</p>
+<p>改完這兩個選項之後，再繼續的把表格中剩下的更改給操作完</p>
+<h2 id="more-on-kbuild">More on kbuild<a hidden class="anchor" aria-hidden="true" href="#more-on-kbuild">#</a></h2>
+<h4 id="如何搜尋">如何搜尋<a hidden class="anchor" aria-hidden="true" href="#如何搜尋">#</a></h4>
+<p>因為書中要我們更改的東西有許多，因此使用搜尋功能會方便許多，例如以下這個修改
+<img alt="uio.png" loading="lazy" src="/linux-kernel-programming/ch02/uio.png"></p>
+<p>先在主畫面中進入 <code>Device Drivers</code>:
+<img alt="s0.png" loading="lazy" src="s0.png"></p>
+<p>按下 <code>/</code> 就跟 <code>vim</code> 的搜尋一樣，搜尋 <code>CONFIG_UIO</code>
+<img alt="s2.png" loading="lazy" src="/linux-kernel-programming/ch02/s2.png"></p>
+<p>在這個畫面中會出現搜尋結果，我們要的是第 <code>(1)</code> 個，在鍵盤上按下 1
+<img alt="s3.png" loading="lazy" src="/linux-kernel-programming/ch02/s3.png"></p>
+<p>接著就會跳到我們要的位置了，這樣就不用一個一個慢慢找
+<img alt="s4.png" loading="lazy" src="/linux-kernel-programming/ch02/s4.png"></p>
+<h3 id="looking-up-the-differences-in-configuration">Looking up the differences in configuration<a hidden class="anchor" aria-hidden="true" href="#looking-up-the-differences-in-configuration">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>scripts/diffconfig .config.old .config
+</span></span></code></pre></div><ul>
+<li><code>kconfig-hardened-check</code> 這個專案可以檢查 kernel configuration 的安全性</li>
+</ul>
 <h1 id="customizing-the-kernel-menu--adding-our-own-menu-item">Customizing the kernel menu – adding our own menu item<a hidden class="anchor" aria-hidden="true" href="#customizing-the-kernel-menu--adding-our-own-menu-item">#</a></h1>
+<p>在先前的 <code>make menuconfig</code> 畫面中，我們可以自己新增一些選項</p>
+<h2 id="the-kconfig-files">The Kconfig* files<a hidden class="anchor" aria-hidden="true" href="#the-kconfig-files">#</a></h2>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Menu</th>
+          <th style="text-align: left">Kconfig file location for it</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><strong>The main menu, the initial screen</strong></td>
+          <td style="text-align: left"><code>Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>General setup</strong> + Enable loadable module support</td>
+          <td style="text-align: left"><code>init/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Processor types and features</strong> + Bus options + Binary Emulations (arch-specific; above the menu title is for x86; in general, the Kconfig file is here: arch/<arch>/Kconfig)</td>
+          <td style="text-align: left"><code>arch/&lt;arch&gt;/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Power management</strong></td>
+          <td style="text-align: left"><code>kernel/power/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Firmware drivers</strong></td>
+          <td style="text-align: left"><code>drivers/firmware/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Virtualization</strong></td>
+          <td style="text-align: left"><code>arch/&lt;arch&gt;/kvm/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>General architecture-dependent options</strong></td>
+          <td style="text-align: left"><code>arch/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Enable the block layer</strong> + IO Schedulers</td>
+          <td style="text-align: left"><code>block/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Executable file formats</strong></td>
+          <td style="text-align: left"><code>fs/Kconfig.binfmt</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Memory Management options</strong></td>
+          <td style="text-align: left"><code>mm/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Networking support</strong></td>
+          <td style="text-align: left"><code>net/Kconfig</code>, <code>net/*/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Device Drivers</strong></td>
+          <td style="text-align: left"><code>drivers/Kconfig</code>, <code>drivers/*/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>File systems</strong></td>
+          <td style="text-align: left"><code>fs/Kconfig</code>, <code>fs/*/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Security options</strong></td>
+          <td style="text-align: left"><code>security/Kconfig</code>, <code>security/*/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Cryptographic API</strong></td>
+          <td style="text-align: left"><code>crypto/Kconfig</code>, <code>crypto/*/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Library routines</strong></td>
+          <td style="text-align: left"><code>lib/Kconfig</code>, <code>lib/*/Kconfig</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Kernel hacking</strong></td>
+          <td style="text-align: left"><code>lib/Kconfig.debug</code>, <code>lib/Kconfig.*</code></td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="creating-a-new-menu-item-in-the-kconfig-file">Creating a new menu item in the Kconfig file<a hidden class="anchor" aria-hidden="true" href="#creating-a-new-menu-item-in-the-kconfig-file">#</a></h2>
+<h3 id="1-to-be-safe-always-make-a-backup-copy">1. To be safe, always make a backup copy:<a hidden class="anchor" aria-hidden="true" href="#1-to-be-safe-always-make-a-backup-copy">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cp init/Kconfig init/Kconfig.orig
+</span></span></code></pre></div><h3 id="2-now-edit-the-initkconfig-file">2. Now, edit the <code>init/Kconfig</code> file:<a hidden class="anchor" aria-hidden="true" href="#2-now-edit-the-initkconfig-file">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>vim init/Kconfig
+</span></span></code></pre></div><p><img alt="kconfig.png" loading="lazy" src="/linux-kernel-programming/ch02/kconfig.png">
+在本書的 github repo 中可以找到這段 config</p>
+<h3 id="3-save-the-file-and-exit-the-editor">3. Save the file and exit the editor.<a hidden class="anchor" aria-hidden="true" href="#3-save-the-file-and-exit-the-editor">#</a></h3>
+<h3 id="4-configure-the-kernel">4. configure the kernel.<a hidden class="anchor" aria-hidden="true" href="#4-configure-the-kernel">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make menuconfig
+</span></span></code></pre></div><p><img alt="menu-after-modify.png" loading="lazy" src="/linux-kernel-programming/ch02/menu-after-modify.png">
+出現了新的選項</p>
+<h3 id="5-turn-it-on">5. Turn it on<a hidden class="anchor" aria-hidden="true" href="#5-turn-it-on">#</a></h3>
+<h3 id="6-check-whether-our-feature-has-been-selected">6. Check whether our feature has been selected:<a hidden class="anchor" aria-hidden="true" href="#6-check-whether-our-feature-has-been-selected">#</a></h3>
+<p><img alt="kconfig6.png" loading="lazy" src="/linux-kernel-programming/ch02/kconfig6.png">
+變更已經出現在 <code>.config</code> 了，但是還沒出現在 auto-generated header file，這要在 build kernel 之後才會出現</p>
+<h3 id="7-build-the-kernel">7. Build the kernel<a hidden class="anchor" aria-hidden="true" href="#7-build-the-kernel">#</a></h3>
+<p><img alt="kconfig7.png" loading="lazy" src="/linux-kernel-programming/ch02/kconfig7.png"></p>
+<h3 id="8-autoconfh-出現了-llkd_option1">8. <code>autoconf.h</code> 出現了 <code>LLKD_OPTION1</code><a hidden class="anchor" aria-hidden="true" href="#8-autoconfh-出現了-llkd_option1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>grep <span style="color:#e6db74">&#34;LLKD_OPTION1&#34;</span> include/generated/autoconf.h
+</span></span></code></pre></div><p><img alt="kconfig8.png" loading="lazy" src="/linux-kernel-programming/ch02/kconfig8.png"></p>
+<h2 id="a-few-details-on-the-kconfig-language">A few details on the Kconfig language<a hidden class="anchor" aria-hidden="true" href="#a-few-details-on-the-kconfig-language">#</a></h2>
+<h1 id="summary">Summary<a hidden class="anchor" aria-hidden="true" href="#summary">#</a></h1>
+<h1 id="qestions">Qestions<a hidden class="anchor" aria-hidden="true" href="#qestions">#</a></h1>
+<p><a href="https://github.com/PacktPublishing/Linux-Kernel-Programming/tree/master/questions">https://github.com/PacktPublishing/Linux-Kernel-Programming/tree/master/questions</a></p>
+<p><a href="https://github.com/PacktPublishing/Linux-Kernel-Programming/tree/master/solutions_to_assgn">https://github.com/PacktPublishing/Linux-Kernel-Programming/tree/master/solutions_to_assgn</a></p>
 
 
   </div>
