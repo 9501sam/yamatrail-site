@@ -2,6 +2,7 @@
 date = '2025-12-03T20:16:29+08:00'
 draft = false
 title = 'Ch02: Building the 5.x Linux Kernel from Source - Part 1'
+weight = 2
 +++
 
 # Step 1 – obtaining a Linux kernel source tree

@@ -6,7 +6,7 @@
     <description>Recent content in Linux Kernel Programming 學習紀錄 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Wed, 03 Dec 2025 20:16:29 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 06 Dec 2025 15:00:38 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/linux-kernel-programming/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ch02: Building the 5.x Linux Kernel from Source - Part 1</title>
@@ -94,6 +94,32 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;alpha    arm64  h8300    m68k        nds32  parisc    s390   um         xtensa
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;arc      c6x    hexagon  microblaze  nios2  powerpc   sh     unicore32
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;kernel 所支援的 ISA&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ch03: Building the 5.x Linux Kernel from Source - Part 2</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch03/</link>
+      <pubDate>Sat, 06 Dec 2025 15:00:38 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch03/</guid>
+      <description>&lt;h1 id=&#34;step-4--building-the-kernel-image-and-modules&#34;&gt;Step 4 – building the kernel image and modules&lt;/h1&gt;
+&lt;p&gt;從使用者的角度而言，這非常的簡單，只需要 &lt;code&gt;make&lt;/code&gt; 就行了&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;make help&lt;/code&gt; 可以看到 help，這裡可以先觀察 target &lt;code&gt;all&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ make help
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;...&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Other generic targets:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  all - Build all targets marked with &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;* vmlinux - Build the bare kernel
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;* modules - Build all modules
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;...&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Architecture specific targets &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;x86&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;* bzImage - Compressed kernel image &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;arch/x86/boot/bzImage&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;...&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;從這裡可以得知，&lt;code&gt;make all&lt;/code&gt; 的時候會有 &lt;code&gt;vmlinux&lt;/code&gt;, &lt;code&gt;modules&lt;/code&gt;, &lt;code&gt;bzImage&lt;/code&gt; 這三個 target 被觸發&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;vmlinux&lt;/code&gt;: 未壓縮的 kernel image&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;modules&lt;/code&gt;: 在 config 中被標記為 &lt;code&gt;M&lt;/code&gt; 的會變成 kernel modules (&lt;code&gt;.ko&lt;/code&gt; files)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;bzImage&lt;/code&gt;: 壓縮過後的 kernel image (x86)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;實際在開機時，會用壓縮過後的 &lt;code&gt;bzImage&lt;/code&gt;，&lt;code&gt;vmlinux&lt;/code&gt; 是作為 debug 用，（不在這本書的範圍）&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

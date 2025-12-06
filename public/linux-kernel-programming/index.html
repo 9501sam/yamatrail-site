@@ -110,6 +110,22 @@ export LLKD_KSRC=${HOME}/kernels/linux-5.4 現在已經不像以前一定會把 
   <footer class="entry-footer"><span title='2025-12-03 20:16:29 +0800 CST'>December 3, 2025</span></footer>
   <a class="entry-link" aria-label="post link to Ch02: Building the 5.x Linux Kernel from Source - Part 1" href="http://localhost:1313/linux-kernel-programming/ch02/"></a>
 </article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch03: Building the 5.x Linux Kernel from Source - Part 2
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Step 4 – building the kernel image and modules 從使用者的角度而言，這非常的簡單，只需要 make 就行了
+make help 可以看到 help，這裡可以先觀察 target all
+$ make help [...] Other generic targets: all - Build all targets marked with [*] * vmlinux - Build the bare kernel * modules - Build all modules [...] Architecture specific targets (x86): * bzImage - Compressed kernel image (arch/x86/boot/bzImage) [...] 從這裡可以得知，make all 的時候會有 vmlinux, modules, bzImage 這三個 target 被觸發
+vmlinux: 未壓縮的 kernel image modules: 在 config 中被標記為 M 的會變成 kernel modules (.ko files) bzImage: 壓縮過後的 kernel image (x86) 實際在開機時，會用壓縮過後的 bzImage，vmlinux 是作為 debug 用，（不在這本書的範圍）
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-06 15:00:38 +0800 CST'>December 6, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch03: Building the 5.x Linux Kernel from Source - Part 2" href="http://localhost:1313/linux-kernel-programming/ch03/"></a>
+</article>
     </main>
     
 <footer class="footer">
