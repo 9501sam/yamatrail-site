@@ -112,14 +112,33 @@ sudo make install
 ![11.png](11.png)
 
 ## Generating the initramfs image – under the hood
-在剛剛的 `sudo make install` 之後，會在 `/boot` 中產生這些檔案
+在最一開始的 `sudo make install` 的時候，實際上會執行 `./arch/x86/boot/install.sh` 這個腳本
+```sh
+$ sudo make install
+sh ./arch/x86/boot/install.sh 5.4.0-llkd01 arch/x86/boot/bzImage \
+System.map "/boot"
+```
+並且在腳本 `./arch/x86/boot/install.sh` 執行完之後，會在 `/boot` 中產生這些檔案
 ![12.png](12.png)
 
-GRUB 的 config 檔也會更新在 `/boot/grub/grub.cfg` 中
+* `initramfs`(`initrd.img-5.4.0-llkd01`) image 是藉由腳本 `update-initramfs` 產生
+* 如果所有的 file 複製到了 `boot` 中，原本的檔案會變成 `<filename>-$(uname -r).old`
+* 壓縮過後的 `vmlinuz-<kernel-ver>` 是 `arch/x86/boot/bzImage` 的 copy
+* `vmlinuz-<kernel-ver>` 是 `arch/x86/boot/bzImage` 的 copy
+* 回想一下 `vmlinux` 是未壓縮過後的，`vmlinuz` 則是壓縮過後的 
+* GRUB 的 config 檔也會更新在 `/boot/grub/grub.cfg` 中
+* 這些流程是非常的 architecture-specific
 
 # Understanding the initramfs framework
 ## Why the initramfs framework?
+* 可以跑一些 user space application 在 kernel boot 之前
 ## Understanding the basics of the boot process on the x86
+1. BIOS
+2. bootloader (grub)
+3. vmlinuz + initramfs
+    * low-level hardware initialization
+    * Load these images to RAM and uncompressing
+    * jump to the kernel entry point
 ## More on the initramfs framework
 
 # Step 7 – customizing the GRUB bootloader
@@ -153,6 +172,7 @@ sudo update-grub
 
 # Kernel build for the Raspberry Pi
 ## Step 1 – cloning the kernel source tree
+我這裡是使用自己的 ubuntu 筆電，而不是像書上使用 virtual box 上的 gest VM
 ```sh
 export RPI_STG=~/rpi_work
 mkdir -p ${RPI_STG}/kernel_rpi ${RPI_STG}/rpi_tools
@@ -163,15 +183,110 @@ cd ${RPI_STG}/kernel_rpi
 git clone --depth=1 --branch rpi-5.4.y https://github.com/raspberrypi/linux.git
 ```
 
+![rpi01.png](rpi01.png)
+
+現在我們拿到了 5.4.83 Raspberry Pi kernel 跟書上的有一點不一樣 (5.4.51 Raspberry Pi kernel) 但沒這裡差一點點沒有關係
+
 ## Step 2 – installing a cross-toolchain
 
 ### First method – package install via apt
-我手上的樹莓派是 64-bit
+書上的範例是使用 32-bit 的樹莓派，我手上的樹莓派是 64-bit，所以要用 
+
 ```sh
+# Install general build tools
+sudo apt update
+sudo apt install build-essential git bc bison flex libssl-dev make libc6-dev libncurses5-dev
+# Install the 64-bit ARM cross-compiler toolchain
 sudo apt install crossbuild-essential-arm64
 ```
 ### Second method – installation via the source repo
 
 ## Step 3 – configuring and building the kernel
+```sh
+# Set target architecture to ARM 64-bit
+export ARCH=arm64
+# Set cross-compiler prefix
+export CROSS_COMPILE=aarch64-linux-gnu-
+# Set the kernel image filename for the Pi 4 (64-bit)
+export KERNEL=kernel8
+```
+
+```sh
+# Load the default configuration for BCM2711 (Pi 4) 64-bit
+make bcm2711_defconfig
+```
+
+![rpi02.png](rpi02.png)
+
+```sh
+make menuconfig
+```
+
+```sh
+# Compile the kernel image (Image), modules, and device tree blobs (dtbs)
+make -j$(nproc) Image modules dtbs
+```
+![rpi03.png](rpi03.png)
+最後的 kernel image 會存放於 `arch/arm64/boot/Image`
+
+### 放到 SD Card 中
+在 build 之後要把
+1. kernel image
+1. device tree files
+1. modules
+放入 SD Card 中
+
+把 SD card 的 boot partition 與 root partition mount 到 `~/mnt/pi-boot` 與 `~/mnt/pi-root`
+![rpi04.png](rpi04.png)
+```sh
+# Example mounting setup (create directories first if they don't exist)
+sudo mkdir -p ~/mnt/pi-boot ~/mnt/pi-root
+# Replace /dev/sdX1 and /dev/sdX2 with your SD card device names
+sudo mount /dev/mmcblk0p1 ~/mnt/pi-boot   # Boot partition (FAT32)
+sudo mount /dev/mmcblk0p2 ~/mnt/pi-root   # Root partition (Ext4)
+```
+
+
+### Copy Kernel Image and Device Tree Blobs (DTBs)
+* Copy the kernel binary
+```sh
+sudo cp ~/rpi_work/kernel_rpi/linux/arch/arm64/boot/Image ~/mnt/pi-boot/kernel54.img
+```
+
+### Install Kernel Modules
+```sh
+# The path INSTALL_MOD_PATH must point to the root partition of the Pi
+sudo env PATH=$PATH make modules_install INSTALL_MOD_PATH=~/mnt/pi-root
+```
+
+### Update config.txt
+```sh
+sudo vim ~/mnt/pi-boot/config.txt
+```
+
+```text
+[all]
+# Current kernel is still kernel8.img (6.12)
+
+# --- Start of 5.4 Kernel Block ---
+[include boot54.rc]
+# This setting is specific to the 5.4 kernel
+kernel=kernel54.img
+# Optional: If you customized the 5.4 DTB, you can point to it here:
+# device_tree=bcm2711-rpi-4-b-54.dtb 
+[all]
+# --- End of 5.4 Kernel Block ---
+```
+
+```sh
+# create the trigger file
+sudo touch ~/mnt/pi-boot/boot54.rc
+```
+
+### Unmount and Boot
+```sh
+sudo umount ~/mnt/pi-boot
+sudo umount ~/mnt/pi-root
+```
 
 # Miscellaneous tips on the kernel build
