@@ -126,6 +126,21 @@ vmlinux: 未壓縮的 kernel image modules: 在 config 中被標記為 M 的會�
   <footer class="entry-footer"><span title='2025-12-06 15:00:38 +0800 CST'>December 6, 2025</span></footer>
   <a class="entry-link" aria-label="post link to Ch03: Building the 5.x Linux Kernel from Source - Part 2" href="http://localhost:1313/linux-kernel-programming/ch03/"></a>
 </article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch04: Writing Your First Kernel Module - LKMs Part 1
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Understanding kernel architecture – part 1 Exploring LKMs The LKM framework Kernel modules within the kernel source tree kernel modules 存放於 /lib/modules/$(uname -r)/ 以我的例子來說，正在運行 95 個 modules，可以發現跟書上的範例 5359 差很多，我的推測是我使用的是 server 版，書上使用的是 desktop 版。 其中一個大量使用 modules 這種方式的是 device driver，例如可以看 kernel/drivers/net/ethernet
+原先 Ubuntu 18.04 的 netword drivers: 我自己編譯的 5.4.1-llkd01 的 device drivers: 明顯少了許多，這是因為當初在 build 時，是使用 lsmod 抓取正在運行中的 module，並不像 ubuntu 需要考慮各種可能的情境
+其中的個有名的 driver 是 Intel 1GbE Network Interface Card (NIC)
+lsmod | grep e1000 ...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-08 08:39:49 +0800 CST'>December 8, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch04: Writing Your First Kernel Module - LKMs Part 1" href="http://localhost:1313/linux-kernel-programming/ch04/"></a>
+</article>
     </main>
     
 <footer class="footer">

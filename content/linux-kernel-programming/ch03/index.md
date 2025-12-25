@@ -247,7 +247,9 @@ sudo mount /dev/mmcblk0p2 ~/mnt/pi-root   # Root partition (Ext4)
 ```
 
 
-### Copy Kernel Image and Device Tree Blobs (DTBs)
+### Copy Kernel Image
+這裡的 `kernel8.img` 是原本的 kernel，現在我們把 build 出來的 `arch/arm64/boot/Image` 複製到這裡的 `kernel54.img`
+![pi-boot.png](pi-boot.png)
 * Copy the kernel binary
 ```sh
 sudo cp ~/rpi_work/kernel_rpi/linux/arch/arm64/boot/Image ~/mnt/pi-boot/kernel54.img
@@ -258,6 +260,8 @@ sudo cp ~/rpi_work/kernel_rpi/linux/arch/arm64/boot/Image ~/mnt/pi-boot/kernel54
 # The path INSTALL_MOD_PATH must point to the root partition of the Pi
 sudo env PATH=$PATH make modules_install INSTALL_MOD_PATH=~/mnt/pi-root
 ```
+現在多了一個 `5.4.83-v8+` 的 module
+![rpi-modules2.png](rpi-modules2.png)
 
 ### Update config.txt
 ```sh
@@ -277,6 +281,10 @@ kernel=kernel54.img
 [all]
 # --- End of 5.4 Kernel Block ---
 ```
+
+在 `boot/config.txt` 中所新增的 `[include boot54.rc]` 的區域，代表在 `boot/boot54.rc` 存在，這個 section 的設定才成立
+
+* 所以現在新增一個空的 `boot/boot54.rc` 來讓這個區塊的設定成立
 
 ```sh
 # create the trigger file

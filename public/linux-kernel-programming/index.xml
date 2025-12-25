@@ -6,7 +6,7 @@
     <description>Recent content in Linux Kernel Programming 學習紀錄 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Sat, 06 Dec 2025 15:00:38 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 08 Dec 2025 08:39:49 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/linux-kernel-programming/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ch02: Building the 5.x Linux Kernel from Source - Part 1</title>
@@ -120,6 +120,39 @@
 &lt;li&gt;&lt;code&gt;bzImage&lt;/code&gt;: 壓縮過後的 kernel image (x86)&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;實際在開機時，會用壓縮過後的 &lt;code&gt;bzImage&lt;/code&gt;，&lt;code&gt;vmlinux&lt;/code&gt; 是作為 debug 用，（不在這本書的範圍）&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ch04: Writing Your First Kernel Module - LKMs Part 1</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch04/</link>
+      <pubDate>Mon, 08 Dec 2025 08:39:49 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch04/</guid>
+      <description>&lt;h1 id=&#34;understanding-kernel-architecture--part-1&#34;&gt;Understanding kernel architecture – part 1&lt;/h1&gt;
+&lt;h1 id=&#34;exploring-lkms&#34;&gt;Exploring LKMs&lt;/h1&gt;
+&lt;h2 id=&#34;the-lkm-framework&#34;&gt;The LKM framework&lt;/h2&gt;
+&lt;p&gt;&lt;img alt=&#34;4.3.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/4.3.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;kernel-modules-within-the-kernel-source-tree&#34;&gt;Kernel modules within the kernel source tree&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;kernel modules 存放於 &lt;code&gt;/lib/modules/$(uname -r)/&lt;/code&gt;
+&lt;img alt=&#34;152.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/152.png&#34;&gt;
+以我的例子來說，正在運行 95 個 modules，可以發現跟書上的範例 5359 差很多，我的推測是我使用的是 server 版，書上使用的是 desktop 版。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;其中一個大量使用 modules 這種方式的是 device driver，例如可以看 &lt;code&gt;kernel/drivers/net/ethernet&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;原先 Ubuntu 18.04 的 netword drivers:
+&lt;img alt=&#34;153-1.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/153-1.png&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;我自己編譯的 &lt;code&gt;5.4.1-llkd01&lt;/code&gt; 的 device drivers:
+&lt;img alt=&#34;153-2.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/153-2.png&#34;&gt;
+明顯少了許多，這是因為當初在 build 時，是使用 &lt;code&gt;lsmod&lt;/code&gt; 抓取正在運行中的 module，並不像 ubuntu 需要考慮各種可能的情境&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;其中的個有名的 driver 是 Intel 1GbE Network Interface Card (NIC)&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lsmod | grep e1000
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img alt=&#34;153-3.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/153-3.png&#34;&gt;&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

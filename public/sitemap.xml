@@ -29,6 +29,9 @@
     <loc>http://localhost:1313/dev-log/how-to-use-hugo/</loc>
     <lastmod>2025-09-23T19:35:47+08:00</lastmod>
   </url><url>
+    <loc>http://localhost:1313/linux-kernel-programming/ch04/</loc>
+    <lastmod>2025-12-08T08:39:49+08:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/dev-log/github-actions/</loc>
     <lastmod>2025-09-25T12:16:16+08:00</lastmod>
   </url><url>
@@ -108,7 +111,7 @@
     <lastmod>2025-11-01T13:01:44+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/</loc>
-    <lastmod>2025-12-06T15:00:38+08:00</lastmod>
+    <lastmod>2025-12-08T08:39:49+08:00</lastmod>
   </url><url>
     <loc>http://localhost:1313/linux-kernel-programming/</loc>
     <lastmod>2025-12-03T20:11:38+08:00</lastmod>
