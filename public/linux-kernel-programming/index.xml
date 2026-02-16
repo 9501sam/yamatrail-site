@@ -6,7 +6,7 @@
     <description>Recent content in Linux Kernel Programming 學習紀錄 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Mon, 08 Dec 2025 08:39:49 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 16 Feb 2026 14:10:41 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/linux-kernel-programming/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ch02: Building the 5.x Linux Kernel from Source - Part 1</title>
@@ -153,6 +153,58 @@
 &lt;/ul&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lsmod | grep e1000
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img alt=&#34;153-3.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/153-3.png&#34;&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>如何在文字界面底下讓樹莓派連上 Wi-Fi</title>
+      <link>http://localhost:1313/linux-kernel-programming/pi-wifi/</link>
+      <pubDate>Mon, 16 Feb 2026 14:10:41 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/pi-wifi/</guid>
+      <description>&lt;h2 id=&#34;啟用-wlan0&#34;&gt;啟用 &lt;code&gt;wlan0&lt;/code&gt;&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo rfkill unblock wifi
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# or unlock all&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo rfkill unblock all
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo ip link set wlan0 up
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo iwlist wlan0 scan
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;使用-nmcli&#34;&gt;使用 &lt;code&gt;nmcli&lt;/code&gt;&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@raspberrypi:~ $ sudo nmcli dev wifi rescan
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@raspberrypi:~ $ sudo nmcli device wifi connect &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;xxx&amp;#34;&lt;/span&gt; password &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;yyyyyyyyyy&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;剛開始 scan 的時候，可能會看到&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@raspberrypi:~ $ sudo nmcli dev wifi rescan
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Error: Scanning not allowed &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; unavailable.
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;這是因為還沒有設定國家代碼，這時要先&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo raspi-config
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ch05: Writing Your First Kernel Module - LKMs Part 2</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch05/</link>
+      <pubDate>Thu, 25 Dec 2025 10:07:49 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch05/</guid>
+      <description>&lt;h1 id=&#34;cross-compiling-a-kernel-module&#34;&gt;Cross-compiling a kernel module&lt;/h1&gt;
+&lt;p&gt;在 ch4 時，我們 compile 了一個 kernel module, 這次則是要 cross-compile 一個 kernel module&lt;/p&gt;
+&lt;h2 id=&#34;attempt-1--setting-the-special-environment-variables&#34;&gt;Attempt 1 – setting the &amp;ldquo;special&amp;rdquo; environment variables&lt;/h2&gt;
+&lt;p&gt;先試著設定 &lt;code&gt;ARCH&lt;/code&gt; 與 &lt;code&gt;CROSS_COMPILE&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd ~/Linux-Kernel-Programming/ch5/cross
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make ARCH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;arm CROSS_COMPILE&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;arm-linux-gnueabihf-
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch05/206.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;但這個嘗試失敗了，這是因為在這個例子中，是因為 &lt;code&gt;Makefile&lt;/code&gt; 會去找目前這台電腦的 Kernel source，因此要來對 &lt;code&gt;Makefile&lt;/code&gt; 做下列的修改&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;ifeq&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;ARCH&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;,arm)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# *UPDATE* &amp;#39;KDIR&amp;#39; below to point to the ARM Linux kernel source tree on your box
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  KDIR ?&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; /home/user/rpi_work/kernel_rpi/linux
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;ifeq&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;ARCH&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;,arm64)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# *UPDATE* &amp;#39;KDIR&amp;#39; below to point to the ARM64 (Aarch64) Linux kernel source
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# tree on your box&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  KDIR ?&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; /home/user/rpi_work/kernel_rpi/linux
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;ifeq&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;ARCH&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;,powerpc)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# *UPDATE* &amp;#39;KDIR&amp;#39; below to point to the PPC64 Linux kernel source tree on your box
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  KDIR ?&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ~/kernel/linux-4.9.1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;else&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# &amp;#39;KDIR&amp;#39; is the Linux &amp;#39;kernel headers&amp;#39; package on your host system; this is
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# usually an x86_64, but could be anything, really (f.e. building directly&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# on a Raspberry Pi implies that it&amp;#39;s the host)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  KDIR ?&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; /lib/modules/&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;shell uname -r&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;/build
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;endif&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;這裡主要是把 kernel source 的路徑改為正確的 &lt;code&gt;/home/user/rpi_work/kernel_rpi/linux&lt;/code&gt;&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

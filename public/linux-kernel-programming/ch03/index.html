@@ -266,17 +266,16 @@ bzImage: 壓縮過後的 kernel image (x86)
 </span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd <span style="color:#e6db74">${</span>RPI_STG<span style="color:#e6db74">}</span>/kernel_rpi
 </span></span><span style="display:flex;"><span>git clone --depth<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> --branch rpi-5.4.y https://github.com/raspberrypi/linux.git
 </span></span></code></pre></div><p><img alt="rpi01.png" loading="lazy" src="/linux-kernel-programming/ch03/rpi01.png"></p>
-<p>現在我們拿到了 5.4.83 Raspberry Pi kernel 跟書上的有一點不一樣 (5.4.51 Raspberry Pi kernel) 但沒這裡差一點點沒有關係</p>
+<p>現在在路徑 <code>~/rpi_work/kernel_rpi/linux</code> 中，我們拿到了 5.4.83 Raspberry Pi kernel 跟書上的有一點不一樣 (5.4.51 Raspberry Pi kernel) 但沒這裡差一點點沒有關係。</p>
 <h2 id="step-2--installing-a-cross-toolchain">Step 2 – installing a cross-toolchain<a hidden class="anchor" aria-hidden="true" href="#step-2--installing-a-cross-toolchain">#</a></h2>
 <h3 id="first-method--package-install-via-apt">First method – package install via apt<a hidden class="anchor" aria-hidden="true" href="#first-method--package-install-via-apt">#</a></h3>
-<p>書上的範例是使用 32-bit 的樹莓派，我手上的樹莓派是 64-bit，所以要用</p>
+<p>這裡在安裝一些編譯時所需要的工具，書上的範例是使用 32-bit 的樹莓派，我手上的樹莓派是 64-bit，所以要用:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># Install general build tools</span>
 </span></span><span style="display:flex;"><span>sudo apt update
 </span></span><span style="display:flex;"><span>sudo apt install build-essential git bc bison flex libssl-dev make libc6-dev libncurses5-dev
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Install the 64-bit ARM cross-compiler toolchain</span>
 </span></span><span style="display:flex;"><span>sudo apt install crossbuild-essential-arm64
-</span></span></code></pre></div><h3 id="second-method--installation-via-the-source-repo">Second method – installation via the source repo<a hidden class="anchor" aria-hidden="true" href="#second-method--installation-via-the-source-repo">#</a></h3>
-<h2 id="step-3--configuring-and-building-the-kernel">Step 3 – configuring and building the kernel<a hidden class="anchor" aria-hidden="true" href="#step-3--configuring-and-building-the-kernel">#</a></h2>
+</span></span></code></pre></div><h2 id="step-3--configuring-and-building-the-kernel">Step 3 – configuring and building the kernel<a hidden class="anchor" aria-hidden="true" href="#step-3--configuring-and-building-the-kernel">#</a></h2>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># Set target architecture to ARM 64-bit</span>
 </span></span><span style="display:flex;"><span>export ARCH<span style="color:#f92672">=</span>arm64
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># Set cross-compiler prefix</span>
@@ -290,16 +289,17 @@ bzImage: 壓縮過後的 kernel image (x86)
 </span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># Compile the kernel image (Image), modules, and device tree blobs (dtbs)</span>
 </span></span><span style="display:flex;"><span>make -j<span style="color:#66d9ef">$(</span>nproc<span style="color:#66d9ef">)</span> Image modules dtbs
 </span></span></code></pre></div><p><img alt="rpi03.png" loading="lazy" src="/linux-kernel-programming/ch03/rpi03.png">
-最後的 kernel image 會存放於 <code>arch/arm64/boot/Image</code></p>
+最後的 kernel image 會存放於 <code>arch/arm64/boot/Image</code><br>
+到了這裡，我們已經完成了編譯的步驟</p>
 <h3 id="放到-sd-card-中">放到 SD Card 中<a hidden class="anchor" aria-hidden="true" href="#放到-sd-card-中">#</a></h3>
-<p>在 build 之後要把</p>
+<p>在 build 之後要把以下三個東西</p>
 <ol>
 <li>kernel image</li>
 <li>device tree files</li>
-<li>modules
-放入 SD Card 中</li>
+<li>modules</li>
 </ol>
-<p>把 SD card 的 boot partition 與 root partition mount 到 <code>~/mnt/pi-boot</code> 與 <code>~/mnt/pi-root</code>
+<p>放入 SD Card 中</p>
+<p>為了把東西放入 SD card 中，要先把 SD card 的 boot partition 與 root partition mount 到 <code>~/mnt/pi-boot</code> 與 <code>~/mnt/pi-root</code>:
 <img alt="rpi04.png" loading="lazy" src="/linux-kernel-programming/ch03/rpi04.png"></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># Example mounting setup (create directories first if they don&#39;t exist)</span>
 </span></span><span style="display:flex;"><span>sudo mkdir -p ~/mnt/pi-boot ~/mnt/pi-root
@@ -307,15 +307,17 @@ bzImage: 壓縮過後的 kernel image (x86)
 </span></span><span style="display:flex;"><span>sudo mount /dev/mmcblk0p1 ~/mnt/pi-boot   <span style="color:#75715e"># Boot partition (FAT32)</span>
 </span></span><span style="display:flex;"><span>sudo mount /dev/mmcblk0p2 ~/mnt/pi-root   <span style="color:#75715e"># Root partition (Ext4)</span>
 </span></span></code></pre></div><h3 id="copy-kernel-image">Copy Kernel Image<a hidden class="anchor" aria-hidden="true" href="#copy-kernel-image">#</a></h3>
-<p>這裡的 <code>kernel8.img</code> 是原本的 kernel，現在我們把 build 出來的 <code>arch/arm64/boot/Image</code> 複製到這裡的 <code>kernel54.img</code>
+<p>在 SD card 中 <code>boot</code> 中的 <code>kernel8.img</code> 是原本從官方下載的 kernel (<code>6.12.47</code>)，現在我們把剛剛從 kernel source <code>5.4.83</code> build 出來的 <code>arch/arm64/boot/Image</code> 複製到 <code>boot</code> 分區的 <code>kernel54.img</code>
 <img alt="pi-boot.png" loading="lazy" src="/linux-kernel-programming/ch03/pi-boot.png"></p>
 <ul>
 <li>Copy the kernel binary</li>
 </ul>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo cp ~/rpi_work/kernel_rpi/linux/arch/arm64/boot/Image ~/mnt/pi-boot/kernel54.img
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>ls ~/mnt/pi-boot/kernel54.img
 </span></span></code></pre></div><h3 id="install-kernel-modules">Install Kernel Modules<a hidden class="anchor" aria-hidden="true" href="#install-kernel-modules">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e"># The path INSTALL_MOD_PATH must point to the root partition of the Pi</span>
 </span></span><span style="display:flex;"><span>sudo env PATH<span style="color:#f92672">=</span>$PATH make modules_install INSTALL_MOD_PATH<span style="color:#f92672">=</span>~/mnt/pi-root
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>ls ~/mnt/pi-root/lib/modules
 </span></span></code></pre></div><p>現在多了一個 <code>5.4.83-v8+</code> 的 module
 <img alt="rpi-modules2.png" loading="lazy" src="/linux-kernel-programming/ch03/rpi-modules2.png"></p>
 <h3 id="update-configtxt">Update config.txt<a hidden class="anchor" aria-hidden="true" href="#update-configtxt">#</a></h3>
@@ -354,7 +356,7 @@ bzImage: 壓縮過後的 kernel image (x86)
     </main>
     
 <footer class="footer">
-        <span>&copy; 2025 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
 
     <span>
         Powered by

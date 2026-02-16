@@ -141,10 +141,41 @@ lsmod | grep e1000 ...</p>
   <footer class="entry-footer"><span title='2025-12-08 08:39:49 +0800 CST'>December 8, 2025</span></footer>
   <a class="entry-link" aria-label="post link to Ch04: Writing Your First Kernel Module - LKMs Part 1" href="http://localhost:1313/linux-kernel-programming/ch04/"></a>
 </article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">如何在文字界面底下讓樹莓派連上 Wi-Fi
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>啟用 wlan0 sudo rfkill unblock wifi # or unlock all sudo rfkill unblock all sudo ip link set wlan0 up sudo iwlist wlan0 scan 使用 nmcli user@raspberrypi:~ $ sudo nmcli dev wifi rescan user@raspberrypi:~ $ sudo nmcli device wifi connect &#34;xxx&#34; password &#34;yyyyyyyyyy&#34; 剛開始 scan 的時候，可能會看到
+user@raspberrypi:~ $ sudo nmcli dev wifi rescan Error: Scanning not allowed while unavailable. 這是因為還沒有設定國家代碼，這時要先
+sudo raspi-config 5 Localisation Options -&gt; L4 WLAN Country -&gt; 選擇 TW Taiwan
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-02-16 14:10:41 +0800 CST'>February 16, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 如何在文字界面底下讓樹莓派連上 Wi-Fi" href="http://localhost:1313/linux-kernel-programming/pi-wifi/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch05: Writing Your First Kernel Module - LKMs Part 2
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Cross-compiling a kernel module 在 ch4 時，我們 compile 了一個 kernel module, 這次則是要 cross-compile 一個 kernel module
+Attempt 1 – setting the “special” environment variables 先試著設定 ARCH 與 CROSS_COMPILE
+cd ~/Linux-Kernel-Programming/ch5/cross make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- 但這個嘗試失敗了，這是因為在這個例子中，是因為 Makefile 會去找目前這台電腦的 Kernel source，因此要來對 Makefile 做下列的修改
+ifeq ($(ARCH),arm) # *UPDATE* &#39;KDIR&#39; below to point to the ARM Linux kernel source tree on your box KDIR ?= /home/user/rpi_work/kernel_rpi/linux else ifeq ($(ARCH),arm64) # *UPDATE* &#39;KDIR&#39; below to point to the ARM64 (Aarch64) Linux kernel source # tree on your box KDIR ?= /home/user/rpi_work/kernel_rpi/linux else ifeq ($(ARCH),powerpc) # *UPDATE* &#39;KDIR&#39; below to point to the PPC64 Linux kernel source tree on your box KDIR ?= ~/kernel/linux-4.9.1 else # &#39;KDIR&#39; is the Linux &#39;kernel headers&#39; package on your host system; this is # usually an x86_64, but could be anything, really (f.e. building directly # on a Raspberry Pi implies that it&#39;s the host) KDIR ?= /lib/modules/$(shell uname -r)/build endif 這裡主要是把 kernel source 的路徑改為正確的 /home/user/rpi_work/kernel_rpi/linux
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-25 10:07:49 +0800 CST'>December 25, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch05: Writing Your First Kernel Module - LKMs Part 2" href="http://localhost:1313/linux-kernel-programming/ch05/"></a>
+</article>
     </main>
     
 <footer class="footer">
-        <span>&copy; 2025 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
 
     <span>
         Powered by

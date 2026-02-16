@@ -185,12 +185,12 @@ git clone --depth=1 --branch rpi-5.4.y https://github.com/raspberrypi/linux.git
 
 ![rpi01.png](rpi01.png)
 
-現在我們拿到了 5.4.83 Raspberry Pi kernel 跟書上的有一點不一樣 (5.4.51 Raspberry Pi kernel) 但沒這裡差一點點沒有關係
+現在在路徑 `~/rpi_work/kernel_rpi/linux` 中，我們拿到了 5.4.83 Raspberry Pi kernel 跟書上的有一點不一樣 (5.4.51 Raspberry Pi kernel) 但沒這裡差一點點沒有關係。
 
 ## Step 2 – installing a cross-toolchain
 
 ### First method – package install via apt
-書上的範例是使用 32-bit 的樹莓派，我手上的樹莓派是 64-bit，所以要用 
+這裡在安裝一些編譯時所需要的工具，書上的範例是使用 32-bit 的樹莓派，我手上的樹莓派是 64-bit，所以要用:
 
 ```sh
 # Install general build tools
@@ -199,7 +199,6 @@ sudo apt install build-essential git bc bison flex libssl-dev make libc6-dev lib
 # Install the 64-bit ARM cross-compiler toolchain
 sudo apt install crossbuild-essential-arm64
 ```
-### Second method – installation via the source repo
 
 ## Step 3 – configuring and building the kernel
 ```sh
@@ -227,16 +226,18 @@ make menuconfig
 make -j$(nproc) Image modules dtbs
 ```
 ![rpi03.png](rpi03.png)
-最後的 kernel image 會存放於 `arch/arm64/boot/Image`
+最後的 kernel image 會存放於 `arch/arm64/boot/Image`  
+到了這裡，我們已經完成了編譯的步驟
 
 ### 放到 SD Card 中
-在 build 之後要把
+在 build 之後要把以下三個東西
 1. kernel image
 1. device tree files
 1. modules
+
 放入 SD Card 中
 
-把 SD card 的 boot partition 與 root partition mount 到 `~/mnt/pi-boot` 與 `~/mnt/pi-root`
+為了把東西放入 SD card 中，要先把 SD card 的 boot partition 與 root partition mount 到 `~/mnt/pi-boot` 與 `~/mnt/pi-root`:
 ![rpi04.png](rpi04.png)
 ```sh
 # Example mounting setup (create directories first if they don't exist)
@@ -248,17 +249,23 @@ sudo mount /dev/mmcblk0p2 ~/mnt/pi-root   # Root partition (Ext4)
 
 
 ### Copy Kernel Image
-這裡的 `kernel8.img` 是原本的 kernel，現在我們把 build 出來的 `arch/arm64/boot/Image` 複製到這裡的 `kernel54.img`
+在 SD card 中 `boot` 中的 `kernel8.img` 是原本從官方下載的 kernel (`6.12.47`)，現在我們把剛剛從 kernel source `5.4.83` build 出來的 `arch/arm64/boot/Image` 複製到 `boot` 分區的 `kernel54.img`
 ![pi-boot.png](pi-boot.png)
 * Copy the kernel binary
 ```sh
 sudo cp ~/rpi_work/kernel_rpi/linux/arch/arm64/boot/Image ~/mnt/pi-boot/kernel54.img
+```
+```sh
+ls ~/mnt/pi-boot/kernel54.img
 ```
 
 ### Install Kernel Modules
 ```sh
 # The path INSTALL_MOD_PATH must point to the root partition of the Pi
 sudo env PATH=$PATH make modules_install INSTALL_MOD_PATH=~/mnt/pi-root
+```
+```sh
+ls ~/mnt/pi-root/lib/modules
 ```
 現在多了一個 `5.4.83-v8+` 的 module
 ![rpi-modules2.png](rpi-modules2.png)

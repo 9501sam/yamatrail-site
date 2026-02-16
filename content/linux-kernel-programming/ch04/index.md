@@ -199,8 +199,14 @@ return stat;
 * `__exit`: 在這個 function 結束之後，all the memory is freed
 
 # Common operations on kernel modules
-這裡要開始說明如何 build, load, unload kernel modules
-## Building the kernel module
+先前的內容直接用了預先寫好的 script 來建立一個 module，但試想現在的情境是我們要如何從一個 `.c` file 變成一個實際運行的 module 並且不用這本書書預先寫好的 script
+
+常用的操作有
+1. 如何 build
+1. 如何 load
+1. 確認 module 的狀態 (`printk()` and `lsmod`)
+1. unload
+## Building the kernel module (如何 build)
 * 先 clone 這個 repo [https://github.com/PacktPublishing/Linux-Kernel-Programming](https://github.com/PacktPublishing/Linux-Kernel-Programming)
 
 ```sh
@@ -230,7 +236,7 @@ sudo insmod ./helloworld_lkm.ko
 * `/proc/sys/kernel/modules_disabled`, is set to 1 (it defaults to 0).
 * 撞到相同的名子
 
-## A quick first look at the kernel `printk()`
+## A quick first look at the kernel `printk()` (確認 module 的存活狀態：透過 log 確認)
 跟 `printf()` 的用法很像，但是 `printf()` 會直接 print 到螢幕上，`printk()` 可能輸出到
 * A kernel log buffer in RAM (volatile)
 * A log file, the kernel log file (non-volatile)
@@ -239,12 +245,12 @@ sudo insmod ./helloworld_lkm.ko
 使用 `dmesg` 可以看到 `printk()` 印出的東西
 ![](167.png)
 
-## Listing the live kernel modules
+## Listing the live kernel modules (確認 module 的存活狀態：列出所有 log)
 現在我們的 `helloworld_lkm.ko` 在輸出訊息之後，就不做任何事情了，它現在就單純的存在於 kernel memory and do nothing
 
 使用 `lsmod` 可以看到現在還存在哪些 module
 ![](169.png)
-## Unloading the module from kernel memory
+## Unloading the module from kernel memory ()
 使用 `rmmod` 可以移除 module
 ```sh
 sudo rmmod helloworld_lkm
@@ -369,7 +375,71 @@ printk(KERN_INFO "Hello, world\n");
 * all printk instances lower than log level 4 will appear on the console device
 
 ### Writing output to the Raspberry Pi console
-這裡需要一條 USB to TTL 的線才可以繼續做實驗
+#### 連接 USB to TTL
+這裡需要一條 USB to TTL 的線並且經由 `minicom` 連到
+* `pin 6`: GND
+* TTL 上的 RX 連到 Raspberry Pi 4 上的 TX (`GPIO 14`)
+* TTL 上的 TX 連到 Raspberry Pi 4 上的 RX (`GPIO 15`)
+
+* 注意這裡是 cross the data lines: Cable RX goes to Pi TX, and Cable TX goes to Pi RX
+![GPIO-Pinout-Diagram-2.png](GPIO-Pinout-Diagram-2.png)
+
+#### 修改 `config.txt`
+這個步驟主要是要開啟 Pi 上的 uart 功能
+```sh
+# Example mounting setup (create directories first if they don't exist)
+sudo mkdir -p ~/mnt/pi-boot ~/mnt/pi-root
+# Replace /dev/sdX1 and /dev/sdX2 with your SD card device names
+sudo mount /dev/mmcblk0p1 ~/mnt/pi-boot   # Boot partition (FAT32)
+sudo mount /dev/mmcblk0p2 ~/mnt/pi-root   # Root partition (Ext4)
+```
+
+```sh
+sudo vim ~/mnt/pi-boot/config.txt
+```
+
+在最下面增加
+```txt
+enable_uart=1
+```
+
+```sh
+sudo umount ~/mnt/pi-boot
+sudo umount ~/mnt/pi-root
+```
+
+#### 使用 `minicom` 連上 Pi
+```sh
+sudo apt install minicom
+```
+
+```sh
+sudo screen /dev/ttyUSB0 115200 # user, user
+```
+(這裡比較推薦用 `screen`, 比較容易成功登入)
+
+##### `minicom` 的設定
+在筆電上
+```sh
+sudo apt update && sudo apt install minicom lrzsz -y
+```
+在 pi 上
+```sh
+sudo apt update && sudo apt install lrzsz -y
+```
+第一次設定 Minicom
+```sh
+sudo minicom -s
+```
+![](minicom.png)
+```sh
+sudo minicom -D /dev/ttyUSB0 -b 115200
+```
+
+(目前比較推薦 `screen`)
+
+* 注意如果是剛燒好的 SD card 還是要先連上螢幕做帳號密碼的設定
+
 ### Enabling the `pr_debug()` kernel messages
 
 ## Rate limiting the printk instances
