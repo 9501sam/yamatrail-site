@@ -235,11 +235,353 @@ endif
 <p>這個範例主要顯現了同一個 <code>.c</code> file 可以經由編譯程序上的調整達到 portability</p>
 <h2 id="being-a-bit-more-security-aware">Being a bit more security-aware<a hidden class="anchor" aria-hidden="true" href="#being-a-bit-more-security-aware">#</a></h2>
 <h1 id="emulating-library-like-features-for-kernel-modules">Emulating &ldquo;library-like&rdquo; features for kernel modules<a hidden class="anchor" aria-hidden="true" href="#emulating-library-like-features-for-kernel-modules">#</a></h1>
-<p>實際上不是 Library，但是有一些技巧可以做到 Library-like 的事情</p>
+<p>實際上不是 Library，但是有一些技巧可以做到 Library-like 的事情，有以下這兩種方式可以做到類似於 library-like 的功能</p>
+<ol>
+<li>including the &ldquo;library&rdquo; code to your kernel module object</li>
+<li>module stacking</li>
+</ol>
+<p>通常第二個方式會比較好一些</p>
 <h2 id="performing-library-emulation-via-multiple-source-files">Performing library emulation via multiple source files<a hidden class="anchor" aria-hidden="true" href="#performing-library-emulation-via-multiple-source-files">#</a></h2>
+<p>到了目前為止的範例，我們都只有用一個 <code>.c</code> file，但是在現實的環境當中，經常是使用多個 C source file 所 compile 出一個 <code>.ko</code> binary object</p>
+<p>例如現在有一個 kernel module project 叫做 <code>projx</code>，並且是透過三個檔案 <code>prj1.c</code>, <code>prj2.c</code>, <code>prj3.c</code> 所組成，這種時候，會在 <code>Makefile</code> 中這樣寫:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>obj-m <span style="color:#f92672">:=</span> projx.o
+</span></span><span style="display:flex;"><span>projx-objs <span style="color:#f92672">:=</span> prj1.o prj2.o prj3.o
+</span></span></code></pre></div><p>這可以利用 <code>projx</code> 這個 prefix 讓 <code>prj1.o prj2.o prj3.o</code> link 成 <code>projx.o</code></p>
 <h2 id="understanding-function-and-variable-scope-in-a-kernel-module">Understanding function and variable scope in a kernel module<a hidden class="anchor" aria-hidden="true" href="#understanding-function-and-variable-scope-in-a-kernel-module">#</a></h2>
+<p>在 2.6 Linux 之前，static and global variable 是可以被整個 kernel 看到的，現在則限縮在一個 module 中，但也可以利用 <code>EXPORT_SYMBOL()</code> 讓它變成舊有的方式</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> my_glob <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">long</span> <span style="color:#a6e22e">my_foo</span>(<span style="color:#66d9ef">int</span> key)
+</span></span><span style="display:flex;"><span>{ [...]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>像是上面這個就只有自己本身的 kernel module 可以看到</p>
+<p>如果希望它可以被整個 kernel 看到的話可以使用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> my_glob <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">EXPORT_SYMBOL</span>(my_glob);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">my_foo</span>(<span style="color:#66d9ef">int</span> key)
+</span></span><span style="display:flex;"><span>{ [...]
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">EXPORT_SYMBOL</span>(my_foo);
+</span></span></code></pre></div><p>注意到這裡使用 <code>EXPORT_SYMBOL()</code> 的話，甚至連 <code>static</code> 都不用使用
+利用這個特點，我們可以在某個 module 中提供一些 <code>EXPORT_SYMBOL()</code> 的 function or variable 讓其他 subsystem 或是 module 可以使用</p>
+<p>例如 device driver 需要處理 hardware interrupt 時，會需要使用 <code>request_threaded_irq()</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">request_threaded_irq</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> irq, <span style="color:#66d9ef">irq_handler_t</span> handler,
+</span></span><span style="display:flex;"><span>			 <span style="color:#66d9ef">irq_handler_t</span> thread_fn, <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> irqflags,
+</span></span><span style="display:flex;"><span>			 <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>devname, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>dev_id)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// [...]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">EXPORT_SYMBOL</span>(request_threaded_irq);
+</span></span></code></pre></div><p>也或使像是一些 helper function，例如 <code>ilb/string.c</code></p>
+<ul>
+<li><code>kernel/sched/fair.c</code>: 像是這個 scheduler 則沒有使用 <code>EXPORT_SYMBOL()</code> 開放給其他 module or subsystem 使用</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pick_next_task_fair</span>(<span style="color:#66d9ef">struct</span> rq <span style="color:#f92672">*</span>rq, <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>prev, <span style="color:#66d9ef">struct</span> rq_flags <span style="color:#f92672">*</span>rf)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">struct</span> cfs_rq <span style="color:#f92672">*</span>cfs_rq <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>rq<span style="color:#f92672">-&gt;</span>cfs;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">struct</span> sched_entity <span style="color:#f92672">*</span>se;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>p;
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">int</span> new_tasks;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// [...]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>使用</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make export_report
+</span></span></code></pre></div><p>可以列出所有被 <code>EXPORT_SYMBOL()</code> 的 symbol</p>
 <h2 id="understanding-module-stacking">Understanding module stacking<a hidden class="anchor" aria-hidden="true" href="#understanding-module-stacking">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> turtlegod@thinkpad:~$ lsmod | grep vbox
+</span></span><span style="display:flex;"><span>vboxnetadp             <span style="color:#ae81ff">28672</span>  <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>vboxnetflt             <span style="color:#ae81ff">28672</span>  <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>vboxdrv               <span style="color:#ae81ff">606208</span>  <span style="color:#ae81ff">2</span> vboxnetadp,vboxnetflt
+</span></span></code></pre></div><p>以這個例子為例，第三個 column 是 usage count，像是 <code>vboxdrv</code> 要解讀為</p>
+<blockquote>
+<p>the kernel modules displayed on the right depend on the kernel module on the left</p></blockquote>
+<p>所以也就是 <code>vboxnetadp</code> 有使用到 <code>vboxdrv</code> 的 data structure 或是 API，這時候 <code>vboxdrv</code> 就有了一種 library-like 的感覺</p>
 <h3 id="trying-out-module-stacking">Trying out module stacking<a hidden class="anchor" aria-hidden="true" href="#trying-out-module-stacking">#</a></h3>
+<p>這個例子只會使用兩個 module, 就只有單純呈現 module stacking 是可行的:</p>
+<ol>
+<li><code>core_lkm</code>: 這作為類似於 library 的東西</li>
+<li><code>user_lkm</code>: 這個 module 會使用一些 <code>core_lkm</code> 的功能（透過 <code>EXPORT_SYMBOL()</code>）</li>
+</ol>
+<p>為了要達到這個任務，我們要做到以下的一些事情：</p>
+<ul>
+<li>core 會需要利用 <code>EXPORT_SYMBOL</code> 把一些 data 與 function 給 export 出去</li>
+<li>user 需要還是要利用 <code>extern</code> 進行 declaration (definition 在 core, declaration 在 user)</li>
+<li>在 core 中，不幫那些 exported 的 symbol 加上 <code>static</code></li>
+<li>修改 <code>Makefire</code></li>
+</ul>
+<p>現在先來看這兩個 module 所對應的兩個 <code>.c</code> file</p>
+<ul>
+<li><code>ch5/modstacking/core_lkm.c</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define pr_fmt(fmt) &#34;%s:%s(): &#34; fmt, KBUILD_MODNAME, __func__
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/init.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/module.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kernel.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define MODNAME   &#34;core_lkm&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define THE_ONE   0xfedface
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">MODULE_LICENSE</span>(<span style="color:#e6db74">&#34;Dual MIT/GPL&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> exp_int <span style="color:#f92672">=</span> <span style="color:#ae81ff">200</span>;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">EXPORT_SYMBOL_GPL</span>(exp_int); <span style="color:#75715e">// &lt;- 這裡把 exp_int 提供出來
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/* Functions to be called from other LKMs */</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/* llkd_sysinfo2:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * A more security-aware version of the earlier llkd_sysinfo() routine. We use
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * David Wheeler&#39;s flawfinder(1) tool to detect possible vulnerabilities;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * Based on it&#39;s report, we change the strlen, and replace the strncat with
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * strlcat.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">llkd_sysinfo2</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define MSGLEN   128
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">char</span> msg[MSGLEN];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memset</span>(msg, <span style="color:#ae81ff">0</span>, MSGLEN);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">snprintf</span>(msg, <span style="color:#ae81ff">48</span>, <span style="color:#e6db74">&#34;%s(): minimal Platform Info:</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">CPU: &#34;</span>, __func__);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/* Strictly speaking, all this #if... is considered ugly and should be
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * isolated as far as is possible
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#ifdef CONFIG_X86
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#if (BITS_PER_LONG == 32)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;x86_32, &#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#else
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;x86_64, &#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#ifdef CONFIG_ARM
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;ARM-32, &#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#ifdef CONFIG_ARM64
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;Aarch64, &#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#ifdef CONFIG_MIPS
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;MIPS, &#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#ifdef CONFIG_PPC
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;PowerPC, &#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#ifdef CONFIG_S390
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;IBM S390, &#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#ifdef __BIG_ENDIAN
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;big-endian; &#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#else
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;little-endian; &#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#if (BITS_PER_LONG == 32)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;32-bit OS.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#elif(BITS_PER_LONG == 64)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">strlcat</span>(msg, <span style="color:#e6db74">&#34;64-bit OS.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, MSGLEN);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;%s&#34;</span>, msg);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">EXPORT_SYMBOL</span>(llkd_sysinfo2); <span style="color:#75715e">// &lt;- 這裡把 llkd_sysinfo2() 提供出來
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#if (BITS_PER_LONG == 32)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>u32 <span style="color:#a6e22e">get_skey</span>(<span style="color:#66d9ef">int</span> p)
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#else               </span><span style="color:#75715e">// 64-bit
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>u64 <span style="color:#a6e22e">get_skey</span>(<span style="color:#66d9ef">int</span> p)
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>{
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#if (BITS_PER_LONG == 32)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    u32 secret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x567def</span>;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#else               </span><span style="color:#75715e">// 64-bit
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    u64 secret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x123abc567def</span>;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;%s:%d: I&#39;ve been called</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, __FILE__, __LINE__);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (p <span style="color:#f92672">==</span> THE_ONE)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> secret;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">EXPORT_SYMBOL</span>(get_skey); <span style="color:#75715e">// &lt;- 這裡把 get_skey() 提供出來
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">core_lkm_init</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;inserted</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;   <span style="color:#75715e">/* success */</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __exit <span style="color:#a6e22e">core_lkm_exit</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;bids you adieu</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_init</span>(core_lkm_init);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_exit</span>(core_lkm_exit);
+</span></span></code></pre></div><ul>
+<li><code>ch5/modstacking/user_lkm.c</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define pr_fmt(fmt) &#34;%s:%s(): &#34; fmt, KBUILD_MODNAME, __func__
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/init.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/module.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kernel.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define MODNAME     &#34;user_lkm&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#if 1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">MODULE_LICENSE</span>(<span style="color:#e6db74">&#34;Dual MIT/GPL&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#else
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">MODULE_LICENSE</span>(<span style="color:#e6db74">&#34;MIT&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">llkd_sysinfo2</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">long</span> <span style="color:#a6e22e">get_skey</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">int</span> exp_int;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/* Call some functions within the &#39;core&#39; module */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">user_lkm_init</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define THE_ONE   0xfedface
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;inserted</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    u64 sk <span style="color:#f92672">=</span> <span style="color:#a6e22e">get_skey</span>(THE_ONE);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_debug</span>(<span style="color:#e6db74">&#34;Called get_skey(), ret = 0x%llx = %llu</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, sk, sk);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_debug</span>(<span style="color:#e6db74">&#34;exp_int = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, exp_int);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">llkd_sysinfo2</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __exit <span style="color:#a6e22e">user_lkm_exit</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;bids you adieu</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_init</span>(user_lkm_init);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_exit</span>(user_lkm_exit);
+</span></span></code></pre></div><p><code>user_lkm.c</code> 的重點在於前面還是要用 <code>extern</code> 做宣告才可以使用 <code>core_lkm</code> 所提供出來的東西</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">llkd_sysinfo2</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">long</span> <span style="color:#a6e22e">get_skey</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">int</span> exp_int;
+</span></span></code></pre></div><p>再來看看 <code>Makefile</code></p>
+<ul>
+<li><code>ch5/modstacking/Makefile</code>
+則是要多加這兩行</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>obj-m          <span style="color:#f92672">:=</span> core_lkm.o
+</span></span><span style="display:flex;"><span>obj-m          <span style="color:#f92672">+=</span> user_lkm.o
+</span></span></code></pre></div><h4 id="1-首先使用-make-編譯">1. 首先使用 <code>make</code> 編譯<a hidden class="anchor" aria-hidden="true" href="#1-首先使用-make-編譯">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd ~/Linux-Kernel-Programming/ch5/modstacking
+</span></span><span style="display:flex;"><span>make
+</span></span><span style="display:flex;"><span>ls *ko
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/234.png">
+現在出現了 <code>core_lkm.ko</code> 與 <code>user_lkm.ko</code></p>
+<h4 id="2-直接先-insert-user_lkm-會發生錯誤">2. 直接先 insert <code>user_lkm</code> (會發生錯誤)<a hidden class="anchor" aria-hidden="true" href="#2-直接先-insert-user_lkm-會發生錯誤">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo dmesg -C
+</span></span><span style="display:flex;"><span>sudo insmod ./user_lkm.ko
+</span></span><span style="display:flex;"><span>dmesg
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/235-2.png">
+這是因為在 <code>user_lkm.c</code> 中雖然宣告了 <code>exp_int</code>, <code>get_skey</code>, <code>llkd_sysinfo2</code> 這三個 symbol, 但是定義 symbol 的 <code>core_lkm</code> 還沒有載入，所以會出錯</p>
+<h4 id="3-使用正確的順序先-insert-core_lkm-再-insert-user_lkm">3. 使用正確的順序，先 insert <code>core_lkm</code> 再 insert <code>user_lkm</code><a hidden class="anchor" aria-hidden="true" href="#3-使用正確的順序先-insert-core_lkm-再-insert-user_lkm">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo insmod ./core_lkm.ko
+</span></span><span style="display:flex;"><span>dmesg
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo insmod ./user_lkm.ko
+</span></span><span style="display:flex;"><span>dmesg
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/235-3.png">
+先載入 <code>core_lkm</code> 之後在載入 <code>user_lkm</code>，就可以成功把這兩個都載入進去了！</p>
+<h4 id="4-運行成功了-使用-lsmod-來確認運行狀態">4. 運行成功了! 使用 <code>lsmod</code> 來確認運行狀態<a hidden class="anchor" aria-hidden="true" href="#4-運行成功了-使用-lsmod-來確認運行狀態">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>lsmod | egrep <span style="color:#e6db74">&#34;core_lkm|user_lkm&#34;</span>
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/236-4.png">
+現在可以看到 <code>core</code> 被 <code>user</code> 依賴</p>
+<h4 id="5-來看看直接刪除掉-core_lkm-會發生什麼事情">5. 來看看直接刪除掉 <code>core_lkm</code> 會發生什麼事情<a hidden class="anchor" aria-hidden="true" href="#5-來看看直接刪除掉-core_lkm-會發生什麼事情">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo rmmod core_lkm
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/236-5.png">
+因為 <code>core</code> 被 <code>user</code> 依賴，所以沒辦法刪除掉</p>
+<h4 id="6-使用正確的方式把這兩個-module-刪除掉">6. 使用正確的方式把這兩個 module 刪除掉<a hidden class="anchor" aria-hidden="true" href="#6-使用正確的方式把這兩個-module-刪除掉">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo rmmod user_lkm core_lkm
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/236-6.png"></p>
+<h1 id="passing-parameters-to-a-kernel-module">Passing parameters to a kernel module<a hidden class="anchor" aria-hidden="true" href="#passing-parameters-to-a-kernel-module">#</a></h1>
+<p>到了目前為止的例子，都還沒有使用 parameter，試想我們想要做一個 log level 的功能，類似下面這種</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> debug_level; <span style="color:#75715e">/* will be init to zero */</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">func_x</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (debug_level <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pr_debug</span>(<span style="color:#e6db74">&#34;At 1</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    [...]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (<span style="color:#f92672">&lt;</span>cond<span style="color:#f92672">&gt;</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (debug_level <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">pr_debug</span>(<span style="color:#e6db74">&#34;At 2: j=0x%x</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, j);
+</span></span><span style="display:flex;"><span>            [...]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    [...]
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>而這裡的 <code>debug_level</code> 要如何用 parameter 的方式傳入？這是這節接下來要說明的事情。</p>
+<h2 id="declaring-and-using-module-parameters">Declaring and using module parameters<a hidden class="anchor" aria-hidden="true" href="#declaring-and-using-module-parameters">#</a></h2>
+<p>想要傳入 parameter 的時候，可以用這樣的方式：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo insmod modparams1.ko mp_debug_level<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+</span></span></code></pre></div><blockquote>
+<p>這裡的 <code>mp_</code> 代表 module prefix，這是一個命名上的建議</p></blockquote>
+<p>Q: 命令上的方法了解了，但下一個問題是他並沒有 <code>main(int argc, char **argv)</code> 可以接收參數，那麼在程式中，又要如何接收命令上傳入的參數？</p>
+<p>A: 使用 macro <code>module_param()</code></p>
+<p>例如 <code>~/Linux-Kernel-Programming/ch5/modparams/modparams1/modparams1.c</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/init.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/module.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kernel.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define OUR_MODNAME    &#34;modparams1&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">MODULE_AUTHOR</span>(<span style="color:#e6db74">&#34;Kaiwan N Billimoria&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_DESCRIPTION</span>(<span style="color:#e6db74">&#34;LKP book:ch5/modparams/modparams1: module parameters demo LKM #1&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_LICENSE</span>(<span style="color:#e6db74">&#34;Dual MIT/GPL&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_VERSION</span>(<span style="color:#e6db74">&#34;0.1&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/* Module parameters */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> mp_debug_level;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_param</span>(mp_debug_level, <span style="color:#66d9ef">int</span>, <span style="color:#ae81ff">0660</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_PARM_DESC</span>(mp_debug_level,
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;Debug level [0-2]; 0 =&gt; no debug messages, 2 =&gt; high verbosity&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>mp_strparam <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;My string param&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_param</span>(mp_strparam, charp, <span style="color:#ae81ff">0660</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_PARM_DESC</span>(mp_strparam, <span style="color:#e6db74">&#34;A demo string parameter&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">modparams1_init</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;%s: inserted</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, OUR_MODNAME);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;module parameters passed: mp_debug_level=%d mp_strparam=%s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
+</span></span><span style="display:flex;"><span>        mp_debug_level, mp_strparam);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;       <span style="color:#75715e">/* success */</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __exit <span style="color:#a6e22e">modparams1_exit</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;module parameters passed: mp_debug_level=%d mp_strparam=%s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
+</span></span><span style="display:flex;"><span>        mp_debug_level, mp_strparam);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;%s: removed</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, OUR_MODNAME);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_init</span>(modparams1_init);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_exit</span>(modparams1_exit);
+</span></span></code></pre></div><p>像是這裡的</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">module_param</span>(mp_debug_level, <span style="color:#66d9ef">int</span>, <span style="color:#ae81ff">0660</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_param</span>(mp_strparam, charp, <span style="color:#ae81ff">0660</span>);
+</span></span></code></pre></div><p>這個 macro 有三個參數</p>
+<ol>
+<li>parameter 的名稱，應該要是 <code>static</code> 的 symbol</li>
+<li>data type</li>
+<li>最後的 <code>0660</code> 是權限，格式跟檔案權限的寫法一樣</li>
+</ol>
+<p><code>MODULE_PARM_DESC()</code> 用來</p>
+<h2 id="gettingsetting-module-parameters-after-insertion">Getting/setting module parameters after insertion<a hidden class="anchor" aria-hidden="true" href="#gettingsetting-module-parameters-after-insertion">#</a></h2>
+<h2 id="module-parameter-data-types-and-validation">Module parameter data types and validation<a hidden class="anchor" aria-hidden="true" href="#module-parameter-data-types-and-validation">#</a></h2>
+<h3 id="validating-kernel-module-parameters">Validating kernel module parameters<a hidden class="anchor" aria-hidden="true" href="#validating-kernel-module-parameters">#</a></h3>
+<h3 id="overriding-the-module-parameters-name">Overriding the module parameter&rsquo;s name<a hidden class="anchor" aria-hidden="true" href="#overriding-the-module-parameters-name">#</a></h3>
+<h3 id="hardware-related-kernel-parameters">Hardware-related kernel parameters<a hidden class="anchor" aria-hidden="true" href="#hardware-related-kernel-parameters">#</a></h3>
+<h1 id="floating-point-not-allowed-in-the-kernel">Floating point not allowed in the kernel<a hidden class="anchor" aria-hidden="true" href="#floating-point-not-allowed-in-the-kernel">#</a></h1>
+<h1 id="auto-loading-modules-on-system-boot">Auto-loading modules on system boot<a hidden class="anchor" aria-hidden="true" href="#auto-loading-modules-on-system-boot">#</a></h1>
+<h1 id="kernel-modules-and-security--an-overview">Kernel modules and security – an overview<a hidden class="anchor" aria-hidden="true" href="#kernel-modules-and-security--an-overview">#</a></h1>
+<h1 id="coding-style-guidelines-for-kernel-developers">Coding style guidelines for kernel developers<a hidden class="anchor" aria-hidden="true" href="#coding-style-guidelines-for-kernel-developers">#</a></h1>
 
 
   </div>
