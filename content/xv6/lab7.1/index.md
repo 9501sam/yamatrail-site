@@ -10,8 +10,68 @@ weight = 71
 * [6.S081 Fall 2020 Lecture 11: Thread Switching](https://www.youtube.com/watch?v=zRnGNndcVEA)
 {{< youtube vsgrTHY5tkg >}}
 
+# thread 的目標與手段
+我們希望 multi-threading，是因為希望可以有多個 thread 去分享同一個 CPU，在 xv6 中，是以「過了一段時間換人使用」作為 thread switching 的依據。在這個目標之下，我們可以來思考以下幾件事情：
+1. 什麼是「(該換人 (thread) 使用 CPU) 的時間到了」
+1. 我們需要 save/restore 哪些關於 thread 的資訊
+1. 完整的流程該如何實做
+## 1. 什麼是「(該換人 (thread) 使用 CPU) 的時間到了」?
+* `kernel/trap.c: usertrap()`:
+```c
+void
+usertrap(void)
+{
+  // [...]
 
-## 追蹤 Context Switch 的過程
+  // give up the CPU if this is a timer interrupt.
+  if(which_dev == 2)
+    yield();
+
+  usertrapret();
+}
+```
+在 `usertrap()` 中，如果是遇到 timer interrupt，則會進入到 `yield()`，進去之後會進入後續 thread switching 的處理
+
+## 2. 我們需要 save/restore 哪些關於 thread 的資訊
+1. program counter
+1. registers
+1. stack
+
+* `kernel/proc.h`:
+```c
+enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+
+// Per-process state
+struct proc {
+  struct spinlock lock;
+
+  // p->lock must be held when using these:
+  enum procstate state;        // Process state
+  void *chan;                  // If non-zero, sleeping on chan
+  int killed;                  // If non-zero, have been killed
+  int xstate;                  // Exit status to be returned to parent's wait
+  int pid;                     // Process ID
+
+  // wait_lock must be held when using this:
+  struct proc *parent;         // Parent process
+
+  // these are private to the process, so p->lock need not be held.
+  uint64 kstack;               // Virtual address of kernel stack
+  uint64 sz;                   // Size of process memory (bytes)
+  pagetable_t pagetable;       // User page table
+  struct trapframe *trapframe; // data page for trampoline.S
+  struct context context;      // swtch() here to run process
+  struct file *ofile[NOFILE];  // Open files
+  struct inode *cwd;           // Current directory
+  char name[16];               // Process name (debugging)
+};
+```
+先在這裡回想一下一個 `proc` 長什麼樣子，status 要是 `RUNNABLE` 或是 `RUNNING` 才會進入到 thread switch 的討論範圍
+
+## 3. 完整的流程該如何實做
+![](7.1.png)
+
+# 追蹤 Context Switch 的過程
 先看一下影片中的範例程式
 * `user/spin.c`:
 ```c
@@ -157,7 +217,7 @@ print/x p->trapframe->epc
 * `user/spin.asm` 可以看到對應的 code 
 
 ### enter `yield()`
-```
+```gdb
 (gdb) step
 ```
 

@@ -118,8 +118,8 @@
   </header>
   <div class="entry-content">
     <p>課程影片連結：
-6.S081 Fall 2020 Lecture 11: Thread Switching 追蹤 Context Switch 的過程 先看一下影片中的範例程式
-user/spin.c: #include &#34;kernel/types.h&#34; #include &#34;user/user.h&#34; int main(int argc, char **argv) { int pid; char c; pid = fork(); if (pid == 0) { c = &#39;/&#39;; } else { printf(&#34;parent pid is %d, child is %d&#34;, getpid(), pid); c = &#39;\\&#39;; } for (int i = 0; ; i&#43;&#43;) { if (i % 1000000 == 0) write(2, &amp;c, 1); } exit(0); } 在做的事情基本上是
+6.S081 Fall 2020 Lecture 11: Thread Switching thread 的目標與手段 我們希望 multi-threading，是因為希望可以有多個 thread 去分享同一個 CPU，在 xv6 中，是以「過了一段時間換人使用」作為 thread switching 的依據。在這個目標之下，我們可以來思考以下幾件事情：
+什麼是「(該換人 (thread) 使用 CPU) 的時間到了」 我們需要 save/restore 哪些關於 thread 的資訊 完整的流程該如何實做 1. 什麼是「(該換人 (thread) 使用 CPU) 的時間到了」? kernel/trap.c: usertrap(): void usertrap(void) { // [...] // give up the CPU if this is a timer interrupt. if(which_dev == 2) yield(); usertrapret(); } 在 usertrap() 中，如果是遇到 timer interrupt，則會進入到 yield()，進去之後會進入後續 thread switching 的處理
 ...</p>
   </div>
   <footer class="entry-footer"><span title='2025-10-21 19:35:28 +0800 CST'>October 21, 2025</span></footer>
