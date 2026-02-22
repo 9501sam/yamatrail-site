@@ -564,7 +564,39 @@ module_param(mp_strparam, charp, 0660);
 1. data type
 1. 最後的 `0660` 是權限，格式跟檔案權限的寫法一樣
 
-`MODULE_PARM_DESC()` 用來
+`MODULE_PARM_DESC()` 讓我們可以針對參數做一些說明，使用 `modinfo` 可以看到這些說明
+
+```sh
+cd ~/Linux-Kernel-Programming/ch5/modparams/modparams1
+make
+```
+```sh
+modinfo -p ./modparams1.ko
+```
+
+輸出結果如下，像是這二個 description 是對應到 `.c` file 中的二個 `MODULE_PARM_DESC()`
+```sh
+user@ubuntu:~/Linux-Kernel-Programming/ch5/modparams/modparams1$ modinfo -p ./modparams1.ko
+mp_debug_level:Debug level [0-2]; 0 => no debug messages, 2 => high verbosity (int)
+mp_strparam:A demo string parameter (charp)
+```
+
+```sh
+sudo dmesg -C
+sudo insmod ./modparams1.ko
+dmesg
+```
+這是沒有傳入任何參數的情況:
+![](242.png)
+
+現在來看看傳入參數的情況:
+```sh
+sudo rmmod modparams1
+sudo insmod ./modparams1.ko mp_debug_level=2 mp_strparam=\"Hello modparams1\"
+dmesg
+```
+![](242-2.png)
+這裡可以看到參數有成功傳入進去了
 
 
 ## Getting/setting module parameters after insertion

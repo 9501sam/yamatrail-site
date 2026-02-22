@@ -572,7 +572,25 @@ endif
 <li>data type</li>
 <li>最後的 <code>0660</code> 是權限，格式跟檔案權限的寫法一樣</li>
 </ol>
-<p><code>MODULE_PARM_DESC()</code> 用來</p>
+<p><code>MODULE_PARM_DESC()</code> 讓我們可以針對參數做一些說明，使用 <code>modinfo</code> 可以看到這些說明</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd ~/Linux-Kernel-Programming/ch5/modparams/modparams1
+</span></span><span style="display:flex;"><span>make
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>modinfo -p ./modparams1.ko
+</span></span></code></pre></div><p>輸出結果如下，像是這二個 description 是對應到 <code>.c</code> file 中的二個 <code>MODULE_PARM_DESC()</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>user@ubuntu:~/Linux-Kernel-Programming/ch5/modparams/modparams1$ modinfo -p ./modparams1.ko
+</span></span><span style="display:flex;"><span>mp_debug_level:Debug level <span style="color:#f92672">[</span>0-2<span style="color:#f92672">]</span>; 0 <span style="color:#f92672">=</span>&gt; no debug messages, 2 <span style="color:#f92672">=</span>&gt; high verbosity <span style="color:#f92672">(</span>int<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>mp_strparam:A demo string parameter <span style="color:#f92672">(</span>charp<span style="color:#f92672">)</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo dmesg -C
+</span></span><span style="display:flex;"><span>sudo insmod ./modparams1.ko
+</span></span><span style="display:flex;"><span>dmesg
+</span></span></code></pre></div><p>這是沒有傳入任何參數的情況:
+<img loading="lazy" src="/linux-kernel-programming/ch05/242.png"></p>
+<p>現在來看看傳入參數的情況:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo rmmod modparams1
+</span></span><span style="display:flex;"><span>sudo insmod ./modparams1.ko mp_debug_level<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> mp_strparam<span style="color:#f92672">=</span><span style="color:#ae81ff">\&#34;</span>Hello modparams1<span style="color:#ae81ff">\&#34;</span>
+</span></span><span style="display:flex;"><span>dmesg
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/242-2.png">
+這裡可以看到參數有成功傳入進去了</p>
 <h2 id="gettingsetting-module-parameters-after-insertion">Getting/setting module parameters after insertion<a hidden class="anchor" aria-hidden="true" href="#gettingsetting-module-parameters-after-insertion">#</a></h2>
 <h2 id="module-parameter-data-types-and-validation">Module parameter data types and validation<a hidden class="anchor" aria-hidden="true" href="#module-parameter-data-types-and-validation">#</a></h2>
 <h3 id="validating-kernel-module-parameters">Validating kernel module parameters<a hidden class="anchor" aria-hidden="true" href="#validating-kernel-module-parameters">#</a></h3>

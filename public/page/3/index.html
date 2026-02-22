@@ -262,14 +262,15 @@ Memory allocator (moderate) Your job is to implement per-CPU freelists, and stea
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">Lec14 File Systems
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 09-2] Lec14 File Systems
     </h2>
   </header>
   <div class="entry-content">
-    <p>課程連結：6.S081 Fall 2020 Lecture 14: File Systems </p>
+    <p>課程連結：6.S081 Fall 2020 Lecture 14: File Systems 實際操作 在影片中 50:00 左右的地方開始有實際的操作
+make clean make 先修改 kernel/bio.c: bwrite() // Write b&#39;s contents to disk. Must be locked. void bwrite(struct buf *b) { if(!holdingsleep(&amp;b-&gt;lock)) panic(&#34;bwrite&#34;); if (b-&gt;blockno &gt;= 32) printf(&#34;write: %d\n&#34;, b-&gt;blockno); virtio_disk_rw(b, 1); } </p>
   </div>
   <footer class="entry-footer"><span title='2025-11-04 12:49:14 +0800 CST'>November 4, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to Lec14 File Systems" href="http://localhost:1313/xv6/lec14-fs/"></a>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-2] Lec14 File Systems" href="http://localhost:1313/xv6/lec14-fs/"></a>
 </article>
 
 <article class="post-entry"> 
