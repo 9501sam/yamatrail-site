@@ -592,12 +592,61 @@ endif
 </span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/242-2.png">
 這裡可以看到參數有成功傳入進去了</p>
 <h2 id="gettingsetting-module-parameters-after-insertion">Getting/setting module parameters after insertion<a hidden class="anchor" aria-hidden="true" href="#gettingsetting-module-parameters-after-insertion">#</a></h2>
+<blockquote>
+<p>藉由這裡的操作，我們可以對於 moduel 做一些動態的操作</p></blockquote>
+<p>在 <code>/sys/module/modparams1/</code> 這裡可以看到這個 module 的參數</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>ls /sys/module/modparams1/
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>ls -l /sys/module/modparams1/parameters/
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/243.png">
+<img loading="lazy" src="/linux-kernel-programming/ch05/243-2.png">
+(程式碼中的 <code>0660</code>, 會對應到這裡的 <code>-rw-rw----</code>)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo bash -c <span style="color:#e6db74">&#34;echo 0 &gt; /sys/module/modparams1/parameters/mp_debug_level&#34;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo cat /sys/module/modparams1/parameters/mp_debug_level
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/244.png"></p>
 <h2 id="module-parameter-data-types-and-validation">Module parameter data types and validation<a hidden class="anchor" aria-hidden="true" href="#module-parameter-data-types-and-validation">#</a></h2>
 <h3 id="validating-kernel-module-parameters">Validating kernel module parameters<a hidden class="anchor" aria-hidden="true" href="#validating-kernel-module-parameters">#</a></h3>
 <h3 id="overriding-the-module-parameters-name">Overriding the module parameter&rsquo;s name<a hidden class="anchor" aria-hidden="true" href="#overriding-the-module-parameters-name">#</a></h3>
 <h3 id="hardware-related-kernel-parameters">Hardware-related kernel parameters<a hidden class="anchor" aria-hidden="true" href="#hardware-related-kernel-parameters">#</a></h3>
 <h1 id="floating-point-not-allowed-in-the-kernel">Floating point not allowed in the kernel<a hidden class="anchor" aria-hidden="true" href="#floating-point-not-allowed-in-the-kernel">#</a></h1>
+<p>一般來說在 kernel 中是不支援 floating point 的</p>
 <h1 id="auto-loading-modules-on-system-boot">Auto-loading modules on system boot<a hidden class="anchor" aria-hidden="true" href="#auto-loading-modules-on-system-boot">#</a></h1>
+<blockquote>
+<p>使用這裡的作法可以讓 module auto-loading</p></blockquote>
+<p>先看一下  <code>Makefile</code> 中的</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-make" data-lang="make"><span style="display:flex;"><span><span style="color:#a6e22e">install</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>    @echo
+</span></span><span style="display:flex;"><span>    @echo <span style="color:#e6db74">&#34;--- installing ---&#34;</span>
+</span></span><span style="display:flex;"><span>    @echo <span style="color:#e6db74">&#34; [First, invoke the &#39;make&#39; ]&#34;</span>
+</span></span><span style="display:flex;"><span>    make
+</span></span><span style="display:flex;"><span>    @echo
+</span></span><span style="display:flex;"><span>    @echo <span style="color:#e6db74">&#34; [Now for the &#39;sudo make install&#39; ]&#34;</span>
+</span></span><span style="display:flex;"><span>    sudo make -C <span style="color:#66d9ef">$(</span>KDIR<span style="color:#66d9ef">)</span> M<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>PWD<span style="color:#66d9ef">)</span> modules_install
+</span></span><span style="display:flex;"><span>    sudo depmod
+</span></span></code></pre></div><p>主要是這裡的 <code>sudo make -C $(KDIR) M=$(PWD) modules_install</code> 負責做到把 module 變 auto-loading 的任務</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd ~/Linux-Kernel-Programming/ch5/min_sysinfo
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make <span style="color:#f92672">&amp;&amp;</span> sudo make install
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/251.png"></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>ls -l /lib/modules/5.4.1-llkd01/extra/
+</span></span></code></pre></div><p>輸出：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>user@ubuntu:~/Linux-Kernel-Programming/ch5/min_sysinfo$ ls -l /lib/modules/5.4.1-llkd01/extra/
+</span></span><span style="display:flex;"><span>total <span style="color:#ae81ff">228</span>
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">233409</span> Feb <span style="color:#ae81ff">27</span> 04:18 min_sysinfo.ko
+</span></span></code></pre></div><p><code>depmod</code> 是一個工具，可以處理 module 之間的 dependency 的問題，也可以用這個工具來查看剛剛 <code>make install</code> 的效果</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo depmod --dry-run | grep min_sysinfo
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/252.png"></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cat /etc/modules-load.d/min_sysinfo.conf
+</span></span></code></pre></div><p>最後重新開機</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sync; sudo reboot
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>lsmod | grep min_sysinfo
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/252-2.png"></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>user@ubuntu:~$ dmesg | grep -C2 min_sysinfo
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>    3.433994 <span style="color:#f92672">]</span> systemd<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>: Listening on Journal Audit Socket.
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>    3.434008 <span style="color:#f92672">]</span> systemd<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>: Listening on udev Kernel Socket.
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>    3.444767 <span style="color:#f92672">]</span> min_sysinfo: loading out-of-tree module taints kernel.
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>    3.445041 <span style="color:#f92672">]</span> min_sysinfo: inserted
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>    3.445042 <span style="color:#f92672">]</span> llkd_sysinfo<span style="color:#f92672">()</span>: minimal Platform Info:
+</span></span><span style="display:flex;"><span>               CPU: x86_64, little-endian; 64-bit OS.
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch05/253.png"></p>
 <h1 id="kernel-modules-and-security--an-overview">Kernel modules and security – an overview<a hidden class="anchor" aria-hidden="true" href="#kernel-modules-and-security--an-overview">#</a></h1>
 <h1 id="coding-style-guidelines-for-kernel-developers">Coding style guidelines for kernel developers<a hidden class="anchor" aria-hidden="true" href="#coding-style-guidelines-for-kernel-developers">#</a></h1>
 

@@ -600,12 +600,100 @@ dmesg
 
 
 ## Getting/setting module parameters after insertion
+> 藉由這裡的操作，我們可以對於 moduel 做一些動態的操作
+
+在 `/sys/module/modparams1/` 這裡可以看到這個 module 的參數
+```sh
+ls /sys/module/modparams1/
+```
+```sh
+ls -l /sys/module/modparams1/parameters/
+```
+![](243.png)
+![](243-2.png)
+(程式碼中的 `0660`, 會對應到這裡的 `-rw-rw----`)
+
+```sh
+sudo bash -c "echo 0 > /sys/module/modparams1/parameters/mp_debug_level"
+```
+
+```sh
+sudo cat /sys/module/modparams1/parameters/mp_debug_level
+```
+![](244.png)
 ## Module parameter data types and validation
 ### Validating kernel module parameters
 ### Overriding the module parameter's name
 ### Hardware-related kernel parameters
 
 # Floating point not allowed in the kernel
+一般來說在 kernel 中是不支援 floating point 的
+
 # Auto-loading modules on system boot
+> 使用這裡的作法可以讓 module auto-loading
+
+先看一下  `Makefile` 中的
+```make
+install:
+    @echo
+    @echo "--- installing ---"
+    @echo " [First, invoke the 'make' ]"
+    make
+    @echo
+    @echo " [Now for the 'sudo make install' ]"
+    sudo make -C $(KDIR) M=$(PWD) modules_install
+    sudo depmod
+```
+主要是這裡的 `sudo make -C $(KDIR) M=$(PWD) modules_install` 負責做到把 module 變 auto-loading 的任務
+
+```sh
+cd ~/Linux-Kernel-Programming/ch5/min_sysinfo
+```
+
+```sh
+make && sudo make install
+```
+![](251.png)
+```sh
+ls -l /lib/modules/5.4.1-llkd01/extra/
+```
+輸出：
+```sh
+user@ubuntu:~/Linux-Kernel-Programming/ch5/min_sysinfo$ ls -l /lib/modules/5.4.1-llkd01/extra/
+total 228
+-rw-r--r-- 1 root root 233409 Feb 27 04:18 min_sysinfo.ko
+```
+
+`depmod` 是一個工具，可以處理 module 之間的 dependency 的問題，也可以用這個工具來查看剛剛 `make install` 的效果
+```sh
+sudo depmod --dry-run | grep min_sysinfo
+```
+![](252.png)
+
+```sh
+cat /etc/modules-load.d/min_sysinfo.conf
+```
+
+最後重新開機
+```sh
+sync; sudo reboot
+```
+
+```sh
+lsmod | grep min_sysinfo
+```
+![](252-2.png)
+
+```sh
+user@ubuntu:~$ dmesg | grep -C2 min_sysinfo
+[    3.433994 ] systemd[1]: Listening on Journal Audit Socket.
+[    3.434008 ] systemd[1]: Listening on udev Kernel Socket.
+[    3.444767 ] min_sysinfo: loading out-of-tree module taints kernel.
+[    3.445041 ] min_sysinfo: inserted
+[    3.445042 ] llkd_sysinfo(): minimal Platform Info:
+               CPU: x86_64, little-endian; 64-bit OS.
+```
+![](253.png)
+
 # Kernel modules and security – an overview
 # Coding style guidelines for kernel developers
