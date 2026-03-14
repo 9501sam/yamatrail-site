@@ -172,6 +172,21 @@ ifeq ($(ARCH),arm) # *UPDATE* &#39;KDIR&#39; below to point to the ARM Linux ker
   <footer class="entry-footer"><span title='2025-12-25 10:07:49 +0800 CST'>December 25, 2025</span></footer>
   <a class="entry-link" aria-label="post link to Ch05: Writing Your First Kernel Module - LKMs Part 2" href="http://localhost:1313/linux-kernel-programming/ch05/"></a>
 </article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch06: Kernel Internals Essentials - Processes and Threads
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Understanding process and interrupt contexts 各種 context 有以下的分類
+kernel code interrupt context: 可能是來自於 hard ware 的 interrupt process context: 來自於 system call 或是 exception user space user context 在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡
+Understanding the basics of the process VAS 大致上一個 process 的 virtual address space 長成下面這個樣子 Text segment: 這是 machine code 存放的地方 Data segment Initialized data segment: 已經初始化的變數 Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡 Libraries (text, data) Stack: 這個區域會對應到 function call 的過程 Organizing processes, threads, and their stacks – user and kernel space thread 可以想成是 registers &#43; stack 的組合，其他的資源都是跟 process 共用的 這本書會把重點著重於 thread 因為在最原始的 Unix 理念中
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-03-07 14:59:44 +0800 CST'>March 7, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to Ch06: Kernel Internals Essentials - Processes and Threads" href="http://localhost:1313/linux-kernel-programming/ch06/"></a>
+</article>
     </main>
     
 <footer class="footer">

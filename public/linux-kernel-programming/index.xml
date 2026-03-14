@@ -6,7 +6,7 @@
     <description>Recent content in Linux Kernel Programming 學習紀錄 on Yama&#39;s Trail</description>
     <generator>Hugo -- 0.146.0</generator>
     <language>zh-tw</language>
-    <lastBuildDate>Mon, 16 Feb 2026 14:10:41 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 07 Mar 2026 14:59:44 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/linux-kernel-programming/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ch02: Building the 5.x Linux Kernel from Source - Part 1</title>
@@ -205,6 +205,47 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  KDIR ?&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; /lib/modules/&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;shell uname -r&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;/build
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;endif&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;這裡主要是把 kernel source 的路徑改為正確的 &lt;code&gt;/home/user/rpi_work/kernel_rpi/linux&lt;/code&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ch06: Kernel Internals Essentials - Processes and Threads</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch06/</link>
+      <pubDate>Sat, 07 Mar 2026 14:59:44 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch06/</guid>
+      <description>&lt;h1 id=&#34;understanding-process-and-interrupt-contexts&#34;&gt;Understanding process and interrupt contexts&lt;/h1&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch06/270.png&#34;&gt;
+各種 context 有以下的分類&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;kernel code
+&lt;ul&gt;
+&lt;li&gt;interrupt context: 可能是來自於 hard ware 的 interrupt&lt;/li&gt;
+&lt;li&gt;process context: 來自於 system call 或是 exception&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;user space
+&lt;ul&gt;
+&lt;li&gt;user context&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡&lt;/p&gt;
+&lt;h1 id=&#34;understanding-the-basics-of-the-process-vas&#34;&gt;Understanding the basics of the process VAS&lt;/h1&gt;
+&lt;p&gt;大致上一個 process 的 virtual address space 長成下面這個樣子
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch06/271.png&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Text segment&lt;/strong&gt;: 這是 machine code 存放的地方&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Data segment&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Initialized data segment&lt;/strong&gt;: 已經初始化的變數&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Uninitialized data segment&lt;/strong&gt;: 還沒有被初始化的變數，有時候會被稱為 &lt;em&gt;bss&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Heap segment&lt;/strong&gt;: 被 &lt;code&gt;malloc()&lt;/code&gt; 或是 &lt;code&gt;mmap()&lt;/code&gt; 出來的區域會放在這裡&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Libraries (text, data)&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Stack&lt;/strong&gt;: 這個區域會對應到 function call 的過程&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;organizing-processes-threads-and-their-stacks--user-and-kernel-space&#34;&gt;Organizing processes, threads, and their stacks – user and kernel space&lt;/h1&gt;
+&lt;p&gt;thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
+這本書會把重點著重於 thread 因為在最原始的 Unix 理念中&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
