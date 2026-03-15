@@ -144,21 +144,6 @@ lsmod | grep e1000 ...</p>
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">如何在文字界面底下讓樹莓派連上 Wi-Fi
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>啟用 wlan0 sudo rfkill unblock wifi # or unlock all sudo rfkill unblock all sudo ip link set wlan0 up sudo iwlist wlan0 scan 使用 nmcli user@raspberrypi:~ $ sudo nmcli dev wifi rescan user@raspberrypi:~ $ sudo nmcli device wifi connect &#34;xxx&#34; password &#34;yyyyyyyyyy&#34; 剛開始 scan 的時候，可能會看到
-user@raspberrypi:~ $ sudo nmcli dev wifi rescan Error: Scanning not allowed while unavailable. 這是因為還沒有設定國家代碼，這時要先
-sudo raspi-config 5 Localisation Options -&gt; L4 WLAN Country -&gt; 選擇 TW Taiwan
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2026-02-16 14:10:41 +0800 CST'>February 16, 2026</span></footer>
-  <a class="entry-link" aria-label="post link to 如何在文字界面底下讓樹莓派連上 Wi-Fi" href="http://localhost:1313/linux-kernel-programming/pi-wifi/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
     <h2 class="entry-hint-parent">Ch05: Writing Your First Kernel Module - LKMs Part 2
     </h2>
   </header>
@@ -186,6 +171,21 @@ Understanding the basics of the process VAS 大致上一個 process 的 virtual 
   </div>
   <footer class="entry-footer"><span title='2026-03-07 14:59:44 +0800 CST'>March 7, 2026</span></footer>
   <a class="entry-link" aria-label="post link to Ch06: Kernel Internals Essentials - Processes and Threads" href="http://localhost:1313/linux-kernel-programming/ch06/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">如何在文字界面底下讓樹莓派連上 Wi-Fi
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>啟用 wlan0 sudo rfkill unblock wifi # or unlock all sudo rfkill unblock all sudo ip link set wlan0 up sudo iwlist wlan0 scan 使用 nmcli user@raspberrypi:~ $ sudo nmcli dev wifi rescan user@raspberrypi:~ $ sudo nmcli device wifi connect &#34;xxx&#34; password &#34;yyyyyyyyyy&#34; 剛開始 scan 的時候，可能會看到
+user@raspberrypi:~ $ sudo nmcli dev wifi rescan Error: Scanning not allowed while unavailable. 這是因為還沒有設定國家代碼，這時要先
+sudo raspi-config 5 Localisation Options -&gt; L4 WLAN Country -&gt; 選擇 TW Taiwan
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-02-16 14:10:41 +0800 CST'>February 16, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 如何在文字界面底下讓樹莓派連上 Wi-Fi" href="http://localhost:1313/linux-kernel-programming/pi-wifi/"></a>
 </article>
     </main>
     

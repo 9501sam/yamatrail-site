@@ -2,7 +2,7 @@
 date = '2026-02-16T14:10:41+08:00'
 draft = false
 title = '如何在文字界面底下讓樹莓派連上 Wi-Fi'
-weight = 5
+weight = 6
 +++
 ## 啟用 `wlan0`
 ```sh

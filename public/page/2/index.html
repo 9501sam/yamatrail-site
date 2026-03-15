@@ -207,6 +207,98 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[這個網站的誕生: 04] Github Actions 建立自動部署
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>建立網站部署流程 總流程概覽 我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。
+ssh key 的準備：在筆電和 VM 之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 才有權限可以登入 vm 中。 設定 GitHub Repo：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 github repo 中的 Secrets 中。 建立 GitHub Actions Workflow：撰寫 .github/workflows/deploy.yaml 設定檔，這會告訴 github 該做些什麼把網站內容放到 vm 中。 觸發與驗證：將程式碼 git push 到 GitHub，觸發自動化流程，檢查流程是否正確。 階段一：準備工作 - 建立 SSH 信任關係 步驟 1：「筆電」上產生一對 SSH Key
+在筆電上：
+# -t ed25519: 使用更現代、更安全的加密演算法 # -C &#34;...&#34; : 註解，方便你辨識這對 Key 的用途 # -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰 ssh-keygen -t ed25519 -C &#34;GitHub Actions for yamatrail.com&#34; -f ~/.ssh/hugo_deploy_key 執行之後，會在 ~/.ssh/ 中產生公鑰與私鑰
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-25 12:16:16 +0800 CST'>September 25, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [這個網站的誕生: 04] Github Actions 建立自動部署" href="http://localhost:1313/dev-log/github-actions/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch05: Writing Your First Kernel Module - LKMs Part 2
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Cross-compiling a kernel module 在 ch4 時，我們 compile 了一個 kernel module, 這次則是要 cross-compile 一個 kernel module
+Attempt 1 – setting the “special” environment variables 先試著設定 ARCH 與 CROSS_COMPILE
+cd ~/Linux-Kernel-Programming/ch5/cross make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- 但這個嘗試失敗了，這是因為在這個例子中，是因為 Makefile 會去找目前這台電腦的 Kernel source，因此要來對 Makefile 做下列的修改
+ifeq ($(ARCH),arm) # *UPDATE* &#39;KDIR&#39; below to point to the ARM Linux kernel source tree on your box KDIR ?= /home/user/rpi_work/kernel_rpi/linux else ifeq ($(ARCH),arm64) # *UPDATE* &#39;KDIR&#39; below to point to the ARM64 (Aarch64) Linux kernel source # tree on your box KDIR ?= /home/user/rpi_work/kernel_rpi/linux else ifeq ($(ARCH),powerpc) # *UPDATE* &#39;KDIR&#39; below to point to the PPC64 Linux kernel source tree on your box KDIR ?= ~/kernel/linux-4.9.1 else # &#39;KDIR&#39; is the Linux &#39;kernel headers&#39; package on your host system; this is # usually an x86_64, but could be anything, really (f.e. building directly # on a Raspberry Pi implies that it&#39;s the host) KDIR ?= /lib/modules/$(shell uname -r)/build endif 這裡主要是把 kernel source 的路徑改為正確的 /home/user/rpi_work/kernel_rpi/linux
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-25 10:07:49 +0800 CST'>December 25, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch05: Writing Your First Kernel Module - LKMs Part 2" href="http://localhost:1313/linux-kernel-programming/ch05/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch06: Kernel Internals Essentials - Processes and Threads
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Understanding process and interrupt contexts 各種 context 有以下的分類
+kernel code interrupt context: 可能是來自於 hard ware 的 interrupt process context: 來自於 system call 或是 exception user space user context 在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡
+Understanding the basics of the process VAS 大致上一個 process 的 virtual address space 長成下面這個樣子 Text segment: 這是 machine code 存放的地方 Data segment Initialized data segment: 已經初始化的變數 Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡 Libraries (text, data) Stack: 這個區域會對應到 function call 的過程 Organizing processes, threads, and their stacks – user and kernel space thread 可以想成是 registers &#43; stack 的組合，其他的資源都是跟 process 共用的 這本書會把重點著重於 thread 因為在最原始的 Unix 理念中
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-03-07 14:59:44 +0800 CST'>March 7, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to Ch06: Kernel Internals Essentials - Processes and Threads" href="http://localhost:1313/linux-kernel-programming/ch06/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">如何在文字界面底下讓樹莓派連上 Wi-Fi
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>啟用 wlan0 sudo rfkill unblock wifi # or unlock all sudo rfkill unblock all sudo ip link set wlan0 up sudo iwlist wlan0 scan 使用 nmcli user@raspberrypi:~ $ sudo nmcli dev wifi rescan user@raspberrypi:~ $ sudo nmcli device wifi connect &#34;xxx&#34; password &#34;yyyyyyyyyy&#34; 剛開始 scan 的時候，可能會看到
+user@raspberrypi:~ $ sudo nmcli dev wifi rescan Error: Scanning not allowed while unavailable. 這是因為還沒有設定國家代碼，這時要先
+sudo raspi-config 5 Localisation Options -&gt; L4 WLAN Country -&gt; 選擇 TW Taiwan
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-02-16 14:10:41 +0800 CST'>February 16, 2026</span></footer>
+  <a class="entry-link" aria-label="post link to 如何在文字界面底下讓樹莓派連上 Wi-Fi" href="http://localhost:1313/linux-kernel-programming/pi-wifi/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 03-1] Virtual Memory 程式碼解析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
+MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) 最大的 virtual address MAXVA 是 0b100 0000 0000 0000 0000 0000 0000 0000 0000 0000(38 0s): 可以得知 Sv39 並沒有把 39 個 bits 用滿，實際上最大的 address 只會到 MAXVA - 1 = 0b011 1111 1111 1111 1111 1111 1111 1111 1111 1111
+= 0x3fffffffff
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-13 12:32:56 +0800 CST'>October 13, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03-1] Virtual Memory 程式碼解析" href="http://localhost:1313/xv6/lab3.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 03] Lab: page tables
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: lab pgtbl
+Speed up system calls (easy) 題目敘述:
+When each process is created, map one read-only page at USYSCALL (a virtual address defined in memlayout.h). At the start of this page, store a struct usyscall (also defined in memlayout.h), and initialize it to store the PID of the current process. For this lab, ugetpid() has been provided on the userspace side and will automatically use the USYSCALL mapping. You will receive full credit for this part of the lab if the ugetpid test case passes when running pgtbltest.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href="http://localhost:1313/xv6/lab3/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[xv6 學習紀錄 04-1] 使用 GDB 追蹤 xv6 以了解 RISC-V 的 Calling Convention 與 Stack Frames
     </h2>
   </header>
@@ -265,95 +357,6 @@ isolation level of indirection 在原先 xv6 的設計中 pagetable 的設計是
   </div>
   <footer class="entry-footer"><span title='2025-10-11 11:20:50 +0800 CST'>October 11, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 05-1] Page Fault" href="http://localhost:1313/xv6/lab5.1/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 05] Lab: xv6 lazy page allocation
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p> Lab 連結: Lab: xv6 lazy page allocation Eliminate allocation from sbrk() (easy) Your first task is to delete page allocation from the sbrk(n) system call implementation, which is the function sys_sbrk() in sysproc.c. The sbrk(n) system call grows the process’s memory size by n bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new sbrk(n) should just increment the process’s size (myproc()-&gt;sz) by n and return the old size. It should not allocate memory – so you should delete the call to growproc() (but you still need to increase the process’s size!).
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-11 11:28:40 +0800 CST'>October 11, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 05] Lab: xv6 lazy page allocation" href="http://localhost:1313/xv6/lab5/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 06-1] Interrupts
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>課程影片連結：
-6.S081 Fall 2020 Lecture 9: Interrupts Terms PLIC UART Interrupts 的意義 跟 syscall, traps 很像
-Interrupts 從哪裡來? 一些 CPU 的 fig
-programming device,
-memory mapped I/O
-UART store/load to registers
-Case Study: $ ls 的出現 kerenl/main.c kernel/console.c: consoleinit() kernel/uart.c: uartinit() kernel/plic.c: plicinit() kernel/plic.c: plicinithart() kernel/proc.c: scheduler() void main() { if(cpuid() == 0){ consoleinit(); // &lt;-- printfinit(); printf(&#34;\n&#34;); printf(&#34;xv6 kernel is booting\n&#34;); printf(&#34;\n&#34;); kinit(); // physical page allocator kvminit(); // create kernel page table kvminithart(); // turn on paging procinit(); // process table trapinit(); // trap vectors trapinithart(); // install kernel trap vector plicinit(); // set up interrupt controller plicinithart(); // ask PLIC for device interrupts binit(); // buffer cache iinit(); // inode table fileinit(); // file table virtio_disk_init(); // emulated hard disk userinit(); // first user process __sync_synchronize(); started = 1; } else { while(started == 0) ; __sync_synchronize(); printf(&#34;hart %d starting\n&#34;, cpuid()); kvminithart(); // turn on paging trapinithart(); // install kernel trap vector plicinithart(); // ask PLIC for device interrupts } scheduler(); } UART kernel/console.c: consoleinit() void consoleinit(void) { initlock(&amp;cons.lock, &#34;cons&#34;); uartinit(); // &lt;-- // connect read and write system calls // to consoleread and consolewrite. devsw[CONSOLE].read = consoleread; devsw[CONSOLE].write = consolewrite; } kernel/uart.c: uartinit() void uartinit(void) { // disable interrupts. WriteReg(IER, 0x00); // special mode to set baud rate. WriteReg(LCR, LCR_BAUD_LATCH); // LSB for baud rate of 38.4K. WriteReg(0, 0x03); // MSB for baud rate of 38.4K. WriteReg(1, 0x00); // leave set-baud mode, // and set word length to 8 bits, no parity. WriteReg(LCR, LCR_EIGHT_BITS); // reset and enable FIFOs. WriteReg(FCR, FCR_FIFO_ENABLE | FCR_FIFO_CLEAR); // enable transmit and receive interrupts. WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE); initlock(&amp;uart_tx_lock, &#34;uart&#34;); } 在這裡可以設定一些 UART 的參數，像是 baud rate 等等
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-16 15:52:53 +0800 CST'>October 16, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06-1] Interrupts" href="http://localhost:1313/xv6/lab6.1/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結：Lab: Copy-on-Write Fork for xv6
-題目解析 The problem The fork() system call in xv6 copies all of the parent process’s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-15 17:47:29 +0800 CST'>October 15, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6" href="http://localhost:1313/xv6/lab6/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 07-1] Thread Switching
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>課程影片連結：
-6.S081 Fall 2020 Lecture 11: Thread Switching thread 的目標與手段 我們希望 multi-threading，是因為希望可以有多個 thread 去分享同一個 CPU，在 xv6 中，是以「過了一段時間換人使用」作為 thread switching 的依據。在這個目標之下，我們可以來思考以下幾件事情：
-什麼是「(該換人 (thread) 使用 CPU) 的時間到了」 我們需要 save/restore 哪些關於 thread 的資訊 完整的流程該如何實做 1. 什麼是「(該換人 (thread) 使用 CPU) 的時間到了」? kernel/trap.c: usertrap(): void usertrap(void) { // [...] // give up the CPU if this is a timer interrupt. if(which_dev == 2) yield(); usertrapret(); } 在 usertrap() 中，如果是遇到 timer interrupt，則會進入到 yield()，進去之後會進入後續 thread switching 的處理
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-21 19:35:28 +0800 CST'>October 21, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 07-1] Thread Switching" href="http://localhost:1313/xv6/lab7.1/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 07] Lab thread: Multithreading
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結：Lab: Multithreading
-Uthread: switching between threads (moderate) In this exercise you will design the context switch mechanism for a user-level threading system, and then implement it. To get you started, your xv6 has two files user/uthread.c and user/uthread_switch.S, and a rule in the Makefile to build a uthread program. uthread.c contains most of a user-level threading package, and code for three simple test threads. The threading package is missing some of the code to create a thread and to switch between threads.
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-21 19:35:33 +0800 CST'>October 21, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 07] Lab thread: Multithreading" href="http://localhost:1313/xv6/lab7/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>課程影片連結：
-6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks Deadlock acquire(&amp;l) acquire(&amp;l) release(&amp;l) Locks vs. Performance 越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳 Case study UART kernel/uart.c struct spinlock uart_tx_lock; void uartputc(int c) { acquire(&amp;uart_tx_lock); if(panicked){ for(;;) ; } while(uart_tx_w == uart_tx_r &#43; UART_TX_BUF_SIZE){ // buffer is full. // wait for uartstart() to open up space in the buffer. sleep(&amp;uart_tx_r, &amp;uart_tx_lock); } uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c; uart_tx_w &#43;= 1; uartstart(); release(&amp;uart_tx_lock); } void uartintr(void) { // read and process incoming characters. while(1){ int c = uartgetc(); if(c == -1) break; consoleintr(c); } // send buffered characters. acquire(&amp;uart_tx_lock); uartstart(); release(&amp;uart_tx_lock); } Lock rules protect data structure Lock 的實做 broken lock void acquire(struct spinlock *lk) // does not work! { for(;;) { if(lk-&gt;locked == 0) { lk-&gt;locked = 1; break; } } } 這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l-&gt;locked == 0)
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-25 13:13:07 +0800 CST'>October 25, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks" href="http://localhost:1313/xv6/lab8.1/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

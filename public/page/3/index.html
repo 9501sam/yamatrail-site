@@ -207,6 +207,95 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 05] Lab: xv6 lazy page allocation
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p> Lab 連結: Lab: xv6 lazy page allocation Eliminate allocation from sbrk() (easy) Your first task is to delete page allocation from the sbrk(n) system call implementation, which is the function sys_sbrk() in sysproc.c. The sbrk(n) system call grows the process’s memory size by n bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new sbrk(n) should just increment the process’s size (myproc()-&gt;sz) by n and return the old size. It should not allocate memory – so you should delete the call to growproc() (but you still need to increase the process’s size!).
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-11 11:28:40 +0800 CST'>October 11, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 05] Lab: xv6 lazy page allocation" href="http://localhost:1313/xv6/lab5/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 06-1] Interrupts
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程影片連結：
+6.S081 Fall 2020 Lecture 9: Interrupts Terms PLIC UART Interrupts 的意義 跟 syscall, traps 很像
+Interrupts 從哪裡來? 一些 CPU 的 fig
+programming device,
+memory mapped I/O
+UART store/load to registers
+Case Study: $ ls 的出現 kerenl/main.c kernel/console.c: consoleinit() kernel/uart.c: uartinit() kernel/plic.c: plicinit() kernel/plic.c: plicinithart() kernel/proc.c: scheduler() void main() { if(cpuid() == 0){ consoleinit(); // &lt;-- printfinit(); printf(&#34;\n&#34;); printf(&#34;xv6 kernel is booting\n&#34;); printf(&#34;\n&#34;); kinit(); // physical page allocator kvminit(); // create kernel page table kvminithart(); // turn on paging procinit(); // process table trapinit(); // trap vectors trapinithart(); // install kernel trap vector plicinit(); // set up interrupt controller plicinithart(); // ask PLIC for device interrupts binit(); // buffer cache iinit(); // inode table fileinit(); // file table virtio_disk_init(); // emulated hard disk userinit(); // first user process __sync_synchronize(); started = 1; } else { while(started == 0) ; __sync_synchronize(); printf(&#34;hart %d starting\n&#34;, cpuid()); kvminithart(); // turn on paging trapinithart(); // install kernel trap vector plicinithart(); // ask PLIC for device interrupts } scheduler(); } UART kernel/console.c: consoleinit() void consoleinit(void) { initlock(&amp;cons.lock, &#34;cons&#34;); uartinit(); // &lt;-- // connect read and write system calls // to consoleread and consolewrite. devsw[CONSOLE].read = consoleread; devsw[CONSOLE].write = consolewrite; } kernel/uart.c: uartinit() void uartinit(void) { // disable interrupts. WriteReg(IER, 0x00); // special mode to set baud rate. WriteReg(LCR, LCR_BAUD_LATCH); // LSB for baud rate of 38.4K. WriteReg(0, 0x03); // MSB for baud rate of 38.4K. WriteReg(1, 0x00); // leave set-baud mode, // and set word length to 8 bits, no parity. WriteReg(LCR, LCR_EIGHT_BITS); // reset and enable FIFOs. WriteReg(FCR, FCR_FIFO_ENABLE | FCR_FIFO_CLEAR); // enable transmit and receive interrupts. WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE); initlock(&amp;uart_tx_lock, &#34;uart&#34;); } 在這裡可以設定一些 UART 的參數，像是 baud rate 等等
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 15:52:53 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06-1] Interrupts" href="http://localhost:1313/xv6/lab6.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: Copy-on-Write Fork for xv6
+題目解析 The problem The fork() system call in xv6 copies all of the parent process’s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-15 17:47:29 +0800 CST'>October 15, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6" href="http://localhost:1313/xv6/lab6/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 07-1] Thread Switching
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程影片連結：
+6.S081 Fall 2020 Lecture 11: Thread Switching thread 的目標與手段 我們希望 multi-threading，是因為希望可以有多個 thread 去分享同一個 CPU，在 xv6 中，是以「過了一段時間換人使用」作為 thread switching 的依據。在這個目標之下，我們可以來思考以下幾件事情：
+什麼是「(該換人 (thread) 使用 CPU) 的時間到了」 我們需要 save/restore 哪些關於 thread 的資訊 完整的流程該如何實做 1. 什麼是「(該換人 (thread) 使用 CPU) 的時間到了」? kernel/trap.c: usertrap(): void usertrap(void) { // [...] // give up the CPU if this is a timer interrupt. if(which_dev == 2) yield(); usertrapret(); } 在 usertrap() 中，如果是遇到 timer interrupt，則會進入到 yield()，進去之後會進入後續 thread switching 的處理
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-21 19:35:28 +0800 CST'>October 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 07-1] Thread Switching" href="http://localhost:1313/xv6/lab7.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 07] Lab thread: Multithreading
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: Multithreading
+Uthread: switching between threads (moderate) In this exercise you will design the context switch mechanism for a user-level threading system, and then implement it. To get you started, your xv6 has two files user/uthread.c and user/uthread_switch.S, and a rule in the Makefile to build a uthread program. uthread.c contains most of a user-level threading package, and code for three simple test threads. The threading package is missing some of the code to create a thread and to switch between threads.
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-21 19:35:33 +0800 CST'>October 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 07] Lab thread: Multithreading" href="http://localhost:1313/xv6/lab7/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程影片連結：
+6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks Deadlock acquire(&amp;l) acquire(&amp;l) release(&amp;l) Locks vs. Performance 越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳 Case study UART kernel/uart.c struct spinlock uart_tx_lock; void uartputc(int c) { acquire(&amp;uart_tx_lock); if(panicked){ for(;;) ; } while(uart_tx_w == uart_tx_r &#43; UART_TX_BUF_SIZE){ // buffer is full. // wait for uartstart() to open up space in the buffer. sleep(&amp;uart_tx_r, &amp;uart_tx_lock); } uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c; uart_tx_w &#43;= 1; uartstart(); release(&amp;uart_tx_lock); } void uartintr(void) { // read and process incoming characters. while(1){ int c = uartgetc(); if(c == -1) break; consoleintr(c); } // send buffered characters. acquire(&amp;uart_tx_lock); uartstart(); release(&amp;uart_tx_lock); } Lock rules protect data structure Lock 的實做 broken lock void acquire(struct spinlock *lk) // does not work! { for(;;) { if(lk-&gt;locked == 0) { lk-&gt;locked = 1; break; } } } 這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l-&gt;locked == 0)
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-25 13:13:07 +0800 CST'>October 25, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks" href="http://localhost:1313/xv6/lab8.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[xv6 學習紀錄 08-2] kalloc 相關程式碼解析
     </h2>
   </header>
@@ -258,91 +347,6 @@ Memory allocator (moderate) Your job is to implement per-CPU freelists, and stea
   </div>
   <footer class="entry-footer"><span title='2025-10-31 17:28:19 +0800 CST'>October 31, 2025</span></footer>
   <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-1] File System 相關程式碼解析" href="http://localhost:1313/xv6/filesystem/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 09-2] Lec14 File Systems
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>課程連結：6.S081 Fall 2020 Lecture 14: File Systems 實際操作 在影片中 50:00 左右的地方開始有實際的操作
-make clean make 先修改 kernel/bio.c: bwrite() // Write b&#39;s contents to disk. Must be locked. void bwrite(struct buf *b) { if(!holdingsleep(&amp;b-&gt;lock)) panic(&#34;bwrite&#34;); if (b-&gt;blockno &gt;= 32) printf(&#34;write: %d\n&#34;, b-&gt;blockno); virtio_disk_rw(b, 1); } </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-04 12:49:14 +0800 CST'>November 4, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-2] Lec14 File Systems" href="http://localhost:1313/xv6/lec14-fs/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 09] Lab: file system
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結：Lab: file system
-Large files (moderate) Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You’ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you’re not allowed to change the size of an on-disk inode. The first 11 elements of ip-&gt;addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-01 11:48:29 +0800 CST'>November 1, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09] Lab: file system" href="http://localhost:1313/xv6/lab9/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Lec17 vm for app
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>課程連結：6.S081 Lecture 17: Virtual Memory for Applications
-</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-04 19:20:31 +0800 CST'>November 4, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to Lec17 vm for app" href="http://localhost:1313/xv6/lec17-vm-for-app/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[這個網站的誕生] 筆記區域
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p> hugo-paperMod Example
-Example site
-Expand Method 1 - Git Clone </p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-09 22:01:01 +0800 CST'>October 9, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [這個網站的誕生] 筆記區域" href="http://localhost:1313/dev-log/notes/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 10] Lab: mmap
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結：Lab: mmap
-Lab: mmap (hard) The mmap and munmap system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you’ll add mmap and munmap to xv6, focusing on memory-mapped files.
-目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-01 12:05:39 +0800 CST'>November 1, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 10] Lab: mmap" href="http://localhost:1313/xv6/lab10/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-1] Networking
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>課程連結：6.S081 Fall 2020 Lecture 21: Networking Protocal nesting header 的 type 決定了之後的內容要如何解讀 The OS network stack tcpdump 的解析 Queue 的使用 影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的
-可能會有一個 buffer allocator MBUF
-E1000 NIC 這在 lab: network driver 中會運用的一個 NIC, 影片中有提及跟現代的 NIC 比較起來
-現在的 NIC 當中有做一些 check Livelock Problem 最後的結論是用 Polling 來解決
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-11-06 12:45:24 +0800 CST'>November 6, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-1] Networking" href="http://localhost:1313/xv6/lec21-networking/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

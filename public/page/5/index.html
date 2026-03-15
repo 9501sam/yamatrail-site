@@ -207,6 +207,98 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：746. Min Cost Climbing Stairs
+解題思路 這題利用 DP 的方式，「有了前兩天的資訊可以推測出今天」依此類推的得知最後的答案。
+程式碼 class Solution { public: int minCostClimbingStairs(vector&lt;int&gt;&amp; cost) { int n = cost.size(); vector&lt;int&gt; dp(n, 0); dp[0] = cost[0]; dp[1] = cost[1]; for (int i = 2; i &lt; n; i&#43;&#43;) dp[i] = min(dp[i - 1], dp[i - 2]) &#43; cost[i]; return min(dp[n - 1], dp[n - 2]); } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 09:04:58 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)" href="http://localhost:1313/leetcode/746-min-cost-climbing-stairs/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：1004. Max Consecutive Ones III
+解題思路 這題使用兩個 pointer left 與 right 來紀錄當前的 array 大小，像是：
+0 1 2 3 4 5 6 7 8 9 ↑ ↑ l r 這個時候 left == 2, right == 6 長度的計算為
+length = right - left &#43; 1 也就是 6 - 2 &#43; 1 == 5
+如何表達 length == 0 這樣的設計會碰到的下一個問題是
+假設 right == 6 如何表達 length == 0 的情況?? 會像是下面這個樣子：
+0 1 2 3 4 5 6 7 8 9 ↑ ↑ r l 雖然是 left 不過卻在 right 的右邊，但這樣做的好處就在於我們計算長度的公式：
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 13:14:24 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1004-max-consecutive-ones-iii/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：1679. Max Number of K-Sum Pairs
+解題思路 這一題跟 11. Container With Most Water 的感覺還蠻像的，都是先把兩的 pointer 放在兩端，並且根據不同的情況，用 greedy 的方式判斷下一步要做什麼。還有這個問題是配對到了就刪除掉，所以也不會有重複的問題。
+程式碼 class Solution { public: int maxOperations(vector&lt;int&gt;&amp; nums, int k) { int left = 0; int right = nums.size() - 1; int count = 0; sort(nums.begin(), nums.end()); while (left &lt; right) { if (nums[left] &#43; nums[right] == k) { count&#43;&#43;; left&#43;&#43;; right--; } else if (nums[left] &#43; nums[right] &lt; k) { left&#43;&#43;; } else { right--; } } return count; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 11:30:41 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1679-max-number-of-k-sum-pairs/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：345. Reverse Vowels of a String
+解題思路 這題就很直覺得掃過兩遍，第一遍收集 Vowels，第二變把 Vowels 用相反的順序放回去，真有什麼好說的東西的話應該是寫個 helper function isVowels() 會方便一些。
+程式碼 class Solution { private: bool isVowels(char c) { if (c == &#39;a&#39; || c == &#39;e&#39; || c == &#39;i&#39; || c == &#39;o&#39; || c == &#39;u&#39;) return true; if (c == &#39;A&#39; || c == &#39;E&#39; || c == &#39;I&#39; || c == &#39;O&#39; || c == &#39;U&#39;) return true; return false; } public: string reverseVowels(string s) { int n = s.size(); queue&lt;char&gt; q; for (int i = 0; i &lt; n; i&#43;&#43;) if (isVowels(s[i])) q.push(s[i]); for (int i = n - 1; i &gt;= 0; i--) if (isVowels(s[i])) { s[i] = q.front(); q.pop(); } return s; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 11:08:09 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/345-reverse-vowels-of-a-string/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：334. Increasing Triplet Subsequence
+解題思路 這題我剛開始是朝著先找出 i 與 k 之後再檢查 j 是否存在，想了幾遍都覺得有些瑕疵，後來發現依照 i, j, k 的順序尋找會比較合理一些，可以用很 greedy 的方式去尋找。
+如果再來一次的話，我應該會先列出以下兩種可能：
+先找出最大最小的 i 與 k, 再找出中間的 j 依照順序尋找 i, j, k 評估之後挑選較有可能的順序，並且保持另一個方案的可能性。
+程式碼 class Solution { public: bool increasingTriplet(vector&lt;int&gt;&amp; nums) { if (nums.size() &lt; 3) return false; int i = 0; int j = -1; for (int l = 1; l &lt; nums.size(); l&#43;&#43;) { if (nums[l] &lt; nums[i]) { i = l; } else if (j &gt; 0 &amp;&amp; nums[l] &gt; nums[j]) { return true; } else if (nums[l] &gt; nums[i]) { j = l; } } return false; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-30 11:13:47 +0800 CST'>September 30, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)" href="http://localhost:1313/leetcode/334-increasing-triplet-subsequence/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">架設 Kubernetes cluster
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>sudo apt-get update sudo apt-get install -y kubelet kubeadm kubectl sudo apt-mark hold kubelet kubeadm kubectl https://stackoverflow.com/questions/52893111/no-endpoints-available-for-service-kubernetes-dashboard
+nodes: https://120.108.205.137:9999/ui/
+192.168.1.115 ssh k1 # ssh user@192.168.1.11 ssh k2 # ssh user@192.168.1.12 ssh k3 # ssh user@192.168.1.13 ssh k4 # ssh user@192.168.1.14 sudo vim /etc/hosts # /etc/hosts 192.168.1.115 asus 192.168.1.11 k1 192.168.1.12 k2 192.168.1.13 k3 192.168.1.14 k4 # for cluster on virtualbox 192.168.56.1 thinkpad # my thinkpad 192.168.56.101 node1 # vm on virtualbox sudo systemctl restart systemd-resolved docker installation https://docs.docker.com/engine/install/ubuntu/ CRI (container runtime interface) 是 container 用來互相溝通的 API
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-27 00:00:40 +0800 CST'>September 27, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to 架設 Kubernetes cluster" href="http://localhost:1313/k8s/setup-cluster/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Hello World
     </h2>
   </header>

@@ -272,6 +272,20 @@ https://cloud.google.com/free?hl=en
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch02: Building the 5.x Linux Kernel from Source - Part 1
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Step 1 – obtaining a Linux kernel source tree wget --https-only -O ~/Downloads/linux-5.4.1.tar.xz https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.1.tar.xz Step 2 – extracting the kernel source tree cd ~/Downloads ; ls -lh linux-5.4.1.tar.xz tar xf ~/Downloads/linux-5.4.1.tar.xz mkdir -p ~/kernels tar xf ~/Downloads/linux-5.4.1.tar.xz --directory=${HOME}/kernels/ 設定環境變數是一個 good practice，可加入 ~/.bashrc 中:
+export LLKD_KSRC=${HOME}/kernels/linux-5.4 現在已經不像以前一定會把 source code 放到 usr/src 了 A brief tour of the kernel source tree user@ubuntu:~/kernels/linux-5.4$ ls COPYING Kconfig README crypto init mm security virt CREDITS LICENSES arch drivers ipc net sound Documentation MAINTAINERS block fs kernel samples tools Kbuild Makefile certs include lib scripts usr 使用 du -m . 可以看到檔案大小為 1011M 幾乎是 1 GB 了 user@ubuntu:~/kernels/linux-5.4$ head Makefile # SPDX-License-Identifier: GPL-2.0 VERSION = 5 PATCHLEVEL = 4 SUBLEVEL = 1 EXTRAVERSION = NAME = Kleptomaniac Octopus # *DOCUMENTATION* # To see a list of typical targets execute &#34;make help&#34; # More info can be located in ./README 這裡可以知道目前的 source code 版本為 5.4.1 最上層的檔案與資料夾 README: 告知 documents 的所在位置 COPYING: licence 的所在位置 MAINTAINERS Major subsystem directories Makefile: 這是 top-level 的 Makefile 使用 kbuild 與 kernel modules 使用這個 Makefile (至少在初始化階段) kernel: Core kernel subsystem process/thread life cycle CPU scheduling locking cgroups, timers interrupts signaling modules tracing mm: memory management fs: virtual file system block: block I/O, file system 的更底層 net: network ipc: inter-processes communication sound: Advanced Linux Sound Architecture (ALSA) virt: virtualization code like KVM Infrastructure/misc arch: architecture 相關，像是 x86-64, risc-v, arm 等等 crypto: 加密相關 include: arch-independent kernel headers, 但也有例外，像是 arch/&lt;cpu&gt;/include/... init: 初始化的過程 init/main.c:start_kernel(), start_kernel() lib: 注意 kernel 並不支援 shared library scripts: 一些有用的 scripts security: Linux Security Module (LSM) tools: mostly userspace applications user@ubuntu:~/kernels/linux-5.4$ cd ${LLKD_KSRC} ; ls arch/ Kconfig arm csky ia64 mips openrisc riscv sparc x86 alpha arm64 h8300 m68k nds32 parisc s390 um xtensa arc c6x hexagon microblaze nios2 powerpc sh unicore32 kernel 所支援的 ISA
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-03 20:16:29 +0800 CST'>December 3, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch02: Building the 5.x Linux Kernel from Source - Part 1" href="http://localhost:1313/linux-kernel-programming/ch02/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[xv6 學習紀錄 02] Lab: system calls
     </h2>
   </header>
@@ -302,6 +316,22 @@ Type: A name: yamatrail.com IPv4 Address: 填入 vm 的 IP (在 google cloud 上
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch03: Building the 5.x Linux Kernel from Source - Part 2
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Step 4 – building the kernel image and modules 從使用者的角度而言，這非常的簡單，只需要 make 就行了
+make help 可以看到 help，這裡可以先觀察 target all
+$ make help [...] Other generic targets: all - Build all targets marked with [*] * vmlinux - Build the bare kernel * modules - Build all modules [...] Architecture specific targets (x86): * bzImage - Compressed kernel image (arch/x86/boot/bzImage) [...] 從這裡可以得知，make all 的時候會有 vmlinux, modules, bzImage 這三個 target 被觸發
+vmlinux: 未壓縮的 kernel image modules: 在 config 中被標記為 M 的會變成 kernel modules (.ko files) bzImage: 壓縮過後的 kernel image (x86) 實際在開機時，會用壓縮過後的 bzImage，vmlinux 是作為 debug 用，（不在這本書的範圍）
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-06 15:00:38 +0800 CST'>December 6, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch03: Building the 5.x Linux Kernel from Source - Part 2" href="http://localhost:1313/linux-kernel-programming/ch03/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">[這個網站的誕生: 03] 使用 Hugo 產生網站
     </h2>
   </header>
@@ -319,48 +349,17 @@ hugo new content posts/hello-world.md vim content/posts/hello-world.md 設定 th
 
 <article class="post-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">[這個網站的誕生: 04] Github Actions 建立自動部署
+    <h2 class="entry-hint-parent">Ch04: Writing Your First Kernel Module - LKMs Part 1
     </h2>
   </header>
   <div class="entry-content">
-    <p>建立網站部署流程 總流程概覽 我這裡的部署流程為：大多數的檔案編輯都在我的筆電上，檔案修改完之後推到 github 上，利用 github action 自動部署到 vm 當中。
-ssh key 的準備：在筆電和 VM 之間建立一對專門用於自動化部署的 SSH Key，讓 GitHub Actions 才有權限可以登入 vm 中。 設定 GitHub Repo：將 SSH 私鑰和伺服器資訊，以加密的方式儲存在 github repo 中的 Secrets 中。 建立 GitHub Actions Workflow：撰寫 .github/workflows/deploy.yaml 設定檔，這會告訴 github 該做些什麼把網站內容放到 vm 中。 觸發與驗證：將程式碼 git push 到 GitHub，觸發自動化流程，檢查流程是否正確。 階段一：準備工作 - 建立 SSH 信任關係 步驟 1：「筆電」上產生一對 SSH Key
-在筆電上：
-# -t ed25519: 使用更現代、更安全的加密演算法 # -C &#34;...&#34; : 註解，方便你辨識這對 Key 的用途 # -f ~/.ssh/hugo_deploy_key: 指定金鑰檔案的路徑與名稱，避免覆蓋你現有的 id_rsa 或其他金鑰 ssh-keygen -t ed25519 -C &#34;GitHub Actions for yamatrail.com&#34; -f ~/.ssh/hugo_deploy_key 執行之後，會在 ~/.ssh/ 中產生公鑰與私鑰
-...</p>
+    <p>Understanding kernel architecture – part 1 Exploring LKMs The LKM framework Kernel modules within the kernel source tree kernel modules 存放於 /lib/modules/$(uname -r)/ 以我的例子來說，正在運行 95 個 modules，可以發現跟書上的範例 5359 差很多，我的推測是我使用的是 server 版，書上使用的是 desktop 版。 其中一個大量使用 modules 這種方式的是 device driver，例如可以看 kernel/drivers/net/ethernet
+原先 Ubuntu 18.04 的 netword drivers: 我自己編譯的 5.4.1-llkd01 的 device drivers: 明顯少了許多，這是因為當初在 build 時，是使用 lsmod 抓取正在運行中的 module，並不像 ubuntu 需要考慮各種可能的情境
+其中的個有名的 driver 是 Intel 1GbE Network Interface Card (NIC)
+lsmod | grep e1000 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2025-09-25 12:16:16 +0800 CST'>September 25, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [這個網站的誕生: 04] Github Actions 建立自動部署" href="http://localhost:1313/dev-log/github-actions/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 03-1] Virtual Memory 程式碼解析
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
-MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) 最大的 virtual address MAXVA 是 0b100 0000 0000 0000 0000 0000 0000 0000 0000 0000(38 0s): 可以得知 Sv39 並沒有把 39 個 bits 用滿，實際上最大的 address 只會到 MAXVA - 1 = 0b011 1111 1111 1111 1111 1111 1111 1111 1111 1111
-= 0x3fffffffff
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-13 12:32:56 +0800 CST'>October 13, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03-1] Virtual Memory 程式碼解析" href="http://localhost:1313/xv6/lab3.1/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">[xv6 學習紀錄 03] Lab: page tables
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Lab 連結: lab pgtbl
-Speed up system calls (easy) 題目敘述:
-When each process is created, map one read-only page at USYSCALL (a virtual address defined in memlayout.h). At the start of this page, store a struct usyscall (also defined in memlayout.h), and initialize it to store the PID of the current process. For this lab, ugetpid() has been provided on the userspace side and will automatically use the USYSCALL mapping. You will receive full credit for this part of the lab if the ugetpid test case passes when running pgtbltest.
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
-  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href="http://localhost:1313/xv6/lab3/"></a>
+  <footer class="entry-footer"><span title='2025-12-08 08:39:49 +0800 CST'>December 8, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch04: Writing Your First Kernel Module - LKMs Part 1" href="http://localhost:1313/linux-kernel-programming/ch04/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">
