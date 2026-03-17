@@ -1,13 +1,5 @@
-<!DOCTYPE html>
-<html lang="en" dir="auto">
-
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
-<title>Ch06: Kernel Internals Essentials - Processes and Threads | Yama&#39;s Trail</title>
-<meta name="keywords" content="">
-<meta name="description" content="Understanding process and interrupt contexts
+<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>Ch06: Kernel Internals Essentials - Processes and Threads | Yama's Trail</title>
+<meta name=keywords content><meta name=description content="Understanding process and interrupt contexts
 
 各種 context 有以下的分類
 
@@ -40,299 +32,51 @@ Libraries (text, data)
 Stack: 這個區域會對應到 function call 的過程
 
 Organizing processes, threads, and their stacks – user and kernel space
-thread 可以想成是 registers &#43; stack 的組合，其他的資源都是跟 process 共用的
-這本書會把重點著重於 thread 因為在最原始的 Unix 理念中">
-<meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/linux-kernel-programming/ch06/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/linux-kernel-programming/ch06/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
+thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
+這本書會把重點著重於 thread 因為在最原始的 Unix 理念中"><meta name=author content><link rel=canonical href=https://yamatrail.com/linux-kernel-programming/ch06/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://yamatrail.com/linux-kernel-programming/ch06/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/linux-kernel-programming/ch06/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="Ch06: Kernel Internals Essentials - Processes and Threads"><meta property="og:description" content="Understanding process and interrupt contexts 各種 context 有以下的分類
+kernel code interrupt context: 可能是來自於 hard ware 的 interrupt process context: 來自於 system call 或是 exception user space user context 在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡
+Understanding the basics of the process VAS 大致上一個 process 的 virtual address space 長成下面這個樣子 Text segment: 這是 machine code 存放的地方 Data segment Initialized data segment: 已經初始化的變數 Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡 Libraries (text, data) Stack: 這個區域會對應到 function call 的過程 Organizing processes, threads, and their stacks – user and kernel space thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的 這本書會把重點著重於 thread 因為在最原始的 Unix 理念中"><meta property="og:locale" content="zh-tw"><meta property="og:type" content="article"><meta property="article:section" content="linux-kernel-programming"><meta property="article:published_time" content="2026-03-07T14:59:44+08:00"><meta property="article:modified_time" content="2026-03-07T14:59:44+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Ch06: Kernel Internals Essentials - Processes and Threads"><meta name=twitter:description content="Understanding process and interrupt contexts
 
-    </style>
-</noscript>
-</head>
+各種 context 有以下的分類
 
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    }
+kernel code
 
-</script>
-
-<header class="header">
-    <nav class="nav">
-        <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu">
-            <li>
-                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
-                    <span>這個網站的誕生</span>
-                </a>
-            </li>
-            <li>
-                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
-                    <span>LeetCode 解題</span>
-                </a>
-            </li>
-            <li>
-                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
-                    <span>xv6 學習紀錄</span>
-                </a>
-            </li>
-            <li>
-                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
-                    <span>Linux Kernel Programming</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    
-    <h1 class="post-title entry-hint-parent">
-      Ch06: Kernel Internals Essentials - Processes and Threads
-    </h1>
-    <div class="post-meta"><span title='2026-03-07 14:59:44 +0800 CST'>March 7, 2026</span>
-
-</div>
-  </header> 
-  <div class="post-content"><h1 id="understanding-process-and-interrupt-contexts">Understanding process and interrupt contexts<a hidden class="anchor" aria-hidden="true" href="#understanding-process-and-interrupt-contexts">#</a></h1>
-<p><img loading="lazy" src="/linux-kernel-programming/ch06/270.png">
-各種 context 有以下的分類</p>
-<ul>
-<li>kernel code
-<ul>
-<li>interrupt context: 可能是來自於 hard ware 的 interrupt</li>
-<li>process context: 來自於 system call 或是 exception</li>
-</ul>
-</li>
-<li>user space
-<ul>
-<li>user context</li>
-</ul>
-</li>
-</ul>
-<p>在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡</p>
-<h1 id="understanding-the-basics-of-the-process-vas">Understanding the basics of the process VAS<a hidden class="anchor" aria-hidden="true" href="#understanding-the-basics-of-the-process-vas">#</a></h1>
-<p>大致上一個 process 的 virtual address space 長成下面這個樣子
-<img loading="lazy" src="/linux-kernel-programming/ch06/271.png"></p>
-<ul>
-<li><strong>Text segment</strong>: 這是 machine code 存放的地方</li>
-<li><strong>Data segment</strong>
-<ul>
-<li><strong>Initialized data segment</strong>: 已經初始化的變數</li>
-<li><strong>Uninitialized data segment</strong>: 還沒有被初始化的變數，有時候會被稱為 <em>bss</em></li>
-</ul>
-</li>
-<li><strong>Heap segment</strong>: 被 <code>malloc()</code> 或是 <code>mmap()</code> 出來的區域會放在這裡</li>
-<li><strong>Libraries (text, data)</strong></li>
-<li><strong>Stack</strong>: 這個區域會對應到 function call 的過程</li>
-</ul>
-<h1 id="organizing-processes-threads-and-their-stacks--user-and-kernel-space">Organizing processes, threads, and their stacks – user and kernel space<a hidden class="anchor" aria-hidden="true" href="#organizing-processes-threads-and-their-stacks--user-and-kernel-space">#</a></h1>
-<p>thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
-這本書會把重點著重於 thread 因為在最原始的 Unix 理念中</p>
-<blockquote>
-<p>Everything is a process; if it&rsquo;s not a process, it&rsquo;s a file</p></blockquote>
-<p>這句話雖然在當今也算是正確的，不過</p>
-<blockquote>
-<p>The thread, not the process, is the kernel schedulable entity</p></blockquote>
-<p>在當今會更加貼切一些</p>
-<p>每一個 thread 都會有一個對應的 task structure (也被稱為 process descriptor)</p>
-<p>下一個重點為：</p>
-<blockquote>
-<p>we require one stack per thread per privilege level supported by the CPU</p></blockquote>
-<p>所以可以得到下一個結論</p>
-<blockquote>
-<p>every user space thread alive has two stacks</p></blockquote>
-<ul>
-<li><strong>A user space stack</strong></li>
-<li><strong>A kernel space stack</strong>: 進入到 kernel mode 之後才會用這個 stack</li>
-</ul>
-<p>但如果是 kernel thread 的話，就只會有一個 kernel thread</p>
-<p><img loading="lazy" src="/linux-kernel-programming/ch06/274.png"></p>
-<p>整個架構長成這個樣子</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd ~/Linux-Kernel-Programming/ch6/
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>./countem.sh
-</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch06/275.png"></p>
+interrupt context: 可能是來自於 hard ware 的 interrupt
+process context: 來自於 system call 或是 exception
 
 
-  </div>
+user space
 
-  <footer class="post-footer">
-    <ul class="post-tags">
-    </ul>
-<nav class="paginav">
-  <a class="prev" href="http://localhost:1313/linux-kernel-programming/ch05/">
-    <span class="title">« Prev</span>
-    <br>
-    <span>Ch05: Writing Your First Kernel Module - LKMs Part 2</span>
-  </a>
-  <a class="next" href="http://localhost:1313/linux-kernel-programming/pi-wifi/">
-    <span class="title">Next »</span>
-    <br>
-    <span>如何在文字界面底下讓樹莓派連上 Wi-Fi</span>
-  </a>
-</nav>
+user context
 
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
 
-    <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
-</a>
 
-<script>
-    let menu = document.getElementById('menu')
-    if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
+在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡
+Understanding the basics of the process VAS
+大致上一個 process 的 virtual address space 長成下面這個樣子
 
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
 
-</script>
-<script>
-    var mybutton = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
-        } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
-        }
-    };
+Text segment: 這是 machine code 存放的地方
+Data segment
 
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
+Initialized data segment: 已經初始化的變數
+Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss
 
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
 
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = 'copy';
+Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡
+Libraries (text, data)
+Stack: 這個區域會對應到 function call 的過程
 
-        function copyingDone() {
-            copybutton.innerHTML = 'copied!';
-            setTimeout(() => {
-                copybutton.innerHTML = 'copy';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-</body>
-
-</html>
+Organizing processes, threads, and their stacks – user and kernel space
+thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
+這本書會把重點著重於 thread 因為在最原始的 Unix 理念中"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Linux Kernel Programming 學習紀錄","item":"https://yamatrail.com/linux-kernel-programming/"},{"@type":"ListItem","position":2,"name":"Ch06: Kernel Internals Essentials - Processes and Threads","item":"https://yamatrail.com/linux-kernel-programming/ch06/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Ch06: Kernel Internals Essentials - Processes and Threads","name":"Ch06: Kernel Internals Essentials - Processes and Threads","description":"Understanding process and interrupt contexts 各種 context 有以下的分類\nkernel code interrupt context: 可能是來自於 hard ware 的 interrupt process context: 來自於 system call 或是 exception user space user context 在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡\nUnderstanding the basics of the process VAS 大致上一個 process 的 virtual address space 長成下面這個樣子 Text segment: 這是 machine code 存放的地方 Data segment Initialized data segment: 已經初始化的變數 Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡 Libraries (text, data) Stack: 這個區域會對應到 function call 的過程 Organizing processes, threads, and their stacks – user and kernel space thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的 這本書會把重點著重於 thread 因為在最原始的 Unix 理念中\n","keywords":[],"articleBody":"Understanding process and interrupt contexts 各種 context 有以下的分類\nkernel code interrupt context: 可能是來自於 hard ware 的 interrupt process context: 來自於 system call 或是 exception user space user context 在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡\nUnderstanding the basics of the process VAS 大致上一個 process 的 virtual address space 長成下面這個樣子 Text segment: 這是 machine code 存放的地方 Data segment Initialized data segment: 已經初始化的變數 Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡 Libraries (text, data) Stack: 這個區域會對應到 function call 的過程 Organizing processes, threads, and their stacks – user and kernel space thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的 這本書會把重點著重於 thread 因為在最原始的 Unix 理念中\nEverything is a process; if it’s not a process, it’s a file\n這句話雖然在當今也算是正確的，不過\nThe thread, not the process, is the kernel schedulable entity\n在當今會更加貼切一些\n每一個 thread 都會有一個對應的 task structure (也被稱為 process descriptor)\n下一個重點為：\nwe require one stack per thread per privilege level supported by the CPU\n所以可以得到下一個結論\nevery user space thread alive has two stacks\nA user space stack A kernel space stack: 進入到 kernel mode 之後才會用這個 stack 但如果是 kernel thread 的話，就只會有一個 kernel thread\n整個架構長成這個樣子\ncd ~/Linux-Kernel-Programming/ch6/ ./countem.sh ","wordCount":"179","inLanguage":"en","datePublished":"2026-03-07T14:59:44+08:00","dateModified":"2026-03-07T14:59:44+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://yamatrail.com/linux-kernel-programming/ch06/"},"publisher":{"@type":"Organization","name":"Yama's Trail","logo":{"@type":"ImageObject","url":"https://yamatrail.com/favicon_io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">Ch06: Kernel Internals Essentials - Processes and Threads</h1><div class=post-meta><span title='2026-03-07 14:59:44 +0800 CST'>March 7, 2026</span></div></header><div class=post-content><h1 id=understanding-process-and-interrupt-contexts>Understanding process and interrupt contexts<a hidden class=anchor aria-hidden=true href=#understanding-process-and-interrupt-contexts>#</a></h1><p><img loading=lazy src=/linux-kernel-programming/ch06/270.png>
+各種 context 有以下的分類</p><ul><li>kernel code<ul><li>interrupt context: 可能是來自於 hard ware 的 interrupt</li><li>process context: 來自於 system call 或是 exception</li></ul></li><li>user space<ul><li>user context</li></ul></li></ul><p>在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡</p><h1 id=understanding-the-basics-of-the-process-vas>Understanding the basics of the process VAS<a hidden class=anchor aria-hidden=true href=#understanding-the-basics-of-the-process-vas>#</a></h1><p>大致上一個 process 的 virtual address space 長成下面這個樣子
+<img loading=lazy src=/linux-kernel-programming/ch06/271.png></p><ul><li><strong>Text segment</strong>: 這是 machine code 存放的地方</li><li><strong>Data segment</strong><ul><li><strong>Initialized data segment</strong>: 已經初始化的變數</li><li><strong>Uninitialized data segment</strong>: 還沒有被初始化的變數，有時候會被稱為 <em>bss</em></li></ul></li><li><strong>Heap segment</strong>: 被 <code>malloc()</code> 或是 <code>mmap()</code> 出來的區域會放在這裡</li><li><strong>Libraries (text, data)</strong></li><li><strong>Stack</strong>: 這個區域會對應到 function call 的過程</li></ul><h1 id=organizing-processes-threads-and-their-stacks--user-and-kernel-space>Organizing processes, threads, and their stacks – user and kernel space<a hidden class=anchor aria-hidden=true href=#organizing-processes-threads-and-their-stacks--user-and-kernel-space>#</a></h1><p>thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
+這本書會把重點著重於 thread 因為在最原始的 Unix 理念中</p><blockquote><p>Everything is a process; if it&rsquo;s not a process, it&rsquo;s a file</p></blockquote><p>這句話雖然在當今也算是正確的，不過</p><blockquote><p>The thread, not the process, is the kernel schedulable entity</p></blockquote><p>在當今會更加貼切一些</p><p>每一個 thread 都會有一個對應的 task structure (也被稱為 process descriptor)</p><p>下一個重點為：</p><blockquote><p>we require one stack per thread per privilege level supported by the CPU</p></blockquote><p>所以可以得到下一個結論</p><blockquote><p>every user space thread alive has two stacks</p></blockquote><ul><li><strong>A user space stack</strong></li><li><strong>A kernel space stack</strong>: 進入到 kernel mode 之後才會用這個 stack</li></ul><p>但如果是 kernel thread 的話，就只會有一個 kernel thread</p><p><img loading=lazy src=/linux-kernel-programming/ch06/274.png></p><p>整個架構長成這個樣子</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>cd ~/Linux-Kernel-Programming/ch6/
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>./countem.sh
+</span></span></code></pre></div><p><img loading=lazy src=/linux-kernel-programming/ch06/275.png></p></div><footer class=post-footer><ul class=post-tags></ul><nav class=paginav><a class=prev href=https://yamatrail.com/linux-kernel-programming/ch05/><span class=title>« Prev</span><br><span>Ch05: Writing Your First Kernel Module - LKMs Part 2</span>
+</a><a class=next href=https://yamatrail.com/linux-kernel-programming/pi-wifi/><span class=title>Next »</span><br><span>如何在文字界面底下讓樹莓派連上 Wi-Fi</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>

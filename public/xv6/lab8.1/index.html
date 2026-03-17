@@ -1,13 +1,5 @@
-<!DOCTYPE html>
-<html lang="en" dir="auto">
-
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
-<title>[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks | Yama&#39;s Trail</title>
-<meta name="keywords" content="">
-<meta name="description" content="課程影片連結：
+<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks | Yama's Trail</title>
+<meta name=keywords content><meta name=description content="課程影片連結：
 
 6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks
 
@@ -38,13 +30,13 @@ uartputc(int c)
     for(;;)
       ;
   }
-  while(uart_tx_w == uart_tx_r &#43; UART_TX_BUF_SIZE){
+  while(uart_tx_w == uart_tx_r + UART_TX_BUF_SIZE){
     // buffer is full.
     // wait for uartstart() to open up space in the buffer.
     sleep(&amp;uart_tx_r, &amp;uart_tx_lock);
   }
   uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c;
-  uart_tx_w &#43;= 1;
+  uart_tx_w += 1;
   uartstart();
   release(&amp;uart_tx_lock);
 }
@@ -75,205 +67,146 @@ void
 acquire(struct spinlock *lk) // does not work!
 {
 	for(;;) {
-		if(lk-&gt;locked == 0) {
-			lk-&gt;locked = 1;
+		if(lk->locked == 0) {
+			lk->locked = 1;
 			break;
 		}
 	}
 }
-這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l-&gt;locked == 0)">
-<meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/xv6/lab8.1/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/lab8.1/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
+這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l->locked == 0)"><meta name=author content><link rel=canonical href=https://yamatrail.com/xv6/lab8.1/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://yamatrail.com/xv6/lab8.1/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/xv6/lab8.1/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks"><meta property="og:description" content="課程影片連結：
+6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks Deadlock acquire(&amp;l) acquire(&amp;l) release(&amp;l) Locks vs. Performance 越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳 Case study UART kernel/uart.c struct spinlock uart_tx_lock; void uartputc(int c) { acquire(&amp;uart_tx_lock); if(panicked){ for(;;) ; } while(uart_tx_w == uart_tx_r + UART_TX_BUF_SIZE){ // buffer is full. // wait for uartstart() to open up space in the buffer. sleep(&amp;uart_tx_r, &amp;uart_tx_lock); } uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c; uart_tx_w += 1; uartstart(); release(&amp;uart_tx_lock); } void uartintr(void) { // read and process incoming characters. while(1){ int c = uartgetc(); if(c == -1) break; consoleintr(c); } // send buffered characters. acquire(&amp;uart_tx_lock); uartstart(); release(&amp;uart_tx_lock); } Lock rules protect data structure Lock 的實做 broken lock void acquire(struct spinlock *lk) // does not work! { for(;;) { if(lk->locked == 0) { lk->locked = 1; break; } } } 這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l->locked == 0)"><meta property="og:locale" content="zh-tw"><meta property="og:type" content="article"><meta property="article:section" content="xv6"><meta property="article:published_time" content="2025-10-25T13:13:07+08:00"><meta property="article:modified_time" content="2025-10-25T13:13:07+08:00"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab1/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab2/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab3.1/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab3/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab4.1/"><meta property="og:see_also" content="https://yamatrail.com/xv6/gdb/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab4/"><meta name=twitter:card content="summary"><meta name=twitter:title content="[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks"><meta name=twitter:description content="課程影片連結：
 
-    </style>
-</noscript>
-</head>
+6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks
 
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
-    <nav class="nav">
-        <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu">
-            <li>
-                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
-                    <span>這個網站的誕生</span>
-                </a>
-            </li>
-            <li>
-                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
-                    <span>LeetCode 解題</span>
-                </a>
-            </li>
-            <li>
-                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
-                    <span>xv6 學習紀錄</span>
-                </a>
-            </li>
-            <li>
-                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
-                    <span>Linux Kernel Programming</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
+      
     
-    <h1 class="post-title entry-hint-parent">
-      [xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks
-    </h1>
-    <div class="post-meta"><span title='2025-10-25 13:13:07 +0800 CST'>October 25, 2025</span>
 
-</div>
-  </header> 
-  <div class="post-content"><p>課程影片連結：</p>
-<ul>
-<li><a href="https://www.youtube.com/watch?v=NGXu3vN7yAk">6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks</a>
-<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-      <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/NGXu3vN7yAk?autoplay=0&amp;controls=1&amp;end=0&amp;loop=0&amp;mute=0&amp;start=0" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video"></iframe>
-    </div>
-</li>
-</ul>
-<h2 id="deadlock">Deadlock<a hidden class="anchor" aria-hidden="true" href="#deadlock">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>l)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>l)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>l)
-</span></span></code></pre></div><h2 id="locks-vs-performance">Locks vs. Performance<a hidden class="anchor" aria-hidden="true" href="#locks-vs-performance">#</a></h2>
-<ul>
-<li>越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳</li>
-</ul>
-<h2 id="case-study-uart">Case study UART<a hidden class="anchor" aria-hidden="true" href="#case-study-uart">#</a></h2>
-<ul>
-<li><code>kernel/uart.c</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> spinlock uart_tx_lock;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uartputc</span>(<span style="color:#66d9ef">int</span> c)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(panicked){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span>(;;)
-</span></span><span style="display:flex;"><span>      ;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span>(uart_tx_w <span style="color:#f92672">==</span> uart_tx_r <span style="color:#f92672">+</span> UART_TX_BUF_SIZE){
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// buffer is full.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// wait for uartstart() to open up space in the buffer.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">sleep</span>(<span style="color:#f92672">&amp;</span>uart_tx_r, <span style="color:#f92672">&amp;</span>uart_tx_lock);
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  uart_tx_buf[uart_tx_w <span style="color:#f92672">%</span> UART_TX_BUF_SIZE] <span style="color:#f92672">=</span> c;
-</span></span><span style="display:flex;"><span>  uart_tx_w <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uartstart</span>();
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock);
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uartintr</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// read and process incoming characters.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">while</span>(<span style="color:#ae81ff">1</span>){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> c <span style="color:#f92672">=</span> <span style="color:#a6e22e">uartgetc</span>();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(c <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">consoleintr</span>(c);
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// send buffered characters.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock);
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uartstart</span>();
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="lock-rules">Lock rules<a hidden class="anchor" aria-hidden="true" href="#lock-rules">#</a></h3>
-<ul>
-<li>protect data structure</li>
-</ul>
-<h2 id="lock-的實做">Lock 的實做<a hidden class="anchor" aria-hidden="true" href="#lock-的實做">#</a></h2>
-<h3 id="broken-lock">broken lock<a hidden class="anchor" aria-hidden="true" href="#broken-lock">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">acquire</span>(<span style="color:#66d9ef">struct</span> spinlock <span style="color:#f92672">*</span>lk) <span style="color:#75715e">// does not work!
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>{
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span>(;;) {
-</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span>(lk<span style="color:#f92672">-&gt;</span>locked <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
-</span></span><span style="display:flex;"><span>			lk<span style="color:#f92672">-&gt;</span>locked <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">break</span>;
-</span></span><span style="display:flex;"><span>		}
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 <code>if (l-&gt;locked == 0)</code></p>
-<h3 id="正確的-lock-實做方法">正確的 Lock 實做方法<a hidden class="anchor" aria-hidden="true" href="#正確的-lock-實做方法">#</a></h3>
-<ul>
-<li>使用 <code>amoswap</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#a6e22e">amoswap</span> <span style="color:#66d9ef">addr</span>, <span style="color:#66d9ef">r1</span>, <span style="color:#66d9ef">r2</span>
-</span></span></code></pre></div><p><code>amoswap</code> 具有 atomic 的性質</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>lock addr
-</span></span><span style="display:flex;"><span>  tmp   &lt;- *addr
-</span></span><span style="display:flex;"><span>  *addr &lt;- r1
-</span></span><span style="display:flex;"><span>  r2    &lt;- tmp
-</span></span><span style="display:flex;"><span>unlock
-</span></span></code></pre></div><p>這裡的 <code>lock addr</code> 與 <code>unlock</code> 是硬體上保證只有一個 CPU 可以修改 <code>*addr</code>，從這裡也可以看到實做 lock 需要硬體上的支援</p>
-<ul>
-<li><code>r2    &lt;- *addr</code></li>
-<li><code>*addr &lt;- r1</code>
-不同的 ISA 會有不一樣的 instruction 支援</li>
-</ul>
-<p>但核心概念都會是只有一個 CPU 可以針對 <code>*addr</code> 操作：</p>
-<ul>
-<li><code>r2    &lt;- *addr</code></li>
-<li><code>*addr &lt;- r1</code></li>
-</ul>
-<p>情境一：成功取得 Lock (Lock 原本是 0)</p>
-<pre><code>初始狀態：
+
+Deadlock
+acquire(&amp;l)
+acquire(&amp;l)
+release(&amp;l)
+Locks vs. Performance
+
+越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳
+
+Case study UART
+
+kernel/uart.c
+
+struct spinlock uart_tx_lock;
+
+void
+uartputc(int c)
+{
+  acquire(&amp;uart_tx_lock);
+
+  if(panicked){
+    for(;;)
+      ;
+  }
+  while(uart_tx_w == uart_tx_r + UART_TX_BUF_SIZE){
+    // buffer is full.
+    // wait for uartstart() to open up space in the buffer.
+    sleep(&amp;uart_tx_r, &amp;uart_tx_lock);
+  }
+  uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c;
+  uart_tx_w += 1;
+  uartstart();
+  release(&amp;uart_tx_lock);
+}
+
+void
+uartintr(void)
+{
+  // read and process incoming characters.
+  while(1){
+    int c = uartgetc();
+    if(c == -1)
+      break;
+    consoleintr(c);
+  }
+
+  // send buffered characters.
+  acquire(&amp;uart_tx_lock);
+  uartstart();
+  release(&amp;uart_tx_lock);
+}
+Lock rules
+
+protect data structure
+
+Lock 的實做
+broken lock
+void
+acquire(struct spinlock *lk) // does not work!
+{
+	for(;;) {
+		if(lk->locked == 0) {
+			lk->locked = 1;
+			break;
+		}
+	}
+}
+這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l->locked == 0)"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"xv6 學習紀錄","item":"https://yamatrail.com/xv6/"},{"@type":"ListItem","position":2,"name":"[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks","item":"https://yamatrail.com/xv6/lab8.1/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks","name":"[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks","description":"課程影片連結：\n6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks Deadlock acquire(\u0026amp;l) acquire(\u0026amp;l) release(\u0026amp;l) Locks vs. Performance 越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳 Case study UART kernel/uart.c struct spinlock uart_tx_lock; void uartputc(int c) { acquire(\u0026amp;uart_tx_lock); if(panicked){ for(;;) ; } while(uart_tx_w == uart_tx_r + UART_TX_BUF_SIZE){ // buffer is full. // wait for uartstart() to open up space in the buffer. sleep(\u0026amp;uart_tx_r, \u0026amp;uart_tx_lock); } uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c; uart_tx_w += 1; uartstart(); release(\u0026amp;uart_tx_lock); } void uartintr(void) { // read and process incoming characters. while(1){ int c = uartgetc(); if(c == -1) break; consoleintr(c); } // send buffered characters. acquire(\u0026amp;uart_tx_lock); uartstart(); release(\u0026amp;uart_tx_lock); } Lock rules protect data structure Lock 的實做 broken lock void acquire(struct spinlock *lk) // does not work! { for(;;) { if(lk-\u0026gt;locked == 0) { lk-\u0026gt;locked = 1; break; } } } 這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l-\u0026gt;locked == 0)\n","keywords":[],"articleBody":"課程影片連結：\n6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks Deadlock acquire(\u0026l) acquire(\u0026l) release(\u0026l) Locks vs. Performance 越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳 Case study UART kernel/uart.c struct spinlock uart_tx_lock; void uartputc(int c) { acquire(\u0026uart_tx_lock); if(panicked){ for(;;) ; } while(uart_tx_w == uart_tx_r + UART_TX_BUF_SIZE){ // buffer is full. // wait for uartstart() to open up space in the buffer. sleep(\u0026uart_tx_r, \u0026uart_tx_lock); } uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c; uart_tx_w += 1; uartstart(); release(\u0026uart_tx_lock); } void uartintr(void) { // read and process incoming characters. while(1){ int c = uartgetc(); if(c == -1) break; consoleintr(c); } // send buffered characters. acquire(\u0026uart_tx_lock); uartstart(); release(\u0026uart_tx_lock); } Lock rules protect data structure Lock 的實做 broken lock void acquire(struct spinlock *lk) // does not work! { for(;;) { if(lk-\u003elocked == 0) { lk-\u003elocked = 1; break; } } } 這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l-\u003elocked == 0)\n正確的 Lock 實做方法 使用 amoswap amoswap addr, r1, r2 amoswap 具有 atomic 的性質\nlock addr tmp \u003c- *addr *addr \u003c- r1 r2 \u003c- tmp unlock 這裡的 lock addr 與 unlock 是硬體上保證只有一個 CPU 可以修改 *addr，從這裡也可以看到實做 lock 需要硬體上的支援\nr2 \u003c- *addr *addr \u003c- r1 不同的 ISA 會有不一樣的 instruction 支援 但核心概念都會是只有一個 CPU 可以針對 *addr 操作：\nr2 \u003c- *addr *addr \u003c- r1 情境一：成功取得 Lock (Lock 原本是 0)\n初始狀態： lk (在 addr) = 0 (未鎖定) r1 = 1 (我們想寫入的值) r2 = (內容不重要) CPU 執行 amoswap addr, r1, r2 原子操作開始： (內部) tmp \u003c- *addr (讀到 lk 的值，tmp = 0) *addr \u003c- r1 (將 r1 的值 1 寫入 lk，lk 現在變成 1) r2 \u003c- tmp (將 tmp 的值 0 寫入 r2，r2 現在變成 0) 結果： lk (記憶體) 變成了 1 (已鎖定)。 r2 (暫存器) 變成了 0。 程式解讀： 程式檢查 r2 的值，發現是 0。這代表「在我們寫入 1 之前，這個 lock 的值是 0」，因此我們成功取得了 Lock。 情境二：取得 Lock 失敗 (Lock 原本是 1)\n初始狀態： lk (在 addr) = 1 (已被其他 CPU 鎖定) r1 = 1 (我們想寫入的值) r2 = (內容不重要) CPU 執行 amoswap addr, r1, r2 原子操作開始： (內部) tmp \u003c- *addr (讀到 lk 的值，tmp = 1) *addr \u003c- r1 (將 r1 的值 1 寫入 lk，lk 仍然是 1) r2 \u003c- tmp (將 tmp 的值 1 寫入 r2，r2 現在變成 1) 結果： lk (記憶體) 仍然是 1 (保持鎖定)。 r2 (暫存器) 變成了 1。 程式解讀： 程式檢查 r2 的值，發現是 1。這代表「在我們嘗試寫入 1 之前，這個 lock 的值就已經是 1 了」，因此我們取得 Lock 失敗，必須繼續旋轉等待 (spin) 並重試。 使用 amoswap 實做 acquire() 與 release() kernel/spinlock.h // Mutual exclusion lock. struct spinlock { uint locked; // Is the lock held? // For debugging: char *name; // Name of lock. struct cpu *cpu; // The cpu holding the lock. }; kernel/spinlock.h void acquire(struct spinlock *lk) { push_off(); // disable interrupts to avoid deadlock. if(holding(lk)) panic(\"acquire\"); // On RISC-V, sync_lock_test_and_set turns into an atomic swap: // a5 = 1 // s1 = \u0026lk-\u003elocked // amoswap.w.aq a5, a5, (s1) while(__sync_lock_test_and_set(\u0026lk-\u003elocked, 1) != 0) ; // Tell the C compiler and the processor to not move loads or stores // past this point, to ensure that the critical section's memory // references happen strictly after the lock is acquired. // On RISC-V, this emits a fence instruction. __sync_synchronize(); // Record info about lock acquisition for holding() and debugging. lk-\u003ecpu = mycpu(); } // Release the lock. void release(struct spinlock *lk) { if(!holding(lk)) panic(\"release\"); lk-\u003ecpu = 0; // Tell the C compiler and the CPU to not move loads or stores // past this point, to ensure that all the stores in the critical // section are visible to other CPUs before the lock is released, // and that loads in the critical section occur strictly before // the lock is released. // On RISC-V, this emits a fence instruction. __sync_synchronize(); // Release the lock, equivalent to lk-\u003elocked = 0. // This code doesn't use a C assignment, since the C standard // implies that an assignment might be implemented with // multiple store instructions. // On RISC-V, sync_lock_release turns into an atomic swap: // s1 = \u0026lk-\u003elocked // amoswap.w zero, zero, (s1) __sync_lock_release(\u0026lk-\u003elocked); pop_off(); } ","wordCount":"628","inLanguage":"en","datePublished":"2025-10-25T13:13:07+08:00","dateModified":"2025-10-25T13:13:07+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://yamatrail.com/xv6/lab8.1/"},"publisher":{"@type":"Organization","name":"Yama's Trail","logo":{"@type":"ImageObject","url":"https://yamatrail.com/favicon_io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks</h1><div class=post-meta><span title='2025-10-25 13:13:07 +0800 CST'>October 25, 2025</span></div></header><div class=post-content><p>課程影片連結：</p><ul><li><a href="https://www.youtube.com/watch?v=NGXu3vN7yAk">6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks</a><div style=position:relative;padding-bottom:56.25%;height:0;overflow:hidden><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loading=eager referrerpolicy=strict-origin-when-cross-origin src="https://www.youtube.com/embed/NGXu3vN7yAk?autoplay=0&amp;controls=1&amp;end=0&amp;loop=0&amp;mute=0&amp;start=0" style=position:absolute;top:0;left:0;width:100%;height:100%;border:0 title="YouTube video"></iframe></div></li></ul><h2 id=deadlock>Deadlock<a hidden class=anchor aria-hidden=true href=#deadlock>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#a6e22e>acquire</span>(<span style=color:#f92672>&amp;</span>l)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>acquire</span>(<span style=color:#f92672>&amp;</span>l)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>release</span>(<span style=color:#f92672>&amp;</span>l)
+</span></span></code></pre></div><h2 id=locks-vs-performance>Locks vs. Performance<a hidden class=anchor aria-hidden=true href=#locks-vs-performance>#</a></h2><ul><li>越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳</li></ul><h2 id=case-study-uart>Case study UART<a hidden class=anchor aria-hidden=true href=#case-study-uart>#</a></h2><ul><li><code>kernel/uart.c</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>struct</span> spinlock uart_tx_lock;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>uartputc</span>(<span style=color:#66d9ef>int</span> c)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>acquire</span>(<span style=color:#f92672>&amp;</span>uart_tx_lock);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(panicked){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span>(;;)
+</span></span><span style=display:flex><span>      ;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>while</span>(uart_tx_w <span style=color:#f92672>==</span> uart_tx_r <span style=color:#f92672>+</span> UART_TX_BUF_SIZE){
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// buffer is full.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// wait for uartstart() to open up space in the buffer.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>sleep</span>(<span style=color:#f92672>&amp;</span>uart_tx_r, <span style=color:#f92672>&amp;</span>uart_tx_lock);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  uart_tx_buf[uart_tx_w <span style=color:#f92672>%</span> UART_TX_BUF_SIZE] <span style=color:#f92672>=</span> c;
+</span></span><span style=display:flex><span>  uart_tx_w <span style=color:#f92672>+=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>uartstart</span>();
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>release</span>(<span style=color:#f92672>&amp;</span>uart_tx_lock);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>uartintr</span>(<span style=color:#66d9ef>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// read and process incoming characters.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>while</span>(<span style=color:#ae81ff>1</span>){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int</span> c <span style=color:#f92672>=</span> <span style=color:#a6e22e>uartgetc</span>();
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(c <span style=color:#f92672>==</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>consoleintr</span>(c);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// send buffered characters.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>acquire</span>(<span style=color:#f92672>&amp;</span>uart_tx_lock);
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>uartstart</span>();
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>release</span>(<span style=color:#f92672>&amp;</span>uart_tx_lock);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=lock-rules>Lock rules<a hidden class=anchor aria-hidden=true href=#lock-rules>#</a></h3><ul><li>protect data structure</li></ul><h2 id=lock-的實做>Lock 的實做<a hidden class=anchor aria-hidden=true href=#lock-的實做>#</a></h2><h3 id=broken-lock>broken lock<a hidden class=anchor aria-hidden=true href=#broken-lock>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>acquire</span>(<span style=color:#66d9ef>struct</span> spinlock <span style=color:#f92672>*</span>lk) <span style=color:#75715e>// does not work!
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>for</span>(;;) {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span>(lk<span style=color:#f92672>-&gt;</span>locked <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>			lk<span style=color:#f92672>-&gt;</span>locked <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>			<span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>		}
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 <code>if (l->locked == 0)</code></p><h3 id=正確的-lock-實做方法>正確的 Lock 實做方法<a hidden class=anchor aria-hidden=true href=#正確的-lock-實做方法>#</a></h3><ul><li>使用 <code>amoswap</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#a6e22e>amoswap</span> <span style=color:#66d9ef>addr</span>, <span style=color:#66d9ef>r1</span>, <span style=color:#66d9ef>r2</span>
+</span></span></code></pre></div><p><code>amoswap</code> 具有 atomic 的性質</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>lock addr
+</span></span><span style=display:flex><span>  tmp   &lt;- *addr
+</span></span><span style=display:flex><span>  *addr &lt;- r1
+</span></span><span style=display:flex><span>  r2    &lt;- tmp
+</span></span><span style=display:flex><span>unlock
+</span></span></code></pre></div><p>這裡的 <code>lock addr</code> 與 <code>unlock</code> 是硬體上保證只有一個 CPU 可以修改 <code>*addr</code>，從這裡也可以看到實做 lock 需要硬體上的支援</p><ul><li><code>r2 &lt;- *addr</code></li><li><code>*addr &lt;- r1</code>
+不同的 ISA 會有不一樣的 instruction 支援</li></ul><p>但核心概念都會是只有一個 CPU 可以針對 <code>*addr</code> 操作：</p><ul><li><code>r2 &lt;- *addr</code></li><li><code>*addr &lt;- r1</code></li></ul><p>情境一：成功取得 Lock (Lock 原本是 0)</p><pre><code>初始狀態：
 
     lk (在 addr) = 0 (未鎖定)
 
@@ -298,9 +231,7 @@ CPU 執行 amoswap addr, r1, r2
     r2 (暫存器) 變成了 0。
 
 程式解讀： 程式檢查 r2 的值，發現是 0。這代表「在我們寫入 1 之前，這個 lock 的值是 0」，因此我們成功取得了 Lock。
-</code></pre>
-<p>情境二：取得 Lock 失敗 (Lock 原本是 1)</p>
-<pre><code>初始狀態：
+</code></pre><p>情境二：取得 Lock 失敗 (Lock 原本是 1)</p><pre><code>初始狀態：
 
     lk (在 addr) = 1 (已被其他 CPU 鎖定)
 
@@ -325,214 +256,69 @@ CPU 執行 amoswap addr, r1, r2
     r2 (暫存器) 變成了 1。
 
 程式解讀： 程式檢查 r2 的值，發現是 1。這代表「在我們嘗試寫入 1 之前，這個 lock 的值就已經是 1 了」，因此我們取得 Lock 失敗，必須繼續旋轉等待 (spin) 並重試。
-</code></pre>
-<h4 id="使用-amoswap-實做-acquire-與-release">使用 <code>amoswap</code> 實做 <code>acquire()</code> 與 <code>release()</code><a hidden class="anchor" aria-hidden="true" href="#使用-amoswap-實做-acquire-與-release">#</a></h4>
-<ul>
-<li><code>kernel/spinlock.h</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Mutual exclusion lock.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> spinlock {
-</span></span><span style="display:flex;"><span>  uint locked;       <span style="color:#75715e">// Is the lock held?
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// For debugging:
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>name;        <span style="color:#75715e">// Name of lock.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> cpu <span style="color:#f92672">*</span>cpu;   <span style="color:#75715e">// The cpu holding the lock.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
-</span></span></code></pre></div><ul>
-<li><code>kernel/spinlock.h</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">acquire</span>(<span style="color:#66d9ef">struct</span> spinlock <span style="color:#f92672">*</span>lk)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">push_off</span>(); <span style="color:#75715e">// disable interrupts to avoid deadlock.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">holding</span>(lk))
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;acquire&#34;</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// On RISC-V, sync_lock_test_and_set turns into an atomic swap:
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//   a5 = 1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//   s1 = &amp;lk-&gt;locked
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//   amoswap.w.aq a5, a5, (s1)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">while</span>(<span style="color:#a6e22e">__sync_lock_test_and_set</span>(<span style="color:#f92672">&amp;</span>lk<span style="color:#f92672">-&gt;</span>locked, <span style="color:#ae81ff">1</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    ;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Tell the C compiler and the processor to not move loads or stores
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// past this point, to ensure that the critical section&#39;s memory
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// references happen strictly after the lock is acquired.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// On RISC-V, this emits a fence instruction.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">__sync_synchronize</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Record info about lock acquisition for holding() and debugging.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  lk<span style="color:#f92672">-&gt;</span>cpu <span style="color:#f92672">=</span> <span style="color:#a6e22e">mycpu</span>();
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// Release the lock.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">release</span>(<span style="color:#66d9ef">struct</span> spinlock <span style="color:#f92672">*</span>lk)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#f92672">!</span><span style="color:#a6e22e">holding</span>(lk))
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;release&#34;</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  lk<span style="color:#f92672">-&gt;</span>cpu <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Tell the C compiler and the CPU to not move loads or stores
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// past this point, to ensure that all the stores in the critical
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// section are visible to other CPUs before the lock is released,
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// and that loads in the critical section occur strictly before
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// the lock is released.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// On RISC-V, this emits a fence instruction.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">__sync_synchronize</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Release the lock, equivalent to lk-&gt;locked = 0.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// This code doesn&#39;t use a C assignment, since the C standard
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// implies that an assignment might be implemented with
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// multiple store instructions.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// On RISC-V, sync_lock_release turns into an atomic swap:
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//   s1 = &amp;lk-&gt;locked
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">//   amoswap.w zero, zero, (s1)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">__sync_lock_release</span>(<span style="color:#f92672">&amp;</span>lk<span style="color:#f92672">-&gt;</span>locked);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">pop_off</span>();
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div>
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-    </ul>
-<nav class="paginav">
-  <a class="prev" href="http://localhost:1313/xv6/lab7/">
-    <span class="title">« Prev</span>
-    <br>
-    <span>[xv6 學習紀錄 07] Lab thread: Multithreading</span>
-  </a>
-  <a class="next" href="http://localhost:1313/xv6/kalloc/">
-    <span class="title">Next »</span>
-    <br>
-    <span>[xv6 學習紀錄 08-2] kalloc 相關程式碼解析</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu')
-    if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var mybutton = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
-        } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = 'copy';
-
-        function copyingDone() {
-            copybutton.innerHTML = 'copied!';
-            setTimeout(() => {
-                copybutton.innerHTML = 'copy';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-</body>
-
-</html>
+</code></pre><h4 id=使用-amoswap-實做-acquire-與-release>使用 <code>amoswap</code> 實做 <code>acquire()</code> 與 <code>release()</code><a hidden class=anchor aria-hidden=true href=#使用-amoswap-實做-acquire-與-release>#</a></h4><ul><li><code>kernel/spinlock.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// Mutual exclusion lock.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>struct</span> spinlock {
+</span></span><span style=display:flex><span>  uint locked;       <span style=color:#75715e>// Is the lock held?
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// For debugging:
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>name;        <span style=color:#75715e>// Name of lock.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>struct</span> cpu <span style=color:#f92672>*</span>cpu;   <span style=color:#75715e>// The cpu holding the lock.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>};
+</span></span></code></pre></div><ul><li><code>kernel/spinlock.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>acquire</span>(<span style=color:#66d9ef>struct</span> spinlock <span style=color:#f92672>*</span>lk)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>push_off</span>(); <span style=color:#75715e>// disable interrupts to avoid deadlock.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span>(<span style=color:#a6e22e>holding</span>(lk))
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;acquire&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// On RISC-V, sync_lock_test_and_set turns into an atomic swap:
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   a5 = 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   s1 = &amp;lk-&gt;locked
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   amoswap.w.aq a5, a5, (s1)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>while</span>(<span style=color:#a6e22e>__sync_lock_test_and_set</span>(<span style=color:#f92672>&amp;</span>lk<span style=color:#f92672>-&gt;</span>locked, <span style=color:#ae81ff>1</span>) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>    ;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Tell the C compiler and the processor to not move loads or stores
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// past this point, to ensure that the critical section&#39;s memory
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// references happen strictly after the lock is acquired.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// On RISC-V, this emits a fence instruction.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>__sync_synchronize</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Record info about lock acquisition for holding() and debugging.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  lk<span style=color:#f92672>-&gt;</span>cpu <span style=color:#f92672>=</span> <span style=color:#a6e22e>mycpu</span>();
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// Release the lock.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>release</span>(<span style=color:#66d9ef>struct</span> spinlock <span style=color:#f92672>*</span>lk)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(<span style=color:#f92672>!</span><span style=color:#a6e22e>holding</span>(lk))
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;release&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  lk<span style=color:#f92672>-&gt;</span>cpu <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Tell the C compiler and the CPU to not move loads or stores
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// past this point, to ensure that all the stores in the critical
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// section are visible to other CPUs before the lock is released,
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// and that loads in the critical section occur strictly before
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// the lock is released.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// On RISC-V, this emits a fence instruction.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>__sync_synchronize</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Release the lock, equivalent to lk-&gt;locked = 0.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// This code doesn&#39;t use a C assignment, since the C standard
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// implies that an assignment might be implemented with
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// multiple store instructions.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// On RISC-V, sync_lock_release turns into an atomic swap:
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   s1 = &amp;lk-&gt;locked
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>//   amoswap.w zero, zero, (s1)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>__sync_lock_release</span>(<span style=color:#f92672>&amp;</span>lk<span style=color:#f92672>-&gt;</span>locked);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>pop_off</span>();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></div><footer class=post-footer><ul class=post-tags></ul><nav class=paginav><a class=prev href=https://yamatrail.com/xv6/lab7/><span class=title>« Prev</span><br><span>[xv6 學習紀錄 07] Lab thread: Multithreading</span>
+</a><a class=next href=https://yamatrail.com/xv6/kalloc/><span class=title>Next »</span><br><span>[xv6 學習紀錄 08-2] kalloc 相關程式碼解析</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
