@@ -1,811 +1,347 @@
-<!DOCTYPE html>
-<html lang="en" dir="auto">
-
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
-<title>[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6 | Yama&#39;s Trail</title>
-<meta name="keywords" content="">
-<meta name="description" content="Lab 連結：Lab: Copy-on-Write Fork for xv6
+<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6 | Yama's Trail</title>
+<meta name=keywords content><meta name=description content="Lab 連結：Lab: Copy-on-Write Fork for xv6
 題目解析
 
 The problem
-The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.">
-<meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/xv6/lab6/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/lab6/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
+The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed."><meta name=author content><link rel=canonical href=https://yamatrail.com/xv6/lab6/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://yamatrail.com/xv6/lab6/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/xv6/lab6/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6"><meta property="og:description" content="Lab 連結：Lab: Copy-on-Write Fork for xv6
+題目解析 The problem The fork() system call in xv6 copies all of the parent process’s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed."><meta property="og:locale" content="zh-tw"><meta property="og:type" content="article"><meta property="article:section" content="xv6"><meta property="article:published_time" content="2025-10-15T17:47:29+08:00"><meta property="article:modified_time" content="2025-10-15T17:47:29+08:00"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab1/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab2/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab3.1/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab3/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab4.1/"><meta property="og:see_also" content="https://yamatrail.com/xv6/gdb/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab4/"><meta name=twitter:card content="summary"><meta name=twitter:title content="[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6"><meta name=twitter:description content="Lab 連結：Lab: Copy-on-Write Fork for xv6
+題目解析
 
-    </style>
-</noscript>
-</head>
-
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
-    <nav class="nav">
-        <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu">
-            <li>
-                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
-                    <span>這個網站的誕生</span>
-                </a>
-            </li>
-            <li>
-                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
-                    <span>LeetCode 解題</span>
-                </a>
-            </li>
-            <li>
-                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
-                    <span>xv6 學習紀錄</span>
-                </a>
-            </li>
-            <li>
-                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
-                    <span>Linux Kernel Programming</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    
-    <h1 class="post-title entry-hint-parent">
-      [xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6
-    </h1>
-    <div class="post-meta"><span title='2025-10-15 17:47:29 +0800 CST'>October 15, 2025</span>
-
-</div>
-  </header> 
-  <div class="post-content"><p>Lab 連結：<a href="https://pdos.csail.mit.edu/6.S081/2022/labs/cow.html">Lab: Copy-on-Write Fork for xv6</a></p>
-<h2 id="題目解析">題目解析<a hidden class="anchor" aria-hidden="true" href="#題目解析">#</a></h2>
-<blockquote>
-<h2 id="the-problem">The problem<a hidden class="anchor" aria-hidden="true" href="#the-problem">#</a></h2>
-<p>The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.</p></blockquote>
-<p>在現在的 xv6 設計中，<code>fork()</code> 出來的 child 會複製 parent 的所有 memory，但是在很多時候，child 會直接接著執行 <code>exec()</code>，也就直接把先前的一大票 memory 覆蓋掉了，這讓當 memory 的複製便得很浪費。</p>
-<p>想要節省這樣的浪費可以在 <code>fork()</code> 的時候只複製一份 page table 給 child，但是這麼做的話，每當 parent or child 想要 write 的時候，就會需要真的 copy 一份才行</p>
-<blockquote>
-<h2 id="the-solution">The solution<a hidden class="anchor" aria-hidden="true" href="#the-solution">#</a></h2>
-<p>Your goal in implementing copy-on-write (COW) fork() is to defer allocating and copying physical memory pages until the copies are actually needed, if ever.</p></blockquote>
-<p>這個 lab 要我們實做一個 copy-on-write (COW) fork() 的技術，跟先前提到的一樣，只有在「真的需要的時候」才真的複製一個 page 出來。</p>
-<blockquote>
-<p>COW <code>fork()</code> creates just a pagetable for the child, with PTEs for user memory pointing to the parent&rsquo;s physical pages. COW <code>fork()</code> marks all the user PTEs in both parent and child as read-only. When either process tries to write one of these COW pages, the CPU will force a page fault. The kernel page-fault handler detects this case, allocates a page of physical memory for the faulting process, copies the original page into the new page, and modifies the relevant PTE in the faulting process to refer to the new page, this time with the PTE marked writeable. When the page fault handler returns, the user process will be able to write its copy of the page.</p></blockquote>
-<p>實際的作法是把 child 的 pagetable 跟 parent 的一樣指向同樣的 physical memory 區域，並且都 mark 為 read only，當有 process 想要 write 的時候，就會進入到 page fault 處理，page fault 會複製出一份可以 write 的 page</p>
-<blockquote>
-<p>Here&rsquo;s a reasonable plan of attack.</p>
-<ol>
-<li>Modify <code>uvmcopy()</code> to map the parent&rsquo;s physical pages into the child, instead of allocating new pages. Clear <code>PTE_W</code> in the PTEs of both child and parent for pages that have <code>PTE_W</code> set.</li>
-</ol></blockquote>
-<p>在 <code>uvmcopy()</code> 中執行複製 pagetable 並且設定 <code>PTE_W</code> 的計畫</p>
-<ul>
-<li><code>uvmcopy()</code> 的使用時機也只有 <code>fork()</code> 的時候會用到</li>
-</ul>
-<blockquote>
-<ol start="2">
-<li>Modify <code>usertrap()</code> to recognize page faults. When a write page-fault occurs on a COW page that was originally writeable, allocate a new page with <code>kalloc()</code>, copy the old page to the new page, and install the new page in the PTE with <code>PTE_W</code> set. Pages that were originally read-only (not mapped <code>PTE_W</code>, like pages in the text segment) should remain read-only and shared between parent and child; a process that tries to write such a page should be killed.</li>
-</ol></blockquote>
-<p>在 (write to read only) page fault 時，會進入到 <code>usertrap()</code> 處理，這時候會分為一下兩種情況：</p>
-<ol>
-<li>這個 page 在最初的時候，是 <code>PTE_W</code> (在這個情況下才需要 Copy-on-Write)</li>
-<li>這個 page 在最初的時候，是本來就不是 <code>PTE_W</code>: 這是真正的 page fault, kill the process
-<ul>
-<li>像是 text segment (instructions 的區域)</li>
-</ul>
-</li>
-</ol>
-<ul>
-<li>這裡就需要考慮一下該把最初 <code>PTE_W</code> 存放在哪裡了</li>
-</ul>
-<blockquote>
-<ol start="3">
-<li>Ensure that each physical page is freed when the last PTE reference to it goes away &ndash; but not before. A good way to do this is to keep, for each physical page, a &ldquo;reference count&rdquo; of the number of user page tables that refer to that page. Set a page&rsquo;s reference count to one when <code>kalloc()</code> allocates it. Increment a page&rsquo;s reference count when fork causes a child to share the page, and decrement a page&rsquo;s count each time any process drops the page from its page table. <code>kfree()</code> should only place a page back on the free list if its reference count is zero. It&rsquo;s OK to to keep these counts in a fixed-size array of integers. You&rsquo;ll have to work out a scheme for how to index the array and how to choose its size. For example, you could index the array with the page&rsquo;s physical address divided by <code>4096</code>, and give the array a number of elements equal to highest physical address of any page placed on the free list by <code>kinit()</code> in <code>kalloc.c</code>. Feel free to modify <code>kalloc.c</code> (e.g., <code>kalloc()</code> and <code>kfree()</code>) to maintain the reference counts.</li>
-</ol></blockquote>
-<p>這裡是在探討把 physical page free 掉的時機，「沒有任何 process 使用」時才真的 free 掉，雖然概念上很清楚的知道是這個時機，但其實要實做出來也沒有那麼容易。</p>
-<ul>
-<li>每當 <code>kalloc()</code> 之後，就給這個 page 一個 reference count</li>
-<li><code>kalloc()</code> 的時候，reference count 設定為 1</li>
-<li>Increase: 因為 <code>fork()</code> 產生出 child 的時候</li>
-<li>Decrease: 一個 process drop 這個 page 的時候</li>
-<li><code>kfree()</code> 只有在 reference count 減少到 0 時才會真的把 page 放回 free list 中</li>
-<li>計算 reference count 的 data structure 可以是放在一個 fixed size 的 array 中
-<ul>
-<li>需要多大？</li>
-<li>如何做 index 的 mapping?</li>
-<li>要放在哪裡？(於 <code>kinit()</code> 中放置這個 array)
-<ul>
-<li>學習 free list 的初始化過程</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<blockquote>
-<ol>
-<li>Modify <code>copyout()</code> to use the same scheme as page faults when it encounters a COW page.</li>
-</ol></blockquote>
-<p>在 <code>copyout()</code> 的時候，也需要判斷有沒有遇到 COW page，如果是 COW page, 就比照辦理</p>
-<ul>
-<li>這裡可以發現跟 Lazy allocation 的時候一樣，在 supervisor mode 的時候因為不會進入 <code>usertrap()</code> 所以要自行處理。</li>
-</ul>
-<blockquote>
-<ul>
-<li>It may be useful to have a way to record, for each PTE, whether it is a COW mapping. You can use the RSW (reserved for software) bits in the RISC-V PTE for this.</li>
-</ul></blockquote>
-<p>可以在每個 PTE 中新增像是 <code>PTE_C</code> 去紀錄這是不是一個 COW mapping</p>
-<ul>
-<li>其實有一點想要把原本的所有狀態都塞進去，</li>
-</ul>
-<blockquote>
-<ul>
-<li><code>usertests -q</code> explores scenarios that <code>cowtest</code> does not test, so don&rsquo;t forget to check that all tests pass for both.</li>
-</ul></blockquote>
-<blockquote>
-<ul>
-<li>Some helpful macros and definitions for page table flags are at the end of <code>kernel/riscv.h</code>.</li>
-</ul></blockquote>
-<blockquote>
-<ul>
-<li>If a COW page fault occurs and there&rsquo;s no free memory, the process should be killed.</li>
-</ul></blockquote>
-<ul>
-<li>如果沒有free memory 時，就直接 kill the process</li>
-</ul>
-<h2 id="fork-的當下"><code>fork()</code> 的當下<a hidden class="anchor" aria-hidden="true" href="#fork-的當下">#</a></h2>
-<p>其實我覺得與其說是 <code>fork()</code> 時複製出一個 &ldquo;read-only&rdquo; 的 page table，不如說他是 &ldquo;cannot-be-write&rdquo; 會比較貼切，這麼說是因為 &ldquo;要 write 的時候必須特別處理&rdquo; 才是 copy-on-write 的核心，變成 read-only 並不那麼精確，另外，把他們一律視為 read-only 會有兩個壞處：</p>
-<ol>
-<li>&ldquo;原本的 page 是否能 read&rdquo; 這個資訊被洗掉了</li>
-<li>&ldquo;原本的 page 是否能 write&rdquo; 這個資訊被洗掉了</li>
-</ol>
-<p>所以我這裡的策略到不是把所有 PTE 都變成 read-only 這裡的策略是</p>
-<ul>
-<li>把所有的 <code>PTE_W == 0</code></li>
-<li>把原本的 <code>PTE_W</code> 的資訊放在 <code>PTE_RES</code></li>
-<li>設定 <code>PTE_COW</code></li>
-</ul>
-<p><img alt="3levels_page_table.png" loading="lazy" src="/xv6/lab6/3levels_page_table.png"></p>
-<p>這時候可以利用 RSW 的 bit 8, 9 資訊紀錄</p>
-<ul>
-<li><code>kernel/riscv.h</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define PTE_V (1L &lt;&lt; 0) </span><span style="color:#75715e">// valid
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define PTE_R (1L &lt;&lt; 1)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define PTE_W (1L &lt;&lt; 2)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define PTE_X (1L &lt;&lt; 3)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define PTE_U (1L &lt;&lt; 4) </span><span style="color:#75715e">// user can access
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#define PTE_COW   (1L &lt;&lt; 8) </span><span style="color:#75715e">// is COW page
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define PTE_COW_W (1L &lt;&lt; 9) </span><span style="color:#75715e">// PET_W before becomming COW
-</span></span></span></code></pre></div><ul>
-<li><code>uvmcopy()</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uvmcopy</span>(<span style="color:#66d9ef">pagetable_t</span> old, <span style="color:#66d9ef">pagetable_t</span> new, uint64 sz)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;
-</span></span><span style="display:flex;"><span>  uint64 pa, i;
-</span></span><span style="display:flex;"><span>  uint flags;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>mem;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> sz; i <span style="color:#f92672">+=</span> PGSIZE){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(old, i, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: pte should exist&#34;</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: page not present&#34;</span>);
-</span></span><span style="display:flex;"><span>    pa <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE2PA</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>    flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((mem <span style="color:#f92672">=</span> <span style="color:#a6e22e">kalloc</span>()) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> err;
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memmove</span>(mem, (<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>)pa, PGSIZE);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">mappages</span>(new, i, PGSIZE, (uint64)mem, flags) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">kfree</span>(mem);
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> err;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> err:
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uvmunmap</span>(new, <span style="color:#ae81ff">0</span>, i <span style="color:#f92672">/</span> PGSIZE, <span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>改成下面這樣：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uvmcopy</span>(<span style="color:#66d9ef">pagetable_t</span> old, <span style="color:#66d9ef">pagetable_t</span> new, uint64 sz)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;
-</span></span><span style="display:flex;"><span>  uint64 pa, i;
-</span></span><span style="display:flex;"><span>  uint flags;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>mem;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> sz; i <span style="color:#f92672">+=</span> PGSIZE){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(old, i, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: pte should exist&#34;</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: page not present&#34;</span>);
-</span></span><span style="display:flex;"><span>    pa <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE2PA</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>    flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// parent pte
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// set PTE_COW and PTE_COW_W
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pte <span style="color:#f92672">|=</span> PTE_COW; <span style="color:#75715e">// set PTE_COW
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_W)
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">*</span>pte <span style="color:#f92672">|=</span> PTE_COW_W; <span style="color:#75715e">// set PTE_COW_W
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;=</span> <span style="color:#f92672">~</span>PTE_W; <span style="color:#75715e">// cannot be wite
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// child pte
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte); <span style="color:#75715e">// as same as parent
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">mappages</span>(new, i, PGSIZE, (uint64)pa, flags) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">kfree</span>(mem);
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> err;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> err:
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uvmunmap</span>(new, <span style="color:#ae81ff">0</span>, i <span style="color:#f92672">/</span> PGSIZE, <span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="reference-count">Reference Count<a hidden class="anchor" aria-hidden="true" href="#reference-count">#</a></h2>
-<h3 id="有多少-page-需要-reference-count">有多少 page 需要 Reference Count<a hidden class="anchor" aria-hidden="true" href="#有多少-page-需要-reference-count">#</a></h3>
-<p><img alt="kernel_layout.png" loading="lazy" src="/xv6/lab6/kernel_layout.png"></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// the kernel expects there to be RAM
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// for use by the kernel and user pages
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// from physical address 0x80000000 to PHYSTOP.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define KERNBASE 0x80000000L
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define PHYSTOP (KERNBASE + 128*1024*1024)
-</span></span></span></code></pre></div><p>Physical memory (RAM) 的 address 為 <code>KERNBASE</code> ~ <code>PHYSTOP</code><br>
--&gt; <code>0x80000000 ~ 0x88000000</code></p>
-<p>在 Physical memory (RAM) 又因為 kernel text 與 kernel data 佔去了一部分
-實際上 user program 會用到的只有 <code>end</code> ~ <code>PHYSTOP</code></p>
-<ul>
-<li><code>kernel/kalloc.c</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">char</span> end[]; <span style="color:#75715e">// first address after kernel.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                   <span style="color:#75715e">// defined by kernel.ld.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">kinit</span>()
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">initlock</span>(<span style="color:#f92672">&amp;</span>kmem.lock, <span style="color:#e6db74">&#34;kmem&#34;</span>);
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">freerange</span>(end, (<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>)PHYSTOP);
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">freerange</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>pa_start, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>pa_end)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>p;
-</span></span><span style="display:flex;"><span>  p <span style="color:#f92672">=</span> (<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>)<span style="color:#a6e22e">PGROUNDUP</span>((uint64)pa_start);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 注意這裡，最後一個可用的 page
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 是 starting address == PHYSTOP - PGSIZE
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 的那一個 page
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(; p <span style="color:#f92672">+</span> PGSIZE <span style="color:#f92672">&lt;=</span> (<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>)pa_end; p <span style="color:#f92672">+=</span> PGSIZE)
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kfree</span>(p);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>這裡需要小注意一下</p>
-<ul>
-<li><code>PHYSTOP</code> 是不包含的</li>
-<li><code>end</code> 則不一定，要看 <code>PGROUNDUP()</code> 的結果 (因為不可以跟 kerenl 塞在同一個 page 中)</li>
-</ul>
-<h3 id="可用的-ram-的範圍">可用的 RAM 的範圍：<a hidden class="anchor" aria-hidden="true" href="#可用的-ram-的範圍">#</a></h3>
-<h4 id="最開始的-page">最開始的 page<a hidden class="anchor" aria-hidden="true" href="#最開始的-page">#</a></h4>
-<ul>
-<li><code>KERNBASE</code>: 0x80000000 作為開頭的這個 page</li>
-<li>physical address: <code>0x80000000 ~ 0x80000fff</code></li>
-<li><code>0x80000xxx</code> 的 address 都屬於最開頭的 page</li>
-<li><code>0x80000xxx</code> 的 address 會共用同一個 reference count</li>
-<li><code>PGROUNDDOWN(pa) == 0x80000000</code> 的 <code>pa</code> 會共用同一個 reference count (<code>index == 0</code>)</li>
-</ul>
-<h4 id="最後一個-page">最後一個 page<a hidden class="anchor" aria-hidden="true" href="#最後一個-page">#</a></h4>
-<ul>
-<li><code>PHYSTOP - PGSIZE == 0x88000000 == 0x87fff000</code> 作為開頭的這個 page</li>
-<li>physical address: <code>0x87fff000 ~ 0x87ffffff</code></li>
-<li><code>0x87fffxxx</code> 的 address 都屬於最開頭的 page</li>
-<li><code>0x87fffxxx</code> 的 address 會共用同一個 reference count</li>
-<li><code>PGROUNDDOWN(pa) == 0x87fffxxx</code> 的 <code>pa</code> 會共用同一個 reference count，並且是最後一個 index</li>
-</ul>
-<h3 id="需要-reference-count-的-page-數量為">需要 reference count 的 page 數量為<a hidden class="anchor" aria-hidden="true" href="#需要-reference-count-的-page-數量為">#</a></h3>
-<p>題目說可以用一個 fix-sized 的 array 就好，言下之意就是雖然 kernel text 與 kernel data 雖然實際上部需要 reference count 的管理，但還是給它們 refrence count 單純為了求一個方便</p>
-<p>需要 index 的數量為</p>
-<ul>
-<li><code>087fff - 0x80000 + 1 = 0x08000</code></li>
-<li><code>088000 - 0x80000 = 0x08000</code></li>
-<li><code>(PHYSTOP - KERNBASE) / PGSIZE = 0x08000</code></li>
-</ul>
-<h3 id="index-的方法">index 的方法<a hidden class="anchor" aria-hidden="true" href="#index-的方法">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>address      condition                       calculate index      index
-</span></span><span style="display:flex;"><span><span style="color:#f92672">-----------------------------------------------------------------------</span>
-</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x87fff</span>xxx <span style="color:#f92672">|</span> <span style="color:#a6e22e">PGROUNDOWN</span>(pa) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0x87fff</span> <span style="color:#ae81ff">000</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">0x87fff</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">0x80000</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0x07fff</span>
-</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x87ffe</span>xxx <span style="color:#f92672">|</span> <span style="color:#a6e22e">PGROUNDOWN</span>(pa) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0x87ffe</span> <span style="color:#ae81ff">000</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">0x87ffe</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">0x80000</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0x07ffe</span>
-</span></span><span style="display:flex;"><span>.          <span style="color:#f92672">|</span>                               <span style="color:#f92672">|</span>
-</span></span><span style="display:flex;"><span>.          <span style="color:#f92672">|</span>                               <span style="color:#f92672">|</span>
-</span></span><span style="display:flex;"><span>.          <span style="color:#f92672">|</span>                               <span style="color:#f92672">|</span>
-</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x80001</span>xxx <span style="color:#f92672">|</span> <span style="color:#a6e22e">PGROUNDOWN</span>(pa) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0x80001</span> <span style="color:#ae81ff">000</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">0x80001</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">0x80000</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0x00001</span>
-</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0x80000</span>xxx <span style="color:#f92672">|</span> <span style="color:#a6e22e">PGROUNDOWN</span>(pa) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0x80000</span> <span style="color:#ae81ff">000</span> <span style="color:#f92672">|</span> <span style="color:#ae81ff">0x80000</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">0x80000</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0x00000</span>
-</span></span></code></pre></div><p>如果有了 physical address <code>pa</code>, 它在 array of reference count 的 index 計算公式為：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>index <span style="color:#f92672">=</span> (<span style="color:#a6e22e">PGROUNDOWN</span>(pa) <span style="color:#f92672">&gt;&gt;</span> <span style="color:#ae81ff">12</span>) <span style="color:#f92672">-</span> <span style="color:#ae81ff">0x80000</span>
-</span></span></code></pre></div><p>也就是因為當初的</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>index <span style="color:#f92672">=</span> (<span style="color:#a6e22e">PGROUNDOWN</span>(pa) <span style="color:#f92672">&gt;&gt;</span> <span style="color:#ae81ff">12</span>) <span style="color:#f92672">-</span> (KERNBASE <span style="color:#f92672">&gt;&gt;</span> <span style="color:#ae81ff">12</span>)
-</span></span></code></pre></div><p>等等會用一個 macro 來處理</p>
-<h3 id="reference-count-的-data-structure">Reference Count 的 Data Structure<a hidden class="anchor" aria-hidden="true" href="#reference-count-的-data-structure">#</a></h3>
-<h4 id="存放位置">存放位置<a hidden class="anchor" aria-hidden="true" href="#存放位置">#</a></h4>
-<ul>
-<li>這個 array 最終實際上的位置會在 kernel data 的區域中</li>
-<li>把 index 的作法寫成 macro 比較方便</li>
-<li><code>kernel/kalloc.c</code>: 跟 <code>kmem</code> 一樣要使用 <code>spinlock</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> {
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> spinlock lock;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>freelist;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> count[(PHYSTOP <span style="color:#f92672">-</span> KERNBASE) <span style="color:#f92672">/</span> PGSIZE];
-</span></span><span style="display:flex;"><span>} refcnt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#define REFCNT(pa) refcnt.count[(PGROUNDDOWN(pa) &gt;&gt; 12) - (KERNBASE &gt;&gt; 12)];
-</span></span></span></code></pre></div><h3 id="reference-count-的-increamentdecreament">Reference Count 的 Increament/Decreament<a hidden class="anchor" aria-hidden="true" href="#reference-count-的-increamentdecreament">#</a></h3>
-<h4 id="初始為-1-時">初始為 1 時<a hidden class="anchor" aria-hidden="true" href="#初始為-1-時">#</a></h4>
-<ul>
-<li><code>kalloc()</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">kalloc</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>r;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>kmem.lock);
-</span></span><span style="display:flex;"><span>  r <span style="color:#f92672">=</span> kmem.freelist;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(r) {
-</span></span><span style="display:flex;"><span>    kmem.freelist <span style="color:#f92672">=</span> r<span style="color:#f92672">-&gt;</span>next;
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>refcnt.lock);
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">REFCNT</span>((uint64) r) <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>refcnt.lock);
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>kmem.lock);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(r)
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memset</span>((<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>)r, <span style="color:#ae81ff">5</span>, PGSIZE); <span style="color:#75715e">// fill with junk
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> (<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>)r;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="increament">Increament<a hidden class="anchor" aria-hidden="true" href="#increament">#</a></h4>
-<ul>
-<li>
-<p><code>fork()</code> 所導致的 <code>uvmcopy()</code> 時，要加一</p>
-</li>
-<li>
-<p>不過 <code>uvmcopy()</code> 在 <code>kernel/vm.c</code> 中，<code>refcnt</code> 所在的 <code>kernel/kalloc.c</code> 會需要提供一個 function</p>
-</li>
-<li>
-<p><code>kernel/kalloc.c: inc_refcnt()</code></p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">inc_refcnt</span>(uint64 pa)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>refcnt.lock);
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">REFCNT</span>((uint64) r)<span style="color:#f92672">++</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>refcnt.lock);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><ul>
-<li><code>kernel/vm.c: uvmcopy()</code>: 使用 <code>inc_refcnt()</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uvmcopy</span>(<span style="color:#66d9ef">pagetable_t</span> old, <span style="color:#66d9ef">pagetable_t</span> new, uint64 sz)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;
-</span></span><span style="display:flex;"><span>  uint64 pa, i;
-</span></span><span style="display:flex;"><span>  uint flags;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>mem;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> sz; i <span style="color:#f92672">+=</span> PGSIZE){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(old, i, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: pte should exist&#34;</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: page not present&#34;</span>);
-</span></span><span style="display:flex;"><span>    pa <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE2PA</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>    flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 1. Parent pte
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// set PTE_COW and PTE_COW_W
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pte <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>pte <span style="color:#f92672">|</span> PTE_COW; <span style="color:#75715e">// set PTE_COW
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_W)
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">*</span>pte <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>pte <span style="color:#f92672">|</span> PTE_COW_W; <span style="color:#75715e">// set PTE_COW_W
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pte <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> <span style="color:#f92672">~</span>PTE_W; <span style="color:#75715e">// cannot be wite
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 2. Child pte
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte); <span style="color:#75715e">// as same as parent
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">mappages</span>(new, i, PGSIZE, (uint64)pa, flags) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">kfree</span>(mem);
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> err;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">inc_refcnt</span>(pa); <span style="color:#75715e">// &lt;-- increase reference count when fork
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> err:
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uvmunmap</span>(new, <span style="color:#ae81ff">0</span>, i <span style="color:#f92672">/</span> PGSIZE, <span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="decreament">Decreament<a hidden class="anchor" aria-hidden="true" href="#decreament">#</a></h4>
-<ul>
-<li><code>kernel/kalloc.c: kfree()</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">kfree</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>pa)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>r;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(((uint64)pa <span style="color:#f92672">%</span> PGSIZE) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> (<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>)pa <span style="color:#f92672">&lt;</span> end <span style="color:#f92672">||</span> (uint64)pa <span style="color:#f92672">&gt;=</span> PHYSTOP)
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;kfree&#34;</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>refcnt.lock);
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">REFCNT</span>(pa)<span style="color:#f92672">--</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>refcnt.lock);
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">REFCNT</span>(pa) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Fill with junk to catch dangling refs.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">memset</span>(pa, <span style="color:#ae81ff">1</span>, PGSIZE);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  r <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> run<span style="color:#f92672">*</span>)pa;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>kmem.lock);
-</span></span><span style="display:flex;"><span>  r<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> kmem.freelist;
-</span></span><span style="display:flex;"><span>  kmem.freelist <span style="color:#f92672">=</span> r;
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>kmem.lock);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>只有 reference count 減少到 0 時才會真的 free 掉這個 page</p>
-<h3 id="page-fault-的處理">Page Fault 的處理<a hidden class="anchor" aria-hidden="true" href="#page-fault-的處理">#</a></h3>
-<ul>
-<li><code>scause</code> = 12:  Instruction page fault</li>
-<li><code>scause</code> = 13:  Load page fault</li>
-<li><code>scause</code> = 15:  Store/AMO page fault (copy on write 的情形)</li>
-</ul>
-<p>這裡跟 Lazy allocation 的處理類似</p>
-<ul>
-<li><code>kernel/trap.c: usertrap()</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">usertrap</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// ...
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  } <span style="color:#66d9ef">else</span> <span style="color:#a6e22e">if</span>((which_dev <span style="color:#f92672">=</span> <span style="color:#a6e22e">devintr</span>()) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ok
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  } <span style="color:#66d9ef">else</span> <span style="color:#a6e22e">if</span>(<span style="color:#a6e22e">r_scause</span>() <span style="color:#f92672">==</span> <span style="color:#ae81ff">15</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">uncopied_cow</span>(p<span style="color:#f92672">-&gt;</span>pagetable, <span style="color:#a6e22e">r_stval</span>())){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">cow_alloc</span>(p<span style="color:#f92672">-&gt;</span>pagetable) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">setkilled</span>(p);
-</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;usertrap(): unexpected scause %p pid=%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">r_scause</span>(), p<span style="color:#f92672">-&gt;</span>pid);
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;            sepc=%p stval=%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">r_sepc</span>(), <span style="color:#a6e22e">r_stval</span>());
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">setkilled</span>(p);
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// ...
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
-</span></span></code></pre></div><ul>
-<li><code>kernel/vm.c</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> 
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uncopied_cow</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 va)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (va <span style="color:#f92672">&gt;=</span> MAXVA)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(pagetable, va, <span style="color:#ae81ff">0</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_U) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_COW_W) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) <span style="color:#75715e">// COW 之前的 PTE_W
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_COW);
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cow_alloc</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 va)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="kernel-中的-copy-on-write-如何處理">kernel 中的 Copy-on-Write 如何處理<a hidden class="anchor" aria-hidden="true" href="#kernel-中的-copy-on-write-如何處理">#</a></h2>
-<p>這裡就有一點像是前面的 Lab: Lazy 也會遇到的問題，因為現在我們處理的範圍都只有 user program 產生的 page fault，如果是 supervisor mode 的情況下想要 write COW page 就需要當下在 supervisor mode 自行處理</p>
-<p>這裡要考慮的是從 kernel 複製到 user program 可能會 write COW page 的 <code>copyout()</code> 這個 function</p>
-<ul>
-<li><code>kernel/vm.c: copyout()</code></li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">copyout</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 dstva, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>src, uint64 len)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  uint64 n, va0, pa0;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span>(len <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>    va0 <span style="color:#f92672">=</span> <span style="color:#a6e22e">PGROUNDDOWN</span>(dstva);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">uncopied_cow</span>(pagetable, va0))
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">cow_alloc</span>(pagetable, va0) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>    pa0 <span style="color:#f92672">=</span> <span style="color:#a6e22e">walkaddr</span>(pagetable, va0);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(pa0 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> PGSIZE <span style="color:#f92672">-</span> (dstva <span style="color:#f92672">-</span> va0);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(n <span style="color:#f92672">&gt;</span> len)
-</span></span><span style="display:flex;"><span>      n <span style="color:#f92672">=</span> len;
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memmove</span>((<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)(pa0 <span style="color:#f92672">+</span> (dstva <span style="color:#f92672">-</span> va0)), src, n);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    len <span style="color:#f92672">-=</span> n;
-</span></span><span style="display:flex;"><span>    src <span style="color:#f92672">+=</span> n;
-</span></span><span style="display:flex;"><span>    dstva <span style="color:#f92672">=</span> va0 <span style="color:#f92672">+</span> PGSIZE;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="心得">心得：<a hidden class="anchor" aria-hidden="true" href="#心得">#</a></h2>
-<p>這個 Lab 錯在一些小地方似乎不太容易發現，覺得真的不確定的時候要使用 gdb 去確認會比較好，
-不過這幾個 Lab 做下來覺得使用 gdb 的心態也蠻重要的，像是這兩種心態：</p>
-<ol>
-<li>使用 gdb 檢查哪裡的 value 有錯誤，並且想辦法修正錯誤的 value</li>
-<li>先了解背後的原理，並且用 gdb 驗證背後的原理有沒有正確的被執行</li>
-</ol>
-<p>我自己的體感是 2. 會比較好一些，1. 則是會有一種被 gdb 拉著走的感覺，但是真的沒頭緒的時候，還是可以用 1. 做一個範圍上的線縮。</p>
-<h3 id="除錯過程中學到的一些方便的-gdb-使用方式">除錯過程中學到的一些方便的 gdb 使用方式<a hidden class="anchor" aria-hidden="true" href="#除錯過程中學到的一些方便的-gdb-使用方式">#</a></h3>
-<p>情境：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uvmcopy</span>(<span style="color:#66d9ef">pagetable_t</span> old, <span style="color:#66d9ef">pagetable_t</span> new, uint64 sz)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;
-</span></span><span style="display:flex;"><span>  uint64 pa, i;
-</span></span><span style="display:flex;"><span>  uint flags;
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// char *mem;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// for debug
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> sz; i <span style="color:#f92672">+=</span> PGSIZE){
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// printf(&#34;%x,&#34;, i / PGSIZE);
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(old, i, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: pte should exist&#34;</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">==</span> <span style="color:#ae81ff">0x402f000</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">*</span> PGSIZE)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;!!!*pte = %p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;*pte = %p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, pte);
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;i = %x</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, i);
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;sz = %x</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, sz);
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: page not present&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> sz; i <span style="color:#f92672">+=</span> PGSIZE){
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// printf(&#34;%x,&#34;, i / PGSIZE);
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(old, i, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: pte should exist&#34;</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// if (i == 0x402f000 - 0 * PGSIZE)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">//   printf(&#34;!!!*pte = %p\n&#34;, *pte);
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;*pte = %p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;i = %x</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, i);
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;sz = %x</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, sz);
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: page not present&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    pa <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE2PA</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>    flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// parent pte
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// set PTE_COW and PTE_COW_W
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pte <span style="color:#f92672">|=</span> PTE_COW; <span style="color:#75715e">// set PTE_COW
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_W)
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">*</span>pte <span style="color:#f92672">|=</span> PTE_COW_W; <span style="color:#75715e">// set PTE_COW_W
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pte <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> <span style="color:#f92672">~</span>PTE_W; <span style="color:#75715e">// cannot be wite
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// child pte
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte); <span style="color:#75715e">// as same as parent
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">mappages</span>(new, i, PGSIZE, (uint64)pa, flags) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>){
-</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// kfree(mem);
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#66d9ef">goto</span> err;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">inc_refcnt</span>(pa);
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span> err:
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: err&#34;</span>);
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uvmunmap</span>(new, <span style="color:#ae81ff">0</span>, i <span style="color:#f92672">/</span> PGSIZE, <span style="color:#ae81ff">1</span>);
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>發現觸發 <code>panic(&quot;uvmcopy: page not present&quot;);</code></p>
-<ul>
-<li>set breakpoint <code>b kernel/vm.c: xxx</code> at <code>panic(&quot;uvmcopy: page not present&quot;);</code>
-<ul>
-<li>發現 <code>i == 0x402f000</code> 這個 iteration 的時候，會觸發 <code>panic(&quot;uvmcopy: page not present&quot;);</code></li>
-</ul>
-</li>
-</ul>
-<p>再跑一次 gdb，這次先用</p>
-<pre tabindex="0"><code class="language-gdb" data-lang="gdb">(gdb) add-symbol-file user/_cowtest
+The problem
+The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed."><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"xv6 學習紀錄","item":"https://yamatrail.com/xv6/"},{"@type":"ListItem","position":2,"name":"[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6","item":"https://yamatrail.com/xv6/lab6/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6","name":"[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6","description":"Lab 連結：Lab: Copy-on-Write Fork for xv6\n題目解析 The problem The fork() system call in xv6 copies all of the parent process\u0026rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.\n","keywords":[],"articleBody":"Lab 連結：Lab: Copy-on-Write Fork for xv6\n題目解析 The problem The fork() system call in xv6 copies all of the parent process’s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.\n在現在的 xv6 設計中，fork() 出來的 child 會複製 parent 的所有 memory，但是在很多時候，child 會直接接著執行 exec()，也就直接把先前的一大票 memory 覆蓋掉了，這讓當 memory 的複製便得很浪費。\n想要節省這樣的浪費可以在 fork() 的時候只複製一份 page table 給 child，但是這麼做的話，每當 parent or child 想要 write 的時候，就會需要真的 copy 一份才行\nThe solution Your goal in implementing copy-on-write (COW) fork() is to defer allocating and copying physical memory pages until the copies are actually needed, if ever.\n這個 lab 要我們實做一個 copy-on-write (COW) fork() 的技術，跟先前提到的一樣，只有在「真的需要的時候」才真的複製一個 page 出來。\nCOW fork() creates just a pagetable for the child, with PTEs for user memory pointing to the parent’s physical pages. COW fork() marks all the user PTEs in both parent and child as read-only. When either process tries to write one of these COW pages, the CPU will force a page fault. The kernel page-fault handler detects this case, allocates a page of physical memory for the faulting process, copies the original page into the new page, and modifies the relevant PTE in the faulting process to refer to the new page, this time with the PTE marked writeable. When the page fault handler returns, the user process will be able to write its copy of the page.\n實際的作法是把 child 的 pagetable 跟 parent 的一樣指向同樣的 physical memory 區域，並且都 mark 為 read only，當有 process 想要 write 的時候，就會進入到 page fault 處理，page fault 會複製出一份可以 write 的 page\nHere’s a reasonable plan of attack.\nModify uvmcopy() to map the parent’s physical pages into the child, instead of allocating new pages. Clear PTE_W in the PTEs of both child and parent for pages that have PTE_W set. 在 uvmcopy() 中執行複製 pagetable 並且設定 PTE_W 的計畫\nuvmcopy() 的使用時機也只有 fork() 的時候會用到 Modify usertrap() to recognize page faults. When a write page-fault occurs on a COW page that was originally writeable, allocate a new page with kalloc(), copy the old page to the new page, and install the new page in the PTE with PTE_W set. Pages that were originally read-only (not mapped PTE_W, like pages in the text segment) should remain read-only and shared between parent and child; a process that tries to write such a page should be killed. 在 (write to read only) page fault 時，會進入到 usertrap() 處理，這時候會分為一下兩種情況：\n這個 page 在最初的時候，是 PTE_W (在這個情況下才需要 Copy-on-Write) 這個 page 在最初的時候，是本來就不是 PTE_W: 這是真正的 page fault, kill the process 像是 text segment (instructions 的區域) 這裡就需要考慮一下該把最初 PTE_W 存放在哪裡了 Ensure that each physical page is freed when the last PTE reference to it goes away – but not before. A good way to do this is to keep, for each physical page, a “reference count” of the number of user page tables that refer to that page. Set a page’s reference count to one when kalloc() allocates it. Increment a page’s reference count when fork causes a child to share the page, and decrement a page’s count each time any process drops the page from its page table. kfree() should only place a page back on the free list if its reference count is zero. It’s OK to to keep these counts in a fixed-size array of integers. You’ll have to work out a scheme for how to index the array and how to choose its size. For example, you could index the array with the page’s physical address divided by 4096, and give the array a number of elements equal to highest physical address of any page placed on the free list by kinit() in kalloc.c. Feel free to modify kalloc.c (e.g., kalloc() and kfree()) to maintain the reference counts. 這裡是在探討把 physical page free 掉的時機，「沒有任何 process 使用」時才真的 free 掉，雖然概念上很清楚的知道是這個時機，但其實要實做出來也沒有那麼容易。\n每當 kalloc() 之後，就給這個 page 一個 reference count kalloc() 的時候，reference count 設定為 1 Increase: 因為 fork() 產生出 child 的時候 Decrease: 一個 process drop 這個 page 的時候 kfree() 只有在 reference count 減少到 0 時才會真的把 page 放回 free list 中 計算 reference count 的 data structure 可以是放在一個 fixed size 的 array 中 需要多大？ 如何做 index 的 mapping? 要放在哪裡？(於 kinit() 中放置這個 array) 學習 free list 的初始化過程 Modify copyout() to use the same scheme as page faults when it encounters a COW page. 在 copyout() 的時候，也需要判斷有沒有遇到 COW page，如果是 COW page, 就比照辦理\n這裡可以發現跟 Lazy allocation 的時候一樣，在 supervisor mode 的時候因為不會進入 usertrap() 所以要自行處理。 It may be useful to have a way to record, for each PTE, whether it is a COW mapping. You can use the RSW (reserved for software) bits in the RISC-V PTE for this. 可以在每個 PTE 中新增像是 PTE_C 去紀錄這是不是一個 COW mapping\n其實有一點想要把原本的所有狀態都塞進去， usertests -q explores scenarios that cowtest does not test, so don’t forget to check that all tests pass for both. Some helpful macros and definitions for page table flags are at the end of kernel/riscv.h. If a COW page fault occurs and there’s no free memory, the process should be killed. 如果沒有free memory 時，就直接 kill the process fork() 的當下 其實我覺得與其說是 fork() 時複製出一個 “read-only” 的 page table，不如說他是 “cannot-be-write” 會比較貼切，這麼說是因為 “要 write 的時候必須特別處理” 才是 copy-on-write 的核心，變成 read-only 並不那麼精確，另外，把他們一律視為 read-only 會有兩個壞處：\n“原本的 page 是否能 read” 這個資訊被洗掉了 “原本的 page 是否能 write” 這個資訊被洗掉了 所以我這裡的策略到不是把所有 PTE 都變成 read-only 這裡的策略是\n把所有的 PTE_W == 0 把原本的 PTE_W 的資訊放在 PTE_RES 設定 PTE_COW 這時候可以利用 RSW 的 bit 8, 9 資訊紀錄\nkernel/riscv.h #define PTE_V (1L \u003c\u003c 0) // valid #define PTE_R (1L \u003c\u003c 1) #define PTE_W (1L \u003c\u003c 2) #define PTE_X (1L \u003c\u003c 3) #define PTE_U (1L \u003c\u003c 4) // user can access #define PTE_COW (1L \u003c\u003c 8) // is COW page #define PTE_COW_W (1L \u003c\u003c 9) // PET_W before becomming COW uvmcopy() int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz) { pte_t *pte; uint64 pa, i; uint flags; char *mem; for(i = 0; i \u003c sz; i += PGSIZE){ if((pte = walk(old, i, 0)) == 0) panic(\"uvmcopy: pte should exist\"); if((*pte \u0026 PTE_V) == 0) panic(\"uvmcopy: page not present\"); pa = PTE2PA(*pte); flags = PTE_FLAGS(*pte); if((mem = kalloc()) == 0) goto err; memmove(mem, (char*)pa, PGSIZE); if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){ kfree(mem); goto err; } } return 0; err: uvmunmap(new, 0, i / PGSIZE, 1); return -1; } 改成下面這樣：\nint uvmcopy(pagetable_t old, pagetable_t new, uint64 sz) { pte_t *pte; uint64 pa, i; uint flags; char *mem; for(i = 0; i \u003c sz; i += PGSIZE){ if((pte = walk(old, i, 0)) == 0) panic(\"uvmcopy: pte should exist\"); if((*pte \u0026 PTE_V) == 0) panic(\"uvmcopy: page not present\"); pa = PTE2PA(*pte); flags = PTE_FLAGS(*pte); // parent pte // set PTE_COW and PTE_COW_W *pte |= PTE_COW; // set PTE_COW if (*pte \u0026 PTE_W) *pte |= PTE_COW_W; // set PTE_COW_W *pte \u0026= ~PTE_W; // cannot be wite // child pte flags = PTE_FLAGS(*pte); // as same as parent if(mappages(new, i, PGSIZE, (uint64)pa, flags) != 0){ kfree(mem); goto err; } } return 0; err: uvmunmap(new, 0, i / PGSIZE, 1); return -1; } Reference Count 有多少 page 需要 Reference Count // the kernel expects there to be RAM // for use by the kernel and user pages // from physical address 0x80000000 to PHYSTOP. #define KERNBASE 0x80000000L #define PHYSTOP (KERNBASE + 128*1024*1024) Physical memory (RAM) 的 address 為 KERNBASE ~ PHYSTOP\n-\u003e 0x80000000 ~ 0x88000000\n在 Physical memory (RAM) 又因為 kernel text 與 kernel data 佔去了一部分 實際上 user program 會用到的只有 end ~ PHYSTOP\nkernel/kalloc.c extern char end[]; // first address after kernel. // defined by kernel.ld. void kinit() { initlock(\u0026kmem.lock, \"kmem\"); freerange(end, (void*)PHYSTOP); } void freerange(void *pa_start, void *pa_end) { char *p; p = (char*)PGROUNDUP((uint64)pa_start); // 注意這裡，最後一個可用的 page // 是 starting address == PHYSTOP - PGSIZE // 的那一個 page for(; p + PGSIZE \u003c= (char*)pa_end; p += PGSIZE) kfree(p); } 這裡需要小注意一下\nPHYSTOP 是不包含的 end 則不一定，要看 PGROUNDUP() 的結果 (因為不可以跟 kerenl 塞在同一個 page 中) 可用的 RAM 的範圍： 最開始的 page KERNBASE: 0x80000000 作為開頭的這個 page physical address: 0x80000000 ~ 0x80000fff 0x80000xxx 的 address 都屬於最開頭的 page 0x80000xxx 的 address 會共用同一個 reference count PGROUNDDOWN(pa) == 0x80000000 的 pa 會共用同一個 reference count (index == 0) 最後一個 page PHYSTOP - PGSIZE == 0x88000000 == 0x87fff000 作為開頭的這個 page physical address: 0x87fff000 ~ 0x87ffffff 0x87fffxxx 的 address 都屬於最開頭的 page 0x87fffxxx 的 address 會共用同一個 reference count PGROUNDDOWN(pa) == 0x87fffxxx 的 pa 會共用同一個 reference count，並且是最後一個 index 需要 reference count 的 page 數量為 題目說可以用一個 fix-sized 的 array 就好，言下之意就是雖然 kernel text 與 kernel data 雖然實際上部需要 reference count 的管理，但還是給它們 refrence count 單純為了求一個方便\n需要 index 的數量為\n087fff - 0x80000 + 1 = 0x08000 088000 - 0x80000 = 0x08000 (PHYSTOP - KERNBASE) / PGSIZE = 0x08000 index 的方法 address condition calculate index index ----------------------------------------------------------------------- 0x87fffxxx | PGROUNDOWN(pa) == 0x87fff 000 | 0x87fff - 0x80000 == 0x07fff 0x87ffexxx | PGROUNDOWN(pa) == 0x87ffe 000 | 0x87ffe - 0x80000 == 0x07ffe . | | . | | . | | 0x80001xxx | PGROUNDOWN(pa) == 0x80001 000 | 0x80001 - 0x80000 == 0x00001 0x80000xxx | PGROUNDOWN(pa) == 0x80000 000 | 0x80000 - 0x80000 == 0x00000 如果有了 physical address pa, 它在 array of reference count 的 index 計算公式為：\nindex = (PGROUNDOWN(pa) \u003e\u003e 12) - 0x80000 也就是因為當初的\nindex = (PGROUNDOWN(pa) \u003e\u003e 12) - (KERNBASE \u003e\u003e 12) 等等會用一個 macro 來處理\nReference Count 的 Data Structure 存放位置 這個 array 最終實際上的位置會在 kernel data 的區域中 把 index 的作法寫成 macro 比較方便 kernel/kalloc.c: 跟 kmem 一樣要使用 spinlock struct { struct spinlock lock; struct run *freelist; int count[(PHYSTOP - KERNBASE) / PGSIZE]; } refcnt; #define REFCNT(pa) refcnt.count[(PGROUNDDOWN(pa) \u003e\u003e 12) - (KERNBASE \u003e\u003e 12)]; Reference Count 的 Increament/Decreament 初始為 1 時 kalloc() void * kalloc(void) { struct run *r; acquire(\u0026kmem.lock); r = kmem.freelist; if(r) { kmem.freelist = r-\u003enext; acquire(\u0026refcnt.lock); REFCNT((uint64) r) = 1; release(\u0026refcnt.lock); } release(\u0026kmem.lock); if(r) memset((char*)r, 5, PGSIZE); // fill with junk return (void*)r; } Increament fork() 所導致的 uvmcopy() 時，要加一\n不過 uvmcopy() 在 kernel/vm.c 中，refcnt 所在的 kernel/kalloc.c 會需要提供一個 function\nkernel/kalloc.c: inc_refcnt()\nvoid inc_refcnt(uint64 pa) { acquire(\u0026refcnt.lock); REFCNT((uint64) r)++; release(\u0026refcnt.lock); } kernel/vm.c: uvmcopy(): 使用 inc_refcnt() int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz) { pte_t *pte; uint64 pa, i; uint flags; char *mem; for(i = 0; i \u003c sz; i += PGSIZE){ if((pte = walk(old, i, 0)) == 0) panic(\"uvmcopy: pte should exist\"); if((*pte \u0026 PTE_V) == 0) panic(\"uvmcopy: page not present\"); pa = PTE2PA(*pte); flags = PTE_FLAGS(*pte); // 1. Parent pte // set PTE_COW and PTE_COW_W *pte = *pte | PTE_COW; // set PTE_COW if (*pte \u0026 PTE_W) *pte = *pte | PTE_COW_W; // set PTE_COW_W *pte = *pte \u0026 ~PTE_W; // cannot be wite // 2. Child pte flags = PTE_FLAGS(*pte); // as same as parent if(mappages(new, i, PGSIZE, (uint64)pa, flags) != 0){ kfree(mem); goto err; } inc_refcnt(pa); // \u003c-- increase reference count when fork } return 0; err: uvmunmap(new, 0, i / PGSIZE, 1); return -1; } Decreament kernel/kalloc.c: kfree() void kfree(void *pa) { struct run *r; if(((uint64)pa % PGSIZE) != 0 || (char*)pa \u003c end || (uint64)pa \u003e= PHYSTOP) panic(\"kfree\"); acquire(\u0026refcnt.lock); REFCNT(pa)--; release(\u0026refcnt.lock); if (REFCNT(pa) \u003e 0) return; // Fill with junk to catch dangling refs. memset(pa, 1, PGSIZE); r = (struct run*)pa; acquire(\u0026kmem.lock); r-\u003enext = kmem.freelist; kmem.freelist = r; release(\u0026kmem.lock); } 只有 reference count 減少到 0 時才會真的 free 掉這個 page\nPage Fault 的處理 scause = 12: Instruction page fault scause = 13: Load page fault scause = 15: Store/AMO page fault (copy on write 的情形) 這裡跟 Lazy allocation 的處理類似\nkernel/trap.c: usertrap() void usertrap(void) { // ... } else if((which_dev = devintr()) != 0){ // ok } else if(r_scause() == 15 \u0026\u0026 uncopied_cow(p-\u003epagetable, r_stval())){ if (cow_alloc(p-\u003epagetable) \u003c 0) setkilled(p); } else { printf(\"usertrap(): unexpected scause %p pid=%d\\n\", r_scause(), p-\u003epid); printf(\" sepc=%p stval=%p\\n\", r_sepc(), r_stval()); setkilled(p); } // ... } kernel/vm.c int uncopied_cow(pagetable_t pagetable, uint64 va) { if (va \u003e= MAXVA) return 0; pte_t *pte; if (pte = walk(pagetable, va, 0) == 0) return 0; if ((*pte \u0026 PTE_V) == 0) return 0; if ((*pte \u0026 PTE_U) == 0) return 0; if ((*pte \u0026 PTE_COW_W) == 0) // COW 之前的 PTE_W return 0; return (*pte \u0026 PTE_COW); } int cow_alloc(pagetable_t pagetable, uint64 va) { pte_t *pte; } kernel 中的 Copy-on-Write 如何處理 這裡就有一點像是前面的 Lab: Lazy 也會遇到的問題，因為現在我們處理的範圍都只有 user program 產生的 page fault，如果是 supervisor mode 的情況下想要 write COW page 就需要當下在 supervisor mode 自行處理\n這裡要考慮的是從 kernel 複製到 user program 可能會 write COW page 的 copyout() 這個 function\nkernel/vm.c: copyout() int copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len) { uint64 n, va0, pa0; while(len \u003e 0){ va0 = PGROUNDDOWN(dstva); if (uncopied_cow(pagetable, va0)) if (cow_alloc(pagetable, va0) == -1) return -1; pa0 = walkaddr(pagetable, va0); if(pa0 == 0) return -1; n = PGSIZE - (dstva - va0); if(n \u003e len) n = len; memmove((void *)(pa0 + (dstva - va0)), src, n); len -= n; src += n; dstva = va0 + PGSIZE; } return 0; } 心得： 這個 Lab 錯在一些小地方似乎不太容易發現，覺得真的不確定的時候要使用 gdb 去確認會比較好， 不過這幾個 Lab 做下來覺得使用 gdb 的心態也蠻重要的，像是這兩種心態：\n使用 gdb 檢查哪裡的 value 有錯誤，並且想辦法修正錯誤的 value 先了解背後的原理，並且用 gdb 驗證背後的原理有沒有正確的被執行 我自己的體感是 2. 會比較好一些，1. 則是會有一種被 gdb 拉著走的感覺，但是真的沒頭緒的時候，還是可以用 1. 做一個範圍上的線縮。\n除錯過程中學到的一些方便的 gdb 使用方式 情境：\nint uvmcopy(pagetable_t old, pagetable_t new, uint64 sz) { pte_t *pte; uint64 pa, i; uint flags; // char *mem; // for debug for(i = 0; i \u003c sz; i += PGSIZE){ // printf(\"%x,\", i / PGSIZE); if((pte = walk(old, i, 0)) == 0) panic(\"uvmcopy: pte should exist\"); if (i == 0x402f000 - 0 * PGSIZE) printf(\"!!!*pte = %p\\n\", *pte); if((*pte \u0026 PTE_V) == 0) { printf(\"*pte = %p\\n\", pte); printf(\"i = %x\\n\", i); printf(\"sz = %x\\n\", sz); panic(\"uvmcopy: page not present\"); } } for(i = 0; i \u003c sz; i += PGSIZE){ // printf(\"%x,\", i / PGSIZE); if((pte = walk(old, i, 0)) == 0) panic(\"uvmcopy: pte should exist\"); // if (i == 0x402f000 - 0 * PGSIZE) // printf(\"!!!*pte = %p\\n\", *pte); if((*pte \u0026 PTE_V) == 0) { printf(\"*pte = %p\\n\", *pte); printf(\"i = %x\\n\", i); printf(\"sz = %x\\n\", sz); panic(\"uvmcopy: page not present\"); } pa = PTE2PA(*pte); flags = PTE_FLAGS(*pte); // parent pte // set PTE_COW and PTE_COW_W *pte |= PTE_COW; // set PTE_COW if (*pte \u0026 PTE_W) *pte |= PTE_COW_W; // set PTE_COW_W *pte = *pte \u0026 ~PTE_W; // cannot be wite // child pte flags = PTE_FLAGS(*pte); // as same as parent if(mappages(new, i, PGSIZE, (uint64)pa, flags) != 0){ // kfree(mem); goto err; } inc_refcnt(pa); } return 0; err: panic(\"uvmcopy: err\"); uvmunmap(new, 0, i / PGSIZE, 1); return -1; } 發現觸發 panic(\"uvmcopy: page not present\");\nset breakpoint b kernel/vm.c: xxx at panic(\"uvmcopy: page not present\"); 發現 i == 0x402f000 這個 iteration 的時候，會觸發 panic(\"uvmcopy: page not present\"); 再跑一次 gdb，這次先用\n(gdb) add-symbol-file user/_cowtest (gdb) b simpletest (gdb) b *$stvec (gdb) c (gdb) b uvmcopy (gdb) p watch(old, 0x42f000, 0) $1 0x83f39178 知道受影響的 PTE 的 address 之後，在設定 watch point\n(gdb) watch *(pte_t *) 0x83f39178 (gdb) c 這樣這一次就會知道是那裡更改了不該被更改的值\n最後有發現是 macro 的 KERNBASE \u003e\u003e 12 寫成了 KERNBASE \u003e\u003e 3 一時疏忽忘記 HEX 中的三個 0 代表 12 個 bits\n","wordCount":"2429","inLanguage":"en","datePublished":"2025-10-15T17:47:29+08:00","dateModified":"2025-10-15T17:47:29+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://yamatrail.com/xv6/lab6/"},"publisher":{"@type":"Organization","name":"Yama's Trail","logo":{"@type":"ImageObject","url":"https://yamatrail.com/favicon_io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6</h1><div class=post-meta><span title='2025-10-15 17:47:29 +0800 CST'>October 15, 2025</span></div></header><div class=post-content><p>Lab 連結：<a href=https://pdos.csail.mit.edu/6.S081/2022/labs/cow.html>Lab: Copy-on-Write Fork for xv6</a></p><h2 id=題目解析>題目解析<a hidden class=anchor aria-hidden=true href=#題目解析>#</a></h2><blockquote><h2 id=the-problem>The problem<a hidden class=anchor aria-hidden=true href=#the-problem>#</a></h2><p>The fork() system call in xv6 copies all of the parent process&rsquo;s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.</p></blockquote><p>在現在的 xv6 設計中，<code>fork()</code> 出來的 child 會複製 parent 的所有 memory，但是在很多時候，child 會直接接著執行 <code>exec()</code>，也就直接把先前的一大票 memory 覆蓋掉了，這讓當 memory 的複製便得很浪費。</p><p>想要節省這樣的浪費可以在 <code>fork()</code> 的時候只複製一份 page table 給 child，但是這麼做的話，每當 parent or child 想要 write 的時候，就會需要真的 copy 一份才行</p><blockquote><h2 id=the-solution>The solution<a hidden class=anchor aria-hidden=true href=#the-solution>#</a></h2><p>Your goal in implementing copy-on-write (COW) fork() is to defer allocating and copying physical memory pages until the copies are actually needed, if ever.</p></blockquote><p>這個 lab 要我們實做一個 copy-on-write (COW) fork() 的技術，跟先前提到的一樣，只有在「真的需要的時候」才真的複製一個 page 出來。</p><blockquote><p>COW <code>fork()</code> creates just a pagetable for the child, with PTEs for user memory pointing to the parent&rsquo;s physical pages. COW <code>fork()</code> marks all the user PTEs in both parent and child as read-only. When either process tries to write one of these COW pages, the CPU will force a page fault. The kernel page-fault handler detects this case, allocates a page of physical memory for the faulting process, copies the original page into the new page, and modifies the relevant PTE in the faulting process to refer to the new page, this time with the PTE marked writeable. When the page fault handler returns, the user process will be able to write its copy of the page.</p></blockquote><p>實際的作法是把 child 的 pagetable 跟 parent 的一樣指向同樣的 physical memory 區域，並且都 mark 為 read only，當有 process 想要 write 的時候，就會進入到 page fault 處理，page fault 會複製出一份可以 write 的 page</p><blockquote><p>Here&rsquo;s a reasonable plan of attack.</p><ol><li>Modify <code>uvmcopy()</code> to map the parent&rsquo;s physical pages into the child, instead of allocating new pages. Clear <code>PTE_W</code> in the PTEs of both child and parent for pages that have <code>PTE_W</code> set.</li></ol></blockquote><p>在 <code>uvmcopy()</code> 中執行複製 pagetable 並且設定 <code>PTE_W</code> 的計畫</p><ul><li><code>uvmcopy()</code> 的使用時機也只有 <code>fork()</code> 的時候會用到</li></ul><blockquote><ol start=2><li>Modify <code>usertrap()</code> to recognize page faults. When a write page-fault occurs on a COW page that was originally writeable, allocate a new page with <code>kalloc()</code>, copy the old page to the new page, and install the new page in the PTE with <code>PTE_W</code> set. Pages that were originally read-only (not mapped <code>PTE_W</code>, like pages in the text segment) should remain read-only and shared between parent and child; a process that tries to write such a page should be killed.</li></ol></blockquote><p>在 (write to read only) page fault 時，會進入到 <code>usertrap()</code> 處理，這時候會分為一下兩種情況：</p><ol><li>這個 page 在最初的時候，是 <code>PTE_W</code> (在這個情況下才需要 Copy-on-Write)</li><li>這個 page 在最初的時候，是本來就不是 <code>PTE_W</code>: 這是真正的 page fault, kill the process<ul><li>像是 text segment (instructions 的區域)</li></ul></li></ol><ul><li>這裡就需要考慮一下該把最初 <code>PTE_W</code> 存放在哪裡了</li></ul><blockquote><ol start=3><li>Ensure that each physical page is freed when the last PTE reference to it goes away &ndash; but not before. A good way to do this is to keep, for each physical page, a &ldquo;reference count&rdquo; of the number of user page tables that refer to that page. Set a page&rsquo;s reference count to one when <code>kalloc()</code> allocates it. Increment a page&rsquo;s reference count when fork causes a child to share the page, and decrement a page&rsquo;s count each time any process drops the page from its page table. <code>kfree()</code> should only place a page back on the free list if its reference count is zero. It&rsquo;s OK to to keep these counts in a fixed-size array of integers. You&rsquo;ll have to work out a scheme for how to index the array and how to choose its size. For example, you could index the array with the page&rsquo;s physical address divided by <code>4096</code>, and give the array a number of elements equal to highest physical address of any page placed on the free list by <code>kinit()</code> in <code>kalloc.c</code>. Feel free to modify <code>kalloc.c</code> (e.g., <code>kalloc()</code> and <code>kfree()</code>) to maintain the reference counts.</li></ol></blockquote><p>這裡是在探討把 physical page free 掉的時機，「沒有任何 process 使用」時才真的 free 掉，雖然概念上很清楚的知道是這個時機，但其實要實做出來也沒有那麼容易。</p><ul><li>每當 <code>kalloc()</code> 之後，就給這個 page 一個 reference count</li><li><code>kalloc()</code> 的時候，reference count 設定為 1</li><li>Increase: 因為 <code>fork()</code> 產生出 child 的時候</li><li>Decrease: 一個 process drop 這個 page 的時候</li><li><code>kfree()</code> 只有在 reference count 減少到 0 時才會真的把 page 放回 free list 中</li><li>計算 reference count 的 data structure 可以是放在一個 fixed size 的 array 中<ul><li>需要多大？</li><li>如何做 index 的 mapping?</li><li>要放在哪裡？(於 <code>kinit()</code> 中放置這個 array)<ul><li>學習 free list 的初始化過程</li></ul></li></ul></li></ul><blockquote><ol><li>Modify <code>copyout()</code> to use the same scheme as page faults when it encounters a COW page.</li></ol></blockquote><p>在 <code>copyout()</code> 的時候，也需要判斷有沒有遇到 COW page，如果是 COW page, 就比照辦理</p><ul><li>這裡可以發現跟 Lazy allocation 的時候一樣，在 supervisor mode 的時候因為不會進入 <code>usertrap()</code> 所以要自行處理。</li></ul><blockquote><ul><li>It may be useful to have a way to record, for each PTE, whether it is a COW mapping. You can use the RSW (reserved for software) bits in the RISC-V PTE for this.</li></ul></blockquote><p>可以在每個 PTE 中新增像是 <code>PTE_C</code> 去紀錄這是不是一個 COW mapping</p><ul><li>其實有一點想要把原本的所有狀態都塞進去，</li></ul><blockquote><ul><li><code>usertests -q</code> explores scenarios that <code>cowtest</code> does not test, so don&rsquo;t forget to check that all tests pass for both.</li></ul></blockquote><blockquote><ul><li>Some helpful macros and definitions for page table flags are at the end of <code>kernel/riscv.h</code>.</li></ul></blockquote><blockquote><ul><li>If a COW page fault occurs and there&rsquo;s no free memory, the process should be killed.</li></ul></blockquote><ul><li>如果沒有free memory 時，就直接 kill the process</li></ul><h2 id=fork-的當下><code>fork()</code> 的當下<a hidden class=anchor aria-hidden=true href=#fork-的當下>#</a></h2><p>其實我覺得與其說是 <code>fork()</code> 時複製出一個 &ldquo;read-only&rdquo; 的 page table，不如說他是 &ldquo;cannot-be-write&rdquo; 會比較貼切，這麼說是因為 &ldquo;要 write 的時候必須特別處理&rdquo; 才是 copy-on-write 的核心，變成 read-only 並不那麼精確，另外，把他們一律視為 read-only 會有兩個壞處：</p><ol><li>&ldquo;原本的 page 是否能 read&rdquo; 這個資訊被洗掉了</li><li>&ldquo;原本的 page 是否能 write&rdquo; 這個資訊被洗掉了</li></ol><p>所以我這裡的策略到不是把所有 PTE 都變成 read-only 這裡的策略是</p><ul><li>把所有的 <code>PTE_W == 0</code></li><li>把原本的 <code>PTE_W</code> 的資訊放在 <code>PTE_RES</code></li><li>設定 <code>PTE_COW</code></li></ul><p><img alt=3levels_page_table.png loading=lazy src=/xv6/lab6/3levels_page_table.png></p><p>這時候可以利用 RSW 的 bit 8, 9 資訊紀錄</p><ul><li><code>kernel/riscv.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#define PTE_V (1L &lt;&lt; 0) </span><span style=color:#75715e>// valid
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define PTE_R (1L &lt;&lt; 1)
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define PTE_W (1L &lt;&lt; 2)
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define PTE_X (1L &lt;&lt; 3)
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define PTE_U (1L &lt;&lt; 4) </span><span style=color:#75715e>// user can access
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#define PTE_COW   (1L &lt;&lt; 8) </span><span style=color:#75715e>// is COW page
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define PTE_COW_W (1L &lt;&lt; 9) </span><span style=color:#75715e>// PET_W before becomming COW
+</span></span></span></code></pre></div><ul><li><code>uvmcopy()</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>uvmcopy</span>(<span style=color:#66d9ef>pagetable_t</span> old, <span style=color:#66d9ef>pagetable_t</span> new, uint64 sz)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>pte_t</span> <span style=color:#f92672>*</span>pte;
+</span></span><span style=display:flex><span>  uint64 pa, i;
+</span></span><span style=display:flex><span>  uint flags;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>mem;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span>(i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> sz; i <span style=color:#f92672>+=</span> PGSIZE){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((pte <span style=color:#f92672>=</span> <span style=color:#a6e22e>walk</span>(old, i, <span style=color:#ae81ff>0</span>)) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: pte should exist&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_V) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: page not present&#34;</span>);
+</span></span><span style=display:flex><span>    pa <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE2PA</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>    flags <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE_FLAGS</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((mem <span style=color:#f92672>=</span> <span style=color:#a6e22e>kalloc</span>()) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>goto</span> err;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>memmove</span>(mem, (<span style=color:#66d9ef>char</span><span style=color:#f92672>*</span>)pa, PGSIZE);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(<span style=color:#a6e22e>mappages</span>(new, i, PGSIZE, (uint64)mem, flags) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>kfree</span>(mem);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>goto</span> err;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> err:
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>uvmunmap</span>(new, <span style=color:#ae81ff>0</span>, i <span style=color:#f92672>/</span> PGSIZE, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>改成下面這樣：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>uvmcopy</span>(<span style=color:#66d9ef>pagetable_t</span> old, <span style=color:#66d9ef>pagetable_t</span> new, uint64 sz)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>pte_t</span> <span style=color:#f92672>*</span>pte;
+</span></span><span style=display:flex><span>  uint64 pa, i;
+</span></span><span style=display:flex><span>  uint flags;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>mem;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span>(i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> sz; i <span style=color:#f92672>+=</span> PGSIZE){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((pte <span style=color:#f92672>=</span> <span style=color:#a6e22e>walk</span>(old, i, <span style=color:#ae81ff>0</span>)) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: pte should exist&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_V) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: page not present&#34;</span>);
+</span></span><span style=display:flex><span>    pa <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE2PA</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>    flags <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE_FLAGS</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// parent pte
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// set PTE_COW and PTE_COW_W
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#f92672>*</span>pte <span style=color:#f92672>|=</span> PTE_COW; <span style=color:#75715e>// set PTE_COW
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_W)
+</span></span><span style=display:flex><span>      <span style=color:#f92672>*</span>pte <span style=color:#f92672>|=</span> PTE_COW_W; <span style=color:#75715e>// set PTE_COW_W
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;=</span> <span style=color:#f92672>~</span>PTE_W; <span style=color:#75715e>// cannot be wite
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// child pte
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    flags <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE_FLAGS</span>(<span style=color:#f92672>*</span>pte); <span style=color:#75715e>// as same as parent
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>(<span style=color:#a6e22e>mappages</span>(new, i, PGSIZE, (uint64)pa, flags) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>kfree</span>(mem);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>goto</span> err;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> err:
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>uvmunmap</span>(new, <span style=color:#ae81ff>0</span>, i <span style=color:#f92672>/</span> PGSIZE, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=reference-count>Reference Count<a hidden class=anchor aria-hidden=true href=#reference-count>#</a></h2><h3 id=有多少-page-需要-reference-count>有多少 page 需要 Reference Count<a hidden class=anchor aria-hidden=true href=#有多少-page-需要-reference-count>#</a></h3><p><img alt=kernel_layout.png loading=lazy src=/xv6/lab6/kernel_layout.png></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// the kernel expects there to be RAM
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// for use by the kernel and user pages
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// from physical address 0x80000000 to PHYSTOP.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define KERNBASE 0x80000000L
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define PHYSTOP (KERNBASE + 128*1024*1024)
+</span></span></span></code></pre></div><p>Physical memory (RAM) 的 address 為 <code>KERNBASE</code> ~ <code>PHYSTOP</code><br>-> <code>0x80000000 ~ 0x88000000</code></p><p>在 Physical memory (RAM) 又因為 kernel text 與 kernel data 佔去了一部分
+實際上 user program 會用到的只有 <code>end</code> ~ <code>PHYSTOP</code></p><ul><li><code>kernel/kalloc.c</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>extern</span> <span style=color:#66d9ef>char</span> end[]; <span style=color:#75715e>// first address after kernel.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                   <span style=color:#75715e>// defined by kernel.ld.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>kinit</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>initlock</span>(<span style=color:#f92672>&amp;</span>kmem.lock, <span style=color:#e6db74>&#34;kmem&#34;</span>);
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>freerange</span>(end, (<span style=color:#66d9ef>void</span><span style=color:#f92672>*</span>)PHYSTOP);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>freerange</span>(<span style=color:#66d9ef>void</span> <span style=color:#f92672>*</span>pa_start, <span style=color:#66d9ef>void</span> <span style=color:#f92672>*</span>pa_end)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>p;
+</span></span><span style=display:flex><span>  p <span style=color:#f92672>=</span> (<span style=color:#66d9ef>char</span><span style=color:#f92672>*</span>)<span style=color:#a6e22e>PGROUNDUP</span>((uint64)pa_start);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 注意這裡，最後一個可用的 page
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 是 starting address == PHYSTOP - PGSIZE
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 的那一個 page
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>for</span>(; p <span style=color:#f92672>+</span> PGSIZE <span style=color:#f92672>&lt;=</span> (<span style=color:#66d9ef>char</span><span style=color:#f92672>*</span>)pa_end; p <span style=color:#f92672>+=</span> PGSIZE)
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>kfree</span>(p);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>這裡需要小注意一下</p><ul><li><code>PHYSTOP</code> 是不包含的</li><li><code>end</code> 則不一定，要看 <code>PGROUNDUP()</code> 的結果 (因為不可以跟 kerenl 塞在同一個 page 中)</li></ul><h3 id=可用的-ram-的範圍>可用的 RAM 的範圍：<a hidden class=anchor aria-hidden=true href=#可用的-ram-的範圍>#</a></h3><h4 id=最開始的-page>最開始的 page<a hidden class=anchor aria-hidden=true href=#最開始的-page>#</a></h4><ul><li><code>KERNBASE</code>: 0x80000000 作為開頭的這個 page</li><li>physical address: <code>0x80000000 ~ 0x80000fff</code></li><li><code>0x80000xxx</code> 的 address 都屬於最開頭的 page</li><li><code>0x80000xxx</code> 的 address 會共用同一個 reference count</li><li><code>PGROUNDDOWN(pa) == 0x80000000</code> 的 <code>pa</code> 會共用同一個 reference count (<code>index == 0</code>)</li></ul><h4 id=最後一個-page>最後一個 page<a hidden class=anchor aria-hidden=true href=#最後一個-page>#</a></h4><ul><li><code>PHYSTOP - PGSIZE == 0x88000000 == 0x87fff000</code> 作為開頭的這個 page</li><li>physical address: <code>0x87fff000 ~ 0x87ffffff</code></li><li><code>0x87fffxxx</code> 的 address 都屬於最開頭的 page</li><li><code>0x87fffxxx</code> 的 address 會共用同一個 reference count</li><li><code>PGROUNDDOWN(pa) == 0x87fffxxx</code> 的 <code>pa</code> 會共用同一個 reference count，並且是最後一個 index</li></ul><h3 id=需要-reference-count-的-page-數量為>需要 reference count 的 page 數量為<a hidden class=anchor aria-hidden=true href=#需要-reference-count-的-page-數量為>#</a></h3><p>題目說可以用一個 fix-sized 的 array 就好，言下之意就是雖然 kernel text 與 kernel data 雖然實際上部需要 reference count 的管理，但還是給它們 refrence count 單純為了求一個方便</p><p>需要 index 的數量為</p><ul><li><code>087fff - 0x80000 + 1 = 0x08000</code></li><li><code>088000 - 0x80000 = 0x08000</code></li><li><code>(PHYSTOP - KERNBASE) / PGSIZE = 0x08000</code></li></ul><h3 id=index-的方法>index 的方法<a hidden class=anchor aria-hidden=true href=#index-的方法>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>address      condition                       calculate index      index
+</span></span><span style=display:flex><span><span style=color:#f92672>-----------------------------------------------------------------------</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>0x87fff</span>xxx <span style=color:#f92672>|</span> <span style=color:#a6e22e>PGROUNDOWN</span>(pa) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0x87fff</span> <span style=color:#ae81ff>000</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>0x87fff</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0x80000</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>0x07fff</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>0x87ffe</span>xxx <span style=color:#f92672>|</span> <span style=color:#a6e22e>PGROUNDOWN</span>(pa) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0x87ffe</span> <span style=color:#ae81ff>000</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>0x87ffe</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0x80000</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>0x07ffe</span>
+</span></span><span style=display:flex><span>.          <span style=color:#f92672>|</span>                               <span style=color:#f92672>|</span>
+</span></span><span style=display:flex><span>.          <span style=color:#f92672>|</span>                               <span style=color:#f92672>|</span>
+</span></span><span style=display:flex><span>.          <span style=color:#f92672>|</span>                               <span style=color:#f92672>|</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>0x80001</span>xxx <span style=color:#f92672>|</span> <span style=color:#a6e22e>PGROUNDOWN</span>(pa) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0x80001</span> <span style=color:#ae81ff>000</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>0x80001</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0x80000</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>0x00001</span>
+</span></span><span style=display:flex><span><span style=color:#ae81ff>0x80000</span>xxx <span style=color:#f92672>|</span> <span style=color:#a6e22e>PGROUNDOWN</span>(pa) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0x80000</span> <span style=color:#ae81ff>000</span> <span style=color:#f92672>|</span> <span style=color:#ae81ff>0x80000</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0x80000</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>0x00000</span>
+</span></span></code></pre></div><p>如果有了 physical address <code>pa</code>, 它在 array of reference count 的 index 計算公式為：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>index <span style=color:#f92672>=</span> (<span style=color:#a6e22e>PGROUNDOWN</span>(pa) <span style=color:#f92672>&gt;&gt;</span> <span style=color:#ae81ff>12</span>) <span style=color:#f92672>-</span> <span style=color:#ae81ff>0x80000</span>
+</span></span></code></pre></div><p>也就是因為當初的</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>index <span style=color:#f92672>=</span> (<span style=color:#a6e22e>PGROUNDOWN</span>(pa) <span style=color:#f92672>&gt;&gt;</span> <span style=color:#ae81ff>12</span>) <span style=color:#f92672>-</span> (KERNBASE <span style=color:#f92672>&gt;&gt;</span> <span style=color:#ae81ff>12</span>)
+</span></span></code></pre></div><p>等等會用一個 macro 來處理</p><h3 id=reference-count-的-data-structure>Reference Count 的 Data Structure<a hidden class=anchor aria-hidden=true href=#reference-count-的-data-structure>#</a></h3><h4 id=存放位置>存放位置<a hidden class=anchor aria-hidden=true href=#存放位置>#</a></h4><ul><li>這個 array 最終實際上的位置會在 kernel data 的區域中</li><li>把 index 的作法寫成 macro 比較方便</li><li><code>kernel/kalloc.c</code>: 跟 <code>kmem</code> 一樣要使用 <code>spinlock</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>struct</span> {
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> spinlock lock;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> run <span style=color:#f92672>*</span>freelist;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int</span> count[(PHYSTOP <span style=color:#f92672>-</span> KERNBASE) <span style=color:#f92672>/</span> PGSIZE];
+</span></span><span style=display:flex><span>} refcnt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#define REFCNT(pa) refcnt.count[(PGROUNDDOWN(pa) &gt;&gt; 12) - (KERNBASE &gt;&gt; 12)];
+</span></span></span></code></pre></div><h3 id=reference-count-的-increamentdecreament>Reference Count 的 Increament/Decreament<a hidden class=anchor aria-hidden=true href=#reference-count-的-increamentdecreament>#</a></h3><h4 id=初始為-1-時>初始為 1 時<a hidden class=anchor aria-hidden=true href=#初始為-1-時>#</a></h4><ul><li><code>kalloc()</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#f92672>*</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>kalloc</span>(<span style=color:#66d9ef>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> run <span style=color:#f92672>*</span>r;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>acquire</span>(<span style=color:#f92672>&amp;</span>kmem.lock);
+</span></span><span style=display:flex><span>  r <span style=color:#f92672>=</span> kmem.freelist;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(r) {
+</span></span><span style=display:flex><span>    kmem.freelist <span style=color:#f92672>=</span> r<span style=color:#f92672>-&gt;</span>next;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>acquire</span>(<span style=color:#f92672>&amp;</span>refcnt.lock);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>REFCNT</span>((uint64) r) <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>release</span>(<span style=color:#f92672>&amp;</span>refcnt.lock);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>release</span>(<span style=color:#f92672>&amp;</span>kmem.lock);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(r)
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>memset</span>((<span style=color:#66d9ef>char</span><span style=color:#f92672>*</span>)r, <span style=color:#ae81ff>5</span>, PGSIZE); <span style=color:#75715e>// fill with junk
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>return</span> (<span style=color:#66d9ef>void</span><span style=color:#f92672>*</span>)r;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=increament>Increament<a hidden class=anchor aria-hidden=true href=#increament>#</a></h4><ul><li><p><code>fork()</code> 所導致的 <code>uvmcopy()</code> 時，要加一</p></li><li><p>不過 <code>uvmcopy()</code> 在 <code>kernel/vm.c</code> 中，<code>refcnt</code> 所在的 <code>kernel/kalloc.c</code> 會需要提供一個 function</p></li><li><p><code>kernel/kalloc.c: inc_refcnt()</code></p></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>inc_refcnt</span>(uint64 pa)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>acquire</span>(<span style=color:#f92672>&amp;</span>refcnt.lock);
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>REFCNT</span>((uint64) r)<span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>release</span>(<span style=color:#f92672>&amp;</span>refcnt.lock);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><ul><li><code>kernel/vm.c: uvmcopy()</code>: 使用 <code>inc_refcnt()</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>uvmcopy</span>(<span style=color:#66d9ef>pagetable_t</span> old, <span style=color:#66d9ef>pagetable_t</span> new, uint64 sz)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>pte_t</span> <span style=color:#f92672>*</span>pte;
+</span></span><span style=display:flex><span>  uint64 pa, i;
+</span></span><span style=display:flex><span>  uint flags;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>mem;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span>(i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> sz; i <span style=color:#f92672>+=</span> PGSIZE){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((pte <span style=color:#f92672>=</span> <span style=color:#a6e22e>walk</span>(old, i, <span style=color:#ae81ff>0</span>)) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: pte should exist&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_V) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: page not present&#34;</span>);
+</span></span><span style=display:flex><span>    pa <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE2PA</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>    flags <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE_FLAGS</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 1. Parent pte
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// set PTE_COW and PTE_COW_W
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#f92672>*</span>pte <span style=color:#f92672>=</span> <span style=color:#f92672>*</span>pte <span style=color:#f92672>|</span> PTE_COW; <span style=color:#75715e>// set PTE_COW
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_W)
+</span></span><span style=display:flex><span>      <span style=color:#f92672>*</span>pte <span style=color:#f92672>=</span> <span style=color:#f92672>*</span>pte <span style=color:#f92672>|</span> PTE_COW_W; <span style=color:#75715e>// set PTE_COW_W
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#f92672>*</span>pte <span style=color:#f92672>=</span> <span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> <span style=color:#f92672>~</span>PTE_W; <span style=color:#75715e>// cannot be wite
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 2. Child pte
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    flags <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE_FLAGS</span>(<span style=color:#f92672>*</span>pte); <span style=color:#75715e>// as same as parent
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>(<span style=color:#a6e22e>mappages</span>(new, i, PGSIZE, (uint64)pa, flags) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>kfree</span>(mem);
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>goto</span> err;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>inc_refcnt</span>(pa); <span style=color:#75715e>// &lt;-- increase reference count when fork
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> err:
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>uvmunmap</span>(new, <span style=color:#ae81ff>0</span>, i <span style=color:#f92672>/</span> PGSIZE, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=decreament>Decreament<a hidden class=anchor aria-hidden=true href=#decreament>#</a></h4><ul><li><code>kernel/kalloc.c: kfree()</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>kfree</span>(<span style=color:#66d9ef>void</span> <span style=color:#f92672>*</span>pa)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> run <span style=color:#f92672>*</span>r;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(((uint64)pa <span style=color:#f92672>%</span> PGSIZE) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>||</span> (<span style=color:#66d9ef>char</span><span style=color:#f92672>*</span>)pa <span style=color:#f92672>&lt;</span> end <span style=color:#f92672>||</span> (uint64)pa <span style=color:#f92672>&gt;=</span> PHYSTOP)
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;kfree&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>acquire</span>(<span style=color:#f92672>&amp;</span>refcnt.lock);
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>REFCNT</span>(pa)<span style=color:#f92672>--</span>;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>release</span>(<span style=color:#f92672>&amp;</span>refcnt.lock);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>REFCNT</span>(pa) <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Fill with junk to catch dangling refs.
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>memset</span>(pa, <span style=color:#ae81ff>1</span>, PGSIZE);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  r <span style=color:#f92672>=</span> (<span style=color:#66d9ef>struct</span> run<span style=color:#f92672>*</span>)pa;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>acquire</span>(<span style=color:#f92672>&amp;</span>kmem.lock);
+</span></span><span style=display:flex><span>  r<span style=color:#f92672>-&gt;</span>next <span style=color:#f92672>=</span> kmem.freelist;
+</span></span><span style=display:flex><span>  kmem.freelist <span style=color:#f92672>=</span> r;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>release</span>(<span style=color:#f92672>&amp;</span>kmem.lock);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>只有 reference count 減少到 0 時才會真的 free 掉這個 page</p><h3 id=page-fault-的處理>Page Fault 的處理<a hidden class=anchor aria-hidden=true href=#page-fault-的處理>#</a></h3><ul><li><code>scause</code> = 12: Instruction page fault</li><li><code>scause</code> = 13: Load page fault</li><li><code>scause</code> = 15: Store/AMO page fault (copy on write 的情形)</li></ul><p>這裡跟 Lazy allocation 的處理類似</p><ul><li><code>kernel/trap.c: usertrap()</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>void</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>usertrap</span>(<span style=color:#66d9ef>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// ...
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  } <span style=color:#66d9ef>else</span> <span style=color:#a6e22e>if</span>((which_dev <span style=color:#f92672>=</span> <span style=color:#a6e22e>devintr</span>()) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// ok
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  } <span style=color:#66d9ef>else</span> <span style=color:#a6e22e>if</span>(<span style=color:#a6e22e>r_scause</span>() <span style=color:#f92672>==</span> <span style=color:#ae81ff>15</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>uncopied_cow</span>(p<span style=color:#f92672>-&gt;</span>pagetable, <span style=color:#a6e22e>r_stval</span>())){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>cow_alloc</span>(p<span style=color:#f92672>-&gt;</span>pagetable) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>setkilled</span>(p);
+</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>else</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;usertrap(): unexpected scause %p pid=%d</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, <span style=color:#a6e22e>r_scause</span>(), p<span style=color:#f92672>-&gt;</span>pid);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;            sepc=%p stval=%p</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, <span style=color:#a6e22e>r_sepc</span>(), <span style=color:#a6e22e>r_stval</span>());
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>setkilled</span>(p);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// ...
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></code></pre></div><ul><li><code>kernel/vm.c</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>int</span> 
+</span></span><span style=display:flex><span><span style=color:#a6e22e>uncopied_cow</span>(<span style=color:#66d9ef>pagetable_t</span> pagetable, uint64 va)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (va <span style=color:#f92672>&gt;=</span> MAXVA)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>pte_t</span> <span style=color:#f92672>*</span>pte;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (pte <span style=color:#f92672>=</span> <span style=color:#a6e22e>walk</span>(pagetable, va, <span style=color:#ae81ff>0</span>) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> ((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_V) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> ((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_U) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> ((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_COW_W) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) <span style=color:#75715e>// COW 之前的 PTE_W
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> (<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_COW);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>cow_alloc</span>(<span style=color:#66d9ef>pagetable_t</span> pagetable, uint64 va)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>pte_t</span> <span style=color:#f92672>*</span>pte;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=kernel-中的-copy-on-write-如何處理>kernel 中的 Copy-on-Write 如何處理<a hidden class=anchor aria-hidden=true href=#kernel-中的-copy-on-write-如何處理>#</a></h2><p>這裡就有一點像是前面的 Lab: Lazy 也會遇到的問題，因為現在我們處理的範圍都只有 user program 產生的 page fault，如果是 supervisor mode 的情況下想要 write COW page 就需要當下在 supervisor mode 自行處理</p><p>這裡要考慮的是從 kernel 複製到 user program 可能會 write COW page 的 <code>copyout()</code> 這個 function</p><ul><li><code>kernel/vm.c: copyout()</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>copyout</span>(<span style=color:#66d9ef>pagetable_t</span> pagetable, uint64 dstva, <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>src, uint64 len)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  uint64 n, va0, pa0;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>while</span>(len <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>    va0 <span style=color:#f92672>=</span> <span style=color:#a6e22e>PGROUNDDOWN</span>(dstva);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>uncopied_cow</span>(pagetable, va0))
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>cow_alloc</span>(pagetable, va0) <span style=color:#f92672>==</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>    pa0 <span style=color:#f92672>=</span> <span style=color:#a6e22e>walkaddr</span>(pagetable, va0);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(pa0 <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>    n <span style=color:#f92672>=</span> PGSIZE <span style=color:#f92672>-</span> (dstva <span style=color:#f92672>-</span> va0);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(n <span style=color:#f92672>&gt;</span> len)
+</span></span><span style=display:flex><span>      n <span style=color:#f92672>=</span> len;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>memmove</span>((<span style=color:#66d9ef>void</span> <span style=color:#f92672>*</span>)(pa0 <span style=color:#f92672>+</span> (dstva <span style=color:#f92672>-</span> va0)), src, n);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    len <span style=color:#f92672>-=</span> n;
+</span></span><span style=display:flex><span>    src <span style=color:#f92672>+=</span> n;
+</span></span><span style=display:flex><span>    dstva <span style=color:#f92672>=</span> va0 <span style=color:#f92672>+</span> PGSIZE;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=心得>心得：<a hidden class=anchor aria-hidden=true href=#心得>#</a></h2><p>這個 Lab 錯在一些小地方似乎不太容易發現，覺得真的不確定的時候要使用 gdb 去確認會比較好，
+不過這幾個 Lab 做下來覺得使用 gdb 的心態也蠻重要的，像是這兩種心態：</p><ol><li>使用 gdb 檢查哪裡的 value 有錯誤，並且想辦法修正錯誤的 value</li><li>先了解背後的原理，並且用 gdb 驗證背後的原理有沒有正確的被執行</li></ol><p>我自己的體感是 2. 會比較好一些，1. 則是會有一種被 gdb 拉著走的感覺，但是真的沒頭緒的時候，還是可以用 1. 做一個範圍上的線縮。</p><h3 id=除錯過程中學到的一些方便的-gdb-使用方式>除錯過程中學到的一些方便的 gdb 使用方式<a hidden class=anchor aria-hidden=true href=#除錯過程中學到的一些方便的-gdb-使用方式>#</a></h3><p>情境：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>uvmcopy</span>(<span style=color:#66d9ef>pagetable_t</span> old, <span style=color:#66d9ef>pagetable_t</span> new, uint64 sz)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>pte_t</span> <span style=color:#f92672>*</span>pte;
+</span></span><span style=display:flex><span>  uint64 pa, i;
+</span></span><span style=display:flex><span>  uint flags;
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// char *mem;
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// for debug
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>for</span>(i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> sz; i <span style=color:#f92672>+=</span> PGSIZE){
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// printf(&#34;%x,&#34;, i / PGSIZE);
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>((pte <span style=color:#f92672>=</span> <span style=color:#a6e22e>walk</span>(old, i, <span style=color:#ae81ff>0</span>)) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: pte should exist&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (i <span style=color:#f92672>==</span> <span style=color:#ae81ff>0x402f000</span> <span style=color:#f92672>-</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>*</span> PGSIZE)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;!!!*pte = %p</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, <span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_V) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;*pte = %p</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, pte);
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;i = %x</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, i);
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;sz = %x</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, sz);
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: page not present&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span>(i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> sz; i <span style=color:#f92672>+=</span> PGSIZE){
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// printf(&#34;%x,&#34;, i / PGSIZE);
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>((pte <span style=color:#f92672>=</span> <span style=color:#a6e22e>walk</span>(old, i, <span style=color:#ae81ff>0</span>)) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: pte should exist&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// if (i == 0x402f000 - 0 * PGSIZE)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>//   printf(&#34;!!!*pte = %p\n&#34;, *pte);
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_V) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;*pte = %p</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, <span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;i = %x</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, i);
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;sz = %x</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, sz);
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: page not present&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    pa <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE2PA</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>    flags <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE_FLAGS</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// parent pte
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// set PTE_COW and PTE_COW_W
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#f92672>*</span>pte <span style=color:#f92672>|=</span> PTE_COW; <span style=color:#75715e>// set PTE_COW
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_W)
+</span></span><span style=display:flex><span>      <span style=color:#f92672>*</span>pte <span style=color:#f92672>|=</span> PTE_COW_W; <span style=color:#75715e>// set PTE_COW_W
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#f92672>*</span>pte <span style=color:#f92672>=</span> <span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> <span style=color:#f92672>~</span>PTE_W; <span style=color:#75715e>// cannot be wite
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// child pte
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    flags <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE_FLAGS</span>(<span style=color:#f92672>*</span>pte); <span style=color:#75715e>// as same as parent
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>(<span style=color:#a6e22e>mappages</span>(new, i, PGSIZE, (uint64)pa, flags) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>      <span style=color:#75715e>// kfree(mem);
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#66d9ef>goto</span> err;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>inc_refcnt</span>(pa);
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span> err:
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;uvmcopy: err&#34;</span>);
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>uvmunmap</span>(new, <span style=color:#ae81ff>0</span>, i <span style=color:#f92672>/</span> PGSIZE, <span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>發現觸發 <code>panic("uvmcopy: page not present");</code></p><ul><li>set breakpoint <code>b kernel/vm.c: xxx</code> at <code>panic("uvmcopy: page not present");</code><ul><li>發現 <code>i == 0x402f000</code> 這個 iteration 的時候，會觸發 <code>panic("uvmcopy: page not present");</code></li></ul></li></ul><p>再跑一次 gdb，這次先用</p><pre tabindex=0><code class=language-gdb data-lang=gdb>(gdb) add-symbol-file user/_cowtest
 (gdb) b simpletest
 (gdb) b *$stvec
 (gdb) c
 (gdb) b uvmcopy
 (gdb) p watch(old, 0x42f000, 0)
 $1 0x83f39178
-</code></pre><p>知道受影響的 PTE 的 address 之後，在設定 watch point</p>
-<pre tabindex="0"><code class="language-gdb" data-lang="gdb">(gdb) watch *(pte_t *) 0x83f39178
+</code></pre><p>知道受影響的 PTE 的 address 之後，在設定 watch point</p><pre tabindex=0><code class=language-gdb data-lang=gdb>(gdb) watch *(pte_t *) 0x83f39178
 (gdb) c
-</code></pre><p>這樣這一次就會知道是那裡更改了不該被更改的值</p>
-<p>最後有發現是 macro 的 <code>KERNBASE &gt;&gt; 12</code> 寫成了 <code>KERNBASE &gt;&gt; 3</code> 一時疏忽忘記 HEX 中的三個 0 代表 12 個 bits</p>
-<p><img alt="ac.png" loading="lazy" src="/xv6/lab6/ac.png"></p>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-    </ul>
-<nav class="paginav">
-  <a class="prev" href="http://localhost:1313/xv6/lab6.1/">
-    <span class="title">« Prev</span>
-    <br>
-    <span>[xv6 學習紀錄 06-1] Interrupts</span>
-  </a>
-  <a class="next" href="http://localhost:1313/xv6/lab7.1/">
-    <span class="title">Next »</span>
-    <br>
-    <span>[xv6 學習紀錄 07-1] Thread Switching</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu')
-    if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var mybutton = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
-        } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = 'copy';
-
-        function copyingDone() {
-            copybutton.innerHTML = 'copied!';
-            setTimeout(() => {
-                copybutton.innerHTML = 'copy';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-</body>
-
-</html>
+</code></pre><p>這樣這一次就會知道是那裡更改了不該被更改的值</p><p>最後有發現是 macro 的 <code>KERNBASE >> 12</code> 寫成了 <code>KERNBASE >> 3</code> 一時疏忽忘記 HEX 中的三個 0 代表 12 個 bits</p><p><img alt=ac.png loading=lazy src=/xv6/lab6/ac.png></p></div><footer class=post-footer><ul class=post-tags></ul><nav class=paginav><a class=prev href=https://yamatrail.com/xv6/lab6.1/><span class=title>« Prev</span><br><span>[xv6 學習紀錄 06-1] Interrupts</span>
+</a><a class=next href=https://yamatrail.com/xv6/lab7.1/><span class=title>Next »</span><br><span>[xv6 學習紀錄 07-1] Thread Switching</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
