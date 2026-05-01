@@ -1,32 +1,294 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>LeetCode 解題 | Yama's Trail</title>
-<meta name=keywords content><meta name=description content><meta name=author content><link rel=canonical href=https://yamatrail.com/series/leetcode-%E8%A7%A3%E9%A1%8C/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate type=application/rss+xml href=https://yamatrail.com/series/leetcode-%E8%A7%A3%E9%A1%8C/index.xml><link rel=alternate hreflang=en href=https://yamatrail.com/series/leetcode-%E8%A7%A3%E9%A1%8C/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/series/leetcode-%E8%A7%A3%E9%A1%8C/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="LeetCode 解題"><meta property="og:locale" content="zh-tw"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content="LeetCode 解題"><meta name=twitter:description content></head><body class=list id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><header class=page-header><h1>LeetCode 解題</h1></header><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</h2></header><div class=entry-content><p>題目連結：17. Letter Combinations of a Phone Number
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>LeetCode 解題 | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/series/leetcode-%E8%A7%A3%E9%A1%8C/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/series/leetcode-%E8%A7%A3%E9%A1%8C/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/series/leetcode-%E8%A7%A3%E9%A1%8C/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
+                    <span>Linux Kernel Programming</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    LeetCode 解題
+  </h1>
+</header>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：17. Letter Combinations of a Phone Number
 我覺得這種 backtracking 或是 dfs 的題目都需要想清處 depth 的定義是什麼，想清楚就會好寫許多。
-程式實做 class Solution { public: vector&lt;string> letterCombinations(string digits) { if (digits.size() == 0) return {}; vector&lt;string> phoneNumber = { "", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz" }; vector&lt;string> combs; string current; backtracking(0, digits, current, phoneNumber, combs); return combs; } void backtracking(int index, string digits, string current, vector&lt;string> phoneNumber, vector&lt;string> &amp;combs) { if (index >= digits.size()) { combs.push_back(current); return; } int i = digits[index] - '0'; for (char c : phoneNumber[i]) { current.push_back(c); backtracking(index + 1, digits, current, phoneNumber, combs); current.pop_back(); } } };</p></div><footer class=entry-footer><span title='2025-09-27 00:37:29 +0800 CST'>September 27, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義" href=https://yamatrail.com/leetcode/17-letter-combinations-of-a-phone-number/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C++)</h2></header><div class=entry-content><p>題目連結：206. Reverse Linked List
+程式實做 class Solution { public: vector&lt;string&gt; letterCombinations(string digits) { if (digits.size() == 0) return {}; vector&lt;string&gt; phoneNumber = { &#34;&#34;, &#34;&#34;, &#34;abc&#34;, &#34;def&#34;, &#34;ghi&#34;, &#34;jkl&#34;, &#34;mno&#34;, &#34;pqrs&#34;, &#34;tuv&#34;, &#34;wxyz&#34; }; vector&lt;string&gt; combs; string current; backtracking(0, digits, current, phoneNumber, combs); return combs; } void backtracking(int index, string digits, string current, vector&lt;string&gt; phoneNumber, vector&lt;string&gt; &amp;combs) { if (index &gt;= digits.size()) { combs.push_back(current); return; } int i = digits[index] - &#39;0&#39;; for (char c : phoneNumber[i]) { current.push_back(c); backtracking(index &#43; 1, digits, current, phoneNumber, combs); current.pop_back(); } } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-27 00:37:29 +0800 CST'>September 27, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義" href="http://localhost:1313/leetcode/17-letter-combinations-of-a-phone-number/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：206. Reverse Linked List
 解題思路 這題還蠻直接的，把 Linked List 給掃過一遍，並且一個一個的把指標顛倒過來。
 剛開始的時候我用了這個寫法：
-class Solution { public: ListNode* reverseList(ListNode* head) { if (!head) return head; ListNode *slow = head; ListNode *fast = head->next; while (fast != nullptr) { ListNode *nextNode = fast->next; fast->next = slow; slow = fast; fast = nextNode; } slow->next = nullptr; return slow; } }; 但這個寫法是錯誤的，因為 slow 從 head 開始的話，最一開始的 head 沒有指向 nullptr，所以需要把 slow 從 nullptr 開始會比較好。
+class Solution { public: ListNode* reverseList(ListNode* head) { if (!head) return head; ListNode *slow = head; ListNode *fast = head-&gt;next; while (fast != nullptr) { ListNode *nextNode = fast-&gt;next; fast-&gt;next = slow; slow = fast; fast = nextNode; } slow-&gt;next = nullptr; return slow; } }; 但這個寫法是錯誤的，因為 slow 從 head 開始的話，最一開始的 head 沒有指向 nullptr，所以需要把 slow 從 nullptr 開始會比較好。
 我學到的是面對到 Edge Case 時，要特別小心注意才行。
-程式碼 /** * Definition for singly-linked list. * struct ListNode { * int val; * ListNode *next; * ListNode() : val(0), next(nullptr) {} * ListNode(int x) : val(x), next(nullptr) {} * ListNode(int x, ListNode *next) : val(x), next(next) {} * }; */ class Solution { public: ListNode* reverseList(ListNode* head) { ListNode *slow = nullptr; ListNode *fast = head; while (fast != nullptr) { ListNode *nextNode = fast->next; fast->next = slow; slow = fast; fast = nextNode; } return slow; } };</p></div><footer class=entry-footer><span title='2025-09-23 20:31:28 +0800 CST'>September 23, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C++)" href=https://yamatrail.com/leetcode/206-reverse-linked-list/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C++)</h2></header><div class=entry-content><p>題目連結：136. Single Number
+程式碼 /** * Definition for singly-linked list. * struct ListNode { * int val; * ListNode *next; * ListNode() : val(0), next(nullptr) {} * ListNode(int x) : val(x), next(nullptr) {} * ListNode(int x, ListNode *next) : val(x), next(next) {} * }; */ class Solution { public: ListNode* reverseList(ListNode* head) { ListNode *slow = nullptr; ListNode *fast = head; while (fast != nullptr) { ListNode *nextNode = fast-&gt;next; fast-&gt;next = slow; slow = fast; fast = nextNode; } return slow; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-23 20:31:28 +0800 CST'>September 23, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C&#43;&#43;)" href="http://localhost:1313/leetcode/206-reverse-linked-list/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：136. Single Number
 解題思路 這題是一個蠻神奇蠻剛好的一題，同時使用了 xor 與「出現兩次」這兩個元素，因為
-同一個數字 xor 在一起會變成 0 這題就用這樣的特性解決 程式碼 class Solution { public: int singleNumber(vector&lt;int>& nums) { int n = 0; for (int num : nums) n ^= num; return n; } };</p></div><footer class=entry-footer><span title='2025-11-01 09:21:12 +0800 CST'>November 1, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 136. Single Number | XOR 與重複出現 (C++)" href=https://yamatrail.com/leetcode/136-single-number/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C++)</h2></header><div class=entry-content><p>題目連結：746. Min Cost Climbing Stairs
+同一個數字 xor 在一起會變成 0 這題就用這樣的特性解決 程式碼 class Solution { public: int singleNumber(vector&lt;int&gt;&amp; nums) { int n = 0; for (int num : nums) n ^= num; return n; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 09:21:12 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 136. Single Number | XOR 與重複出現 (C&#43;&#43;)" href="http://localhost:1313/leetcode/136-single-number/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：746. Min Cost Climbing Stairs
 解題思路 這題利用 DP 的方式，「有了前兩天的資訊可以推測出今天」依此類推的得知最後的答案。
-程式碼 class Solution { public: int minCostClimbingStairs(vector&lt;int>& cost) { int n = cost.size(); vector&lt;int> dp(n, 0); dp[0] = cost[0]; dp[1] = cost[1]; for (int i = 2; i &lt; n; i++) dp[i] = min(dp[i - 1], dp[i - 2]) + cost[i]; return min(dp[n - 1], dp[n - 2]); } };</p></div><footer class=entry-footer><span title='2025-11-01 09:04:58 +0800 CST'>November 1, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C++)" href=https://yamatrail.com/leetcode/746-min-cost-climbing-stairs/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C++)</h2></header><div class=entry-content><p>題目連結：1004. Max Consecutive Ones III
+程式碼 class Solution { public: int minCostClimbingStairs(vector&lt;int&gt;&amp; cost) { int n = cost.size(); vector&lt;int&gt; dp(n, 0); dp[0] = cost[0]; dp[1] = cost[1]; for (int i = 2; i &lt; n; i&#43;&#43;) dp[i] = min(dp[i - 1], dp[i - 2]) &#43; cost[i]; return min(dp[n - 1], dp[n - 2]); } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 09:04:58 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 746. Min Cost Climbing Stairs | 用前兩天的資訊推測出今天 | (C&#43;&#43;)" href="http://localhost:1313/leetcode/746-min-cost-climbing-stairs/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：1004. Max Consecutive Ones III
 解題思路 這題使用兩個 pointer left 與 right 來紀錄當前的 array 大小，像是：
 0 1 2 3 4 5 6 7 8 9 ↑ ↑ l r 這個時候 left == 2, right == 6 長度的計算為
-length = right - left + 1 也就是 6 - 2 + 1 == 5
+length = right - left &#43; 1 也就是 6 - 2 &#43; 1 == 5
 如何表達 length == 0 這樣的設計會碰到的下一個問題是
 假設 right == 6 如何表達 length == 0 的情況?? 會像是下面這個樣子：
 0 1 2 3 4 5 6 7 8 9 ↑ ↑ r l 雖然是 left 不過卻在 right 的右邊，但這樣做的好處就在於我們計算長度的公式：
-...</p></div><footer class=entry-footer><span title='2025-10-16 13:14:24 +0800 CST'>October 16, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C++)" href=https://yamatrail.com/leetcode/1004-max-consecutive-ones-iii/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C++)</h2></header><div class=entry-content><p>題目連結：1679. Max Number of K-Sum Pairs
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 13:14:24 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1004. Max Consecutive Ones III | two ponters 表達 length == 0 的方式 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1004-max-consecutive-ones-iii/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：1679. Max Number of K-Sum Pairs
 解題思路 這一題跟 11. Container With Most Water 的感覺還蠻像的，都是先把兩的 pointer 放在兩端，並且根據不同的情況，用 greedy 的方式判斷下一步要做什麼。還有這個問題是配對到了就刪除掉，所以也不會有重複的問題。
-程式碼 class Solution { public: int maxOperations(vector&lt;int>& nums, int k) { int left = 0; int right = nums.size() - 1; int count = 0; sort(nums.begin(), nums.end()); while (left &lt; right) { if (nums[left] + nums[right] == k) { count++; left++; right--; } else if (nums[left] + nums[right] &lt; k) { left++; } else { right--; } } return count; } };</p></div><footer class=entry-footer><span title='2025-10-16 11:30:41 +0800 CST'>October 16, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C++)" href=https://yamatrail.com/leetcode/1679-max-number-of-k-sum-pairs/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C++)</h2></header><div class=entry-content><p>題目連結：345. Reverse Vowels of a String
+程式碼 class Solution { public: int maxOperations(vector&lt;int&gt;&amp; nums, int k) { int left = 0; int right = nums.size() - 1; int count = 0; sort(nums.begin(), nums.end()); while (left &lt; right) { if (nums[left] &#43; nums[right] == k) { count&#43;&#43;; left&#43;&#43;; right--; } else if (nums[left] &#43; nums[right] &lt; k) { left&#43;&#43;; } else { right--; } } return count; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 11:30:41 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 1679. Max Number of K-Sum Pairs | 考慮目前的最大與最小 (C&#43;&#43;)" href="http://localhost:1313/leetcode/1679-max-number-of-k-sum-pairs/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：345. Reverse Vowels of a String
 解題思路 這題就很直覺得掃過兩遍，第一遍收集 Vowels，第二變把 Vowels 用相反的順序放回去，真有什麼好說的東西的話應該是寫個 helper function isVowels() 會方便一些。
-程式碼 class Solution { private: bool isVowels(char c) { if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') return true; if (c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U') return true; return false; } public: string reverseVowels(string s) { int n = s.size(); queue&lt;char> q; for (int i = 0; i &lt; n; i++) if (isVowels(s[i])) q.push(s[i]); for (int i = n - 1; i >= 0; i--) if (isVowels(s[i])) { s[i] = q.front(); q.pop(); } return s; } };</p></div><footer class=entry-footer><span title='2025-10-16 11:08:09 +0800 CST'>October 16, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C++)" href=https://yamatrail.com/leetcode/345-reverse-vowels-of-a-string/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C++)</h2></header><div class=entry-content><p>題目連結：334. Increasing Triplet Subsequence
+程式碼 class Solution { private: bool isVowels(char c) { if (c == &#39;a&#39; || c == &#39;e&#39; || c == &#39;i&#39; || c == &#39;o&#39; || c == &#39;u&#39;) return true; if (c == &#39;A&#39; || c == &#39;E&#39; || c == &#39;I&#39; || c == &#39;O&#39; || c == &#39;U&#39;) return true; return false; } public: string reverseVowels(string s) { int n = s.size(); queue&lt;char&gt; q; for (int i = 0; i &lt; n; i&#43;&#43;) if (isVowels(s[i])) q.push(s[i]); for (int i = n - 1; i &gt;= 0; i--) if (isVowels(s[i])) { s[i] = q.front(); q.pop(); } return s; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 11:08:09 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 345. Reverse Vowels of a String | 用個 helper function 會方便許多 (C&#43;&#43;)" href="http://localhost:1313/leetcode/345-reverse-vowels-of-a-string/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：334. Increasing Triplet Subsequence
 解題思路 這題我剛開始是朝著先找出 i 與 k 之後再檢查 j 是否存在，想了幾遍都覺得有些瑕疵，後來發現依照 i, j, k 的順序尋找會比較合理一些，可以用很 greedy 的方式去尋找。
 如果再來一次的話，我應該會先列出以下兩種可能：
 先找出最大最小的 i 與 k, 再找出中間的 j 依照順序尋找 i, j, k 評估之後挑選較有可能的順序，並且保持另一個方案的可能性。
-程式碼 class Solution { public: bool increasingTriplet(vector&lt;int>& nums) { if (nums.size() &lt; 3) return false; int i = 0; int j = -1; for (int l = 1; l &lt; nums.size(); l++) { if (nums[l] &lt; nums[i]) { i = l; } else if (j > 0 && nums[l] > nums[j]) { return true; } else if (nums[l] > nums[i]) { j = l; } } return false; } };</p></div><footer class=entry-footer><span title='2025-09-30 11:13:47 +0800 CST'>September 30, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C++)" href=https://yamatrail.com/leetcode/334-increasing-triplet-subsequence/></a></article></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>
+程式碼 class Solution { public: bool increasingTriplet(vector&lt;int&gt;&amp; nums) { if (nums.size() &lt; 3) return false; int i = 0; int j = -1; for (int l = 1; l &lt; nums.size(); l&#43;&#43;) { if (nums[l] &lt; nums[i]) { i = l; } else if (j &gt; 0 &amp;&amp; nums[l] &gt; nums[j]) { return true; } else if (nums[l] &gt; nums[i]) { j = l; } } return false; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-30 11:13:47 +0800 CST'>September 30, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 334. Increasing Triplet Subsequence | 挑選較好的順序 (C&#43;&#43;)" href="http://localhost:1313/leetcode/334-increasing-triplet-subsequence/"></a>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

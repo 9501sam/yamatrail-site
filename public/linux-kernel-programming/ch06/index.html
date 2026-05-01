@@ -1,5 +1,13 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>Ch06: Kernel Internals Essentials - Processes and Threads | Yama's Trail</title>
-<meta name=keywords content><meta name=description content="Understanding process and interrupt contexts
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Ch06: Kernel Internals Essentials - Processes and Threads | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="Understanding process and interrupt contexts
 
 各種 context 有以下的分類
 
@@ -32,51 +40,613 @@ Libraries (text, data)
 Stack: 這個區域會對應到 function call 的過程
 
 Organizing processes, threads, and their stacks – user and kernel space
-thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
-這本書會把重點著重於 thread 因為在最原始的 Unix 理念中"><meta name=author content><link rel=canonical href=https://yamatrail.com/linux-kernel-programming/ch06/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://yamatrail.com/linux-kernel-programming/ch06/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/linux-kernel-programming/ch06/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="Ch06: Kernel Internals Essentials - Processes and Threads"><meta property="og:description" content="Understanding process and interrupt contexts 各種 context 有以下的分類
-kernel code interrupt context: 可能是來自於 hard ware 的 interrupt process context: 來自於 system call 或是 exception user space user context 在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡
-Understanding the basics of the process VAS 大致上一個 process 的 virtual address space 長成下面這個樣子 Text segment: 這是 machine code 存放的地方 Data segment Initialized data segment: 已經初始化的變數 Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡 Libraries (text, data) Stack: 這個區域會對應到 function call 的過程 Organizing processes, threads, and their stacks – user and kernel space thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的 這本書會把重點著重於 thread 因為在最原始的 Unix 理念中"><meta property="og:locale" content="zh-tw"><meta property="og:type" content="article"><meta property="article:section" content="linux-kernel-programming"><meta property="article:published_time" content="2026-03-07T14:59:44+08:00"><meta property="article:modified_time" content="2026-03-07T14:59:44+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Ch06: Kernel Internals Essentials - Processes and Threads"><meta name=twitter:description content="Understanding process and interrupt contexts
+thread 可以想成是 registers &#43; stack 的組合，其他的資源都是跟 process 共用的
+這本書會把重點著重於 thread 因為在最原始的 Unix 理念中">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/linux-kernel-programming/ch06/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/linux-kernel-programming/ch06/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
 
-各種 context 有以下的分類
+    </style>
+</noscript>
+</head>
 
-kernel code
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
 
-interrupt context: 可能是來自於 hard ware 的 interrupt
-process context: 來自於 system call 或是 exception
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
+                    <span>Linux Kernel Programming</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Ch06: Kernel Internals Essentials - Processes and Threads
+    </h1>
+    <div class="post-meta"><span title='2026-03-07 14:59:44 +0800 CST'>March 7, 2026</span>
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="understanding-process-and-interrupt-contexts">Understanding process and interrupt contexts<a hidden class="anchor" aria-hidden="true" href="#understanding-process-and-interrupt-contexts">#</a></h1>
+<p><img loading="lazy" src="/linux-kernel-programming/ch06/270.png">
+各種 context 有以下的分類</p>
+<ul>
+<li>kernel code
+<ul>
+<li>interrupt context: 可能是來自於 hard ware 的 interrupt</li>
+<li>process context: 來自於 system call 或是 exception</li>
+</ul>
+</li>
+<li>user space
+<ul>
+<li>user context</li>
+</ul>
+</li>
+</ul>
+<p>在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡</p>
+<h1 id="understanding-the-basics-of-the-process-vas">Understanding the basics of the process VAS<a hidden class="anchor" aria-hidden="true" href="#understanding-the-basics-of-the-process-vas">#</a></h1>
+<p>大致上一個 process 的 virtual address space 長成下面這個樣子
+<img loading="lazy" src="/linux-kernel-programming/ch06/271.png"></p>
+<ul>
+<li><strong>Text segment</strong>: 這是 machine code 存放的地方</li>
+<li><strong>Data segment</strong>
+<ul>
+<li><strong>Initialized data segment</strong>: 已經初始化的變數</li>
+<li><strong>Uninitialized data segment</strong>: 還沒有被初始化的變數，有時候會被稱為 <em>bss</em></li>
+</ul>
+</li>
+<li><strong>Heap segment</strong>: 被 <code>malloc()</code> 或是 <code>mmap()</code> 出來的區域會放在這裡</li>
+<li><strong>Libraries (text, data)</strong></li>
+<li><strong>Stack</strong>: 這個區域會對應到 function call 的過程</li>
+</ul>
+<h1 id="organizing-processes-threads-and-their-stacks--user-and-kernel-space">Organizing processes, threads, and their stacks – user and kernel space<a hidden class="anchor" aria-hidden="true" href="#organizing-processes-threads-and-their-stacks--user-and-kernel-space">#</a></h1>
+<p>thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
+這本書會把重點著重於 thread 因為在最原始的 Unix 理念中</p>
+<blockquote>
+<p>Everything is a process; if it&rsquo;s not a process, it&rsquo;s a file</p></blockquote>
+<p>這句話雖然在當今也算是正確的，不過</p>
+<blockquote>
+<p>The thread, not the process, is the kernel schedulable entity</p></blockquote>
+<p>在當今會更加貼切一些</p>
+<p>每一個 thread 都會有一個對應的 task structure (也被稱為 process descriptor)</p>
+<p>下一個重點為：</p>
+<blockquote>
+<p>we require one stack per thread per privilege level supported by the CPU</p></blockquote>
+<p>所以可以得到下一個結論</p>
+<blockquote>
+<p>every user space thread alive has two stacks</p></blockquote>
+<ul>
+<li><strong>A user space stack</strong></li>
+<li><strong>A kernel space stack</strong>: 進入到 kernel mode 之後才會用這個 stack</li>
+</ul>
+<p>但如果是 kernel thread 的話，就只會有一個 kernel thread</p>
+<p><img loading="lazy" src="/linux-kernel-programming/ch06/274.png"></p>
+<p>整個架構長成這個樣子</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd ~/Linux-Kernel-Programming/ch6/
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>./countem.sh
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch06/275.png">
+從上面的計算可以看到</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span># of total threads == # of kthread + # of uthread
+</span></span></code></pre></div><h2 id="user-space-organization">User space organization<a hidden class="anchor" aria-hidden="true" href="#user-space-organization">#</a></h2>
+<p><img loading="lazy" src="/linux-kernel-programming/ch06/276.png">
+先來看 user space 的部份，每一個 process 都一定會有一個 main thread，並且每一個 process 可以有多個 thread</p>
+<p>每一個 process 大致上會有以下的區塊：</p>
+<ul>
+<li><strong>Text</strong>: code <code>r-x</code></li>
+<li><strong>Data segments</strong>: <code>rw-</code> 這裡包含
+<ol>
+<li>itialized data segment</li>
+<li>unitialized data segment (or <code>bss</code>)</li>
+<li>&lsquo;upward-growing&rsquo; heap</li>
+</ol>
+</li>
+<li>Library mappings</li>
+<li>Downward-growing stack(s)</li>
+</ul>
+<p>每一個 user space thread 都會有對應的 user space stack 與 kernel space stack</p>
+<h2 id="kernel-space-organization">Kernel space organization<a hidden class="anchor" aria-hidden="true" href="#kernel-space-organization">#</a></h2>
+<p><img loading="lazy" src="/linux-kernel-programming/ch06/278.png"></p>
+<p>這裡的 kernel thread 只有一個 kernel-mode stack</p>
+<h3 id="summarizing-the-current-situation">Summarizing the current situation<a hidden class="anchor" aria-hidden="true" href="#summarizing-the-current-situation">#</a></h3>
+<ul>
+<li>Task structures:
+<ul>
+<li>每一個 thread (user or kernel) 都有一個相對應的 task struct</li>
+</ul>
+</li>
+<li>Stacks:
+<ul>
+<li>一個 user mode thread 會有兩個 stack
+<ul>
+<li>一個 user mode stack</li>
+<li>一個 kernel mode stack</li>
+</ul>
+</li>
+<li>一個純粹的 kernel mode thread 就只有一個 kernel mode stack</li>
+</ul>
+</li>
+</ul>
+<h1 id="viewing-the-user-and-kernel-stacks">Viewing the user and kernel stacks<a hidden class="anchor" aria-hidden="true" href="#viewing-the-user-and-kernel-stacks">#</a></h1>
+<p>在 debug 的時候很需要觀察 stack 裡面裝了什麼，因為 stack 中紀錄了當前的 execution context</p>
+<h2 id="traditional-approach-to-viewing-the-stacks">Traditional approach to viewing the stacks<a hidden class="anchor" aria-hidden="true" href="#traditional-approach-to-viewing-the-stacks">#</a></h2>
+<h3 id="viewing-the-kernel-space-stack-of-a-given-thread-or-process">Viewing the kernel space stack of a given thread or process<a hidden class="anchor" aria-hidden="true" href="#viewing-the-kernel-space-stack-of-a-given-thread-or-process">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> user@thinkpad:~$ pgrep bash 
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">8762</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> user@thinkpad:~$ sudo cat /proc/8762/stack
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> do_wait+0x171/0x310
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> kernel_wait4+0xaf/0x150
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> __do_sys_wait4+0x89/0xa0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> __x64_sys_wait4+0x1c/0x30
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> x64_sys_call+0x1c2e/0x1fa0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> do_syscall_64+0x56/0xb0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> entry_SYSCALL_64_after_hwframe+0x6c/0xd6
+</span></span></code></pre></div><p>或者直接使用</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>base<span style="color:#f92672">)</span> user@thinkpad:~$ sudo cat /proc/<span style="color:#66d9ef">$(</span>pgrep bash<span style="color:#66d9ef">)</span>/stack
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> do_wait+0x171/0x310
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> kernel_wait4+0xaf/0x150
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> __do_sys_wait4+0x89/0xa0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> __x64_sys_wait4+0x1c/0x30
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> x64_sys_call+0x1c2e/0x1fa0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> do_syscall_64+0x56/0xb0
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>&lt;0&gt;<span style="color:#f92672">]</span> entry_SYSCALL_64_after_hwframe+0x6c/0xd6 <span style="color:#75715e"># &lt;-- stack bottom</span>
+</span></span></code></pre></div><p>要注意這裡的輸出跟 memory 的排列是相反的，以我這裡的例子來說 <code>entry_SYSCALL_64_after_hwframe</code> 處在 stack bottom 的位置</p>
+<p>這裡的輸出代表 bash 正在執行 <code>do_wait()</code> 並且這是透過 system call 呼叫到這裡來的</p>
+<h3 id="viewing-the-user-space-stack-of-a-given-thread-or-process">Viewing the user space stack of a given thread or process<a hidden class="anchor" aria-hidden="true" href="#viewing-the-user-space-stack-of-a-given-thread-or-process">#</a></h3>
+<p>這裡有點諷刺的是，查看 user space stack 比 kernel space stack 還要困難</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>user@thinkpad:~$ sudo gdb -p <span style="color:#ae81ff">8762</span> -batch -ex <span style="color:#e6db74">&#34;thread apply all bt&#34;</span>
+</span></span><span style="display:flex;"><span>Thread <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>Thread 0x7f29b6a09740 <span style="color:#f92672">(</span>LWP 8762<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;bash&#34;</span><span style="color:#f92672">)</span>:
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#0  0x00007f29b6af63ea in __GI___wait4 (pid=-1, stat_loc=0x7ffc2376e500, options=10, usage=0x0) at ../sysdeps/unix/sysv/linux/wait4.c:30</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#1  0x0000556331e9b135 in ?? ()</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#2  0x0000556331dfb6a2 in wait_for ()</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#3  0x0000556331de37aa in execute_command_internal ()</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#4  0x0000556331de41b8 in execute_command ()</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#5  0x0000556331dd53cb in reader_loop ()</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#6  0x0000556331dc6c46 in main ()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>Inferior <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>process 8762<span style="color:#f92672">)</span> detached<span style="color:#f92672">]</span>
+</span></span></code></pre></div><h2 id="ebpf--the-modern-approach-to-viewing-both-stacks">[e]BPF – the modern approach to viewing both stacks<a hidden class="anchor" aria-hidden="true" href="#ebpf--the-modern-approach-to-viewing-both-stacks">#</a></h2>
+<p>前面的作法都是比較老一點的作法，現在比較常見的方式是用 eBPF</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo stackcount-bpfcc -p <span style="color:#ae81ff">29819</span> -r <span style="color:#e6db74">&#34;.*malloc.*&#34;</span> -v -d
+</span></span></code></pre></div><h2 id="the-10000-foot-view-of-the-process-vas">The 10,000-foot view of the process VAS<a hidden class="anchor" aria-hidden="true" href="#the-10000-foot-view-of-the-process-vas">#</a></h2>
+<p><img loading="lazy" src="/linux-kernel-programming/ch06/289.png"></p>
+<h1 id="understanding-and-accessing-the-kernel-task-structure">Understanding and accessing the kernel task structure<a hidden class="anchor" aria-hidden="true" href="#understanding-and-accessing-the-kernel-task-structure">#</a></h1>
+<p>每一個 thread 都有一個相對應的 task struct，他紀錄的這個 thread 的基本資料
+<img loading="lazy" src="/linux-kernel-programming/ch06/291.png"></p>
+<h2 id="looking-into-the-task-structure">Looking into the task structure<a hidden class="anchor" aria-hidden="true" href="#looking-into-the-task-structure">#</a></h2>
+<p><code>task_struct</code> 實際上定義在 <code>include/linux/sched.h</code> 中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd <span style="color:#66d9ef">$(</span>KSRC<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>vim include/linux/sched.h
+</span></span></code></pre></div><p>這裡看完 1. 原始碼 2. 書上對於原始碼的註記會對於 <code>task_struct</code> 比較有感覺</p>
+<h2 id="accessing-the-task-structure-with-current">Accessing the task structure with current<a hidden class="anchor" aria-hidden="true" href="#accessing-the-task-structure-with-current">#</a></h2>
+<p>使用 <code>current</code> 這個 macro 可以找到 <code>task_struct</code> 的內容，<code>current</code> 的實做非常 architecture-specific</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>user@ubuntu:~/kernels/linux-5.4/arch$ find . -name <span style="color:#e6db74">&#34;current.h&#34;</span>
+</span></span><span style="display:flex;"><span>./x86/include/asm/current.h
+</span></span><span style="display:flex;"><span>./xtensa/include/asm/current.h
+</span></span><span style="display:flex;"><span>./nds32/include/asm/current.h
+</span></span><span style="display:flex;"><span>./ia64/include/asm/current.h
+</span></span><span style="display:flex;"><span>./arc/include/asm/current.h
+</span></span><span style="display:flex;"><span>./microblaze/include/asm/current.h
+</span></span><span style="display:flex;"><span>./arm64/include/asm/current.h
+</span></span><span style="display:flex;"><span>./powerpc/include/asm/current.h
+</span></span><span style="display:flex;"><span>./m68k/include/asm/current.h
+</span></span><span style="display:flex;"><span>./riscv/include/asm/current.h
+</span></span><span style="display:flex;"><span>./sparc/include/asm/current.h
+</span></span><span style="display:flex;"><span>./s390/include/asm/current.h
+</span></span></code></pre></div><p>例如 arm64 的實做：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* SPDX-License-Identifier: GPL-2.0 */</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#ifndef __ASM_CURRENT_H
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define __ASM_CURRENT_H
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/compiler.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#ifndef __ASSEMBLY__
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> task_struct;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * We don&#39;t use read_sysreg() as we want the compiler to cache the value where
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * possible.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> __always_inline <span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span><span style="color:#a6e22e">get_current</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> sp_el0;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">asm</span> (<span style="color:#e6db74">&#34;mrs %0, sp_el0&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;=r&#34;</span> (sp_el0));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (<span style="color:#66d9ef">struct</span> task_struct <span style="color:#f92672">*</span>)sp_el0;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define current get_current()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif </span><span style="color:#75715e">/* __ASSEMBLY__ */</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif </span><span style="color:#75715e">/* __ASM_CURRENT_H */</span><span style="color:#75715e">
+</span></span></span></code></pre></div><p>使用方式如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/sched.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>current<span style="color:#f92672">-&gt;</span>pid, current<span style="color:#f92672">-&gt;</span>comm
+</span></span></code></pre></div><h2 id="determining-the-context">Determining the context<a hidden class="anchor" aria-hidden="true" href="#determining-the-context">#</a></h2>
+<p>Kernel code 會跑在下面兩種 context</p>
+<ul>
+<li>Process (or task) context</li>
+<li>Interrupt (or atomic) context</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e">#include &lt;linux/preempt.h&gt;</span>
+</span></span><span style="display:flex;"><span>in_task<span style="color:#f92672">()</span>
+</span></span></code></pre></div><p><code>in_task()</code> 回傳一個 boolean</p>
+<ul>
+<li>return <code>true</code>: process context (通常可以在這個情況下 sleep)</li>
+<li>return <code>false</code>: interrupt context (不可以在這個情況下 sleep)</li>
+</ul>
+<blockquote>
+<p>current is only considered valid when running in process context</p></blockquote>
+<h1 id="working-with-the-task-structure-via-current">Working with the task structure via current<a hidden class="anchor" aria-hidden="true" href="#working-with-the-task-structure-via-current">#</a></h1>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd /home/user/Linux-Kernel-Programming/ch6/current_affairs
+</span></span><span style="display:flex;"><span>vim current_affairs.c
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * ch6/current_affairs/current_affairs.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> ***************************************************************
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * This program is part of the source code released for the book
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *  &#34;Linux Kernel Programming&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *  (c) Author: Kaiwan N Billimoria
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *  Publisher:  Packt
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *  GitHub repository:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *  https://github.com/PacktPublishing/Linux-Kernel-Programming
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * From: Ch 6: Kernel and Memory Management Internals -Essentials
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> ****************************************************************
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * Brief Description:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * For details, please refer the book, Ch 6.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/init.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/module.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/kernel.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/sched.h&gt;    /* current() */</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/preempt.h&gt;  /* in_task() */</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/cred.h&gt;     /* current_{e}{u,g}id() */</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/uidgid.h&gt;   /* {from,make}_kuid() */</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define OURMODNAME   &#34;current_affairs&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_AUTHOR</span>(<span style="color:#e6db74">&#34;Kaiwan N Billimoria&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_DESCRIPTION</span>(<span style="color:#e6db74">&#34;LKP book:ch6/current_affairs: display a few members of&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34; the current process&#39; task structure&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_LICENSE</span>(<span style="color:#e6db74">&#34;Dual MIT/GPL&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">MODULE_VERSION</span>(<span style="color:#e6db74">&#34;0.1&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">show_ctx</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>nm)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/* Extract the task UID and EUID using helper methods provided */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> uid <span style="color:#f92672">=</span> <span style="color:#a6e22e">from_kuid</span>(<span style="color:#f92672">&amp;</span>init_user_ns, <span style="color:#a6e22e">current_uid</span>());
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> euid <span style="color:#f92672">=</span> <span style="color:#a6e22e">from_kuid</span>(<span style="color:#f92672">&amp;</span>init_user_ns, <span style="color:#a6e22e">current_euid</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;%s:%s():%d &#34;</span>, nm, __func__, __LINE__);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">likely</span>(<span style="color:#a6e22e">in_task</span>())) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;%s: in process context ::</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34; PID         : %6d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34; TGID        : %6d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34; UID         : %6u</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34; EUID        : %6u (%s root)</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34; name        : %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34; current (ptr to our process context&#39;s task_struct) :</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;               0x%pK (0x%px)</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34; stack start : 0x%pK (0x%px)</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, nm,
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">/* always better to use the helper methods provided */</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">task_pid_nr</span>(current), <span style="color:#a6e22e">task_tgid_nr</span>(current),
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">/* ... rather than the &#39;usual&#39; direct lookups:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">             * current-&gt;pid, current-&gt;tgid,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">             */</span>
+</span></span><span style="display:flex;"><span>            uid, euid,
+</span></span><span style="display:flex;"><span>            (euid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;have&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;don&#39;t have&#34;</span>),
+</span></span><span style="display:flex;"><span>            current<span style="color:#f92672">-&gt;</span>comm,
+</span></span><span style="display:flex;"><span>            current, current,
+</span></span><span style="display:flex;"><span>            current<span style="color:#f92672">-&gt;</span>stack, current<span style="color:#f92672">-&gt;</span>stack);
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pr_alert</span>(<span style="color:#e6db74">&#34;%s: in interrupt context [Should NOT Happen here!]</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, nm);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> __init <span style="color:#a6e22e">current_affairs_init</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;%s: inserted</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, OURMODNAME);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34; sizeof(struct task_struct)=%zd</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">struct</span> task_struct));
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">show_ctx</span>(OURMODNAME);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;       <span style="color:#75715e">/* success */</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> __exit <span style="color:#a6e22e">current_affairs_exit</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">show_ctx</span>(OURMODNAME);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;%s: removed</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, OURMODNAME);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_init</span>(current_affairs_init);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">module_exit</span>(current_affairs_exit);
+</span></span></code></pre></div><p>從這個範例可以看到要如何使用 <code>current</code>，注意看這裡會使用像是</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/sched.h&gt;    /* current() */</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>[...]
+</span></span><span style="display:flex;"><span>current<span style="color:#f92672">-&gt;</span>comm,
+</span></span><span style="display:flex;"><span>current, current,
+</span></span><span style="display:flex;"><span>current<span style="color:#f92672">-&gt;</span>stack, current<span style="color:#f92672">-&gt;</span>stack
+</span></span><span style="display:flex;"><span>[...]
+</span></span></code></pre></div><p>這種用法，<code>current</code> 在 <code>#include &lt;linux/sched.h&gt;</code> 之後，可作為一個 macro 使用</p>
+<p>這裡的用意在於列印出當前這個 process 的 <code>task_struct</code></p>
+<h3 id="built-in-kernel-helper-methods-and-optimizations">Built-in kernel helper methods and optimizations<a hidden class="anchor" aria-hidden="true" href="#built-in-kernel-helper-methods-and-optimizations">#</a></h3>
+<h3 id="trying-out-the-kernel-module-to-print-process-context-info">Trying out the kernel module to print process context info<a hidden class="anchor" aria-hidden="true" href="#trying-out-the-kernel-module-to-print-process-context-info">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd ~/Linux-Kernel-Programming/ch6/current_affairs/
+</span></span><span style="display:flex;"><span>make
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo dmesg -C
+</span></span><span style="display:flex;"><span>sudo insmod ./current_affairs.ko
+</span></span><span style="display:flex;"><span>dmesg
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch06/300.png">
+如同這份 code 所預期的，列印出一些當前 process 的資訊</p>
+<h4 id="seeing-that-the-linux-os-is-monolithic">Seeing that the Linux OS is monolithic<a hidden class="anchor" aria-hidden="true" href="#seeing-that-the-linux-os-is-monolithic">#</a></h4>
+<h4 id="coding-for-security-with-printk">Coding for security with printk<a hidden class="anchor" aria-hidden="true" href="#coding-for-security-with-printk">#</a></h4>
+<h1 id="iterating-over-the-kernels-task-lists">Iterating over the kernel&rsquo;s task lists<a hidden class="anchor" aria-hidden="true" href="#iterating-over-the-kernels-task-lists">#</a></h1>
+<p>所有的 <code>task_struct</code> 是用一個 linked list 存放在 <code>include/linux/types.h:list_head</code> 中</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd <span style="color:#e6db74">${</span>KSRC<span style="color:#e6db74">}</span>/include/linux/
+</span></span><span style="display:flex;"><span>vim <span style="color:#e6db74">${</span>KSRC<span style="color:#e6db74">}</span>/include/linux/types.h
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> list_head {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> list_head <span style="color:#f92672">*</span>next, <span style="color:#f92672">*</span>prev;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>針對這個 list 的操作，<code>include/linux/signal.h</code> 中提供了很多 macro 可以使用</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>vim /home/user/kernels/linux-5.4/include/linux/signal.h
+</span></span></code></pre></div><p>接下來會來嘗試完成以下兩個任務</p>
+<blockquote>
+<ul>
+<li>One: Iterate over the kernel task list and display all processes alive.</li>
+<li>Two: Iterate over the kernel task list and display all threads alive</li>
+</ul></blockquote>
+<h2 id="iterating-over-the-task-list-i--displaying-all-processes">Iterating over the task list I – displaying all processes<a hidden class="anchor" aria-hidden="true" href="#iterating-over-the-task-list-i--displaying-all-processes">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>~/Linux-Kernel-Programming/ch6/foreach/prcs_showall
+</span></span><span style="display:flex;"><span>make
+</span></span><span style="display:flex;"><span>sudo dmesg -C
+</span></span><span style="display:flex;"><span>sudo insmod ./prcs_showall.ko
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sudo rmmod prcs_showall
+</span></span></code></pre></div><p><img loading="lazy" src="/linux-kernel-programming/ch06/304.png"></p>
+<p>這裡可以對照 <code>prcs_showall.c</code> 與 <code>signal.h</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>vim ~/Linux-Kernel-Programming/ch6/foreach/prcs_showall/prcs_showall.c
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>vim <span style="color:#e6db74">${</span>KSRC<span style="color:#e6db74">}</span>/include/linux/sched/signal.h
+</span></span></code></pre></div><p>重點在於 <code>signal.h</code> 的 <code>for_each_process()</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define for_each_process(p) \
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">    for (p = &amp;init_task ; (p = next_task(p)) != &amp;init_task ; )
+</span></span></span></code></pre></div><p>跟 <code>prcs_showall.c</code> 中的使用</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>[...]
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rcu_read_lock</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">for_each_process</span>(p) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">memset</span>(tmp, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">128</span>);
+</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> <span style="color:#a6e22e">snprintf</span>(tmp, <span style="color:#ae81ff">128</span>, <span style="color:#e6db74">&#34;%-16s|%8d|%8d|%7u|%7u</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p<span style="color:#f92672">-&gt;</span>comm, p<span style="color:#f92672">-&gt;</span>tgid, p<span style="color:#f92672">-&gt;</span>pid,
+</span></span><span style="display:flex;"><span>                 <span style="color:#75715e">/* (old way to disp credentials): p-&gt;uid, p-&gt;euid -or-
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                  * current_uid().val, current_euid().val
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                  * better way using kernel helper __kuid_val():
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                  */</span>
+</span></span><span style="display:flex;"><span>                 <span style="color:#a6e22e">__kuid_val</span>(p<span style="color:#f92672">-&gt;</span>cred<span style="color:#f92672">-&gt;</span>uid), <span style="color:#a6e22e">__kuid_val</span>(p<span style="color:#f92672">-&gt;</span>cred<span style="color:#f92672">-&gt;</span>euid)
+</span></span><span style="display:flex;"><span>            );
+</span></span><span style="display:flex;"><span>        numread <span style="color:#f92672">+=</span> n;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pr_info</span>(<span style="color:#e6db74">&#34;%s&#34;</span>, tmp);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">//pr_debug(&#34;n=%d numread=%d tmp=%s\n&#34;, n, numread, tmp);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">cond_resched</span>();
+</span></span><span style="display:flex;"><span>        total<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    }           <span style="color:#75715e">// for_each_process()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">rcu_read_unlock</span>();
+</span></span><span style="display:flex;"><span>[...]
+</span></span></code></pre></div><h2 id="iterating-over-the-task-list-ii--displaying-all-threads">Iterating over the task list II – displaying all threads<a hidden class="anchor" aria-hidden="true" href="#iterating-over-the-task-list-ii--displaying-all-threads">#</a></h2>
+<h3 id="differentiating-between-the-process-and-thread--the-tgid-and-the-pid">Differentiating between the process and thread – the TGID and the PID<a hidden class="anchor" aria-hidden="true" href="#differentiating-between-the-process-and-thread--the-tgid-and-the-pid">#</a></h3>
+<h2 id="iterating-over-the-task-list-iii--the-code">Iterating over the task list III – the code<a hidden class="anchor" aria-hidden="true" href="#iterating-over-the-task-list-iii--the-code">#</a></h2>
 
 
-user space
+  </div>
 
-user context
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/linux-kernel-programming/ch05/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>Ch05: Writing Your First Kernel Module - LKMs Part 2</span>
+  </a>
+  <a class="next" href="http://localhost:1313/linux-kernel-programming/pi-wifi/">
+    <span class="title">Next »</span>
+    <br>
+    <span>如何在文字界面底下讓樹莓派連上 Wi-Fi</span>
+  </a>
+</nav>
 
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
 
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
 
-在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡
-Understanding the basics of the process VAS
-大致上一個 process 的 virtual address space 長成下面這個樣子
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
 
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
 
-Text segment: 這是 machine code 存放的地方
-Data segment
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
 
-Initialized data segment: 已經初始化的變數
-Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
 
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
 
-Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡
-Libraries (text, data)
-Stack: 這個區域會對應到 function call 的過程
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
 
-Organizing processes, threads, and their stacks – user and kernel space
-thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
-這本書會把重點著重於 thread 因為在最原始的 Unix 理念中"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Linux Kernel Programming 學習紀錄","item":"https://yamatrail.com/linux-kernel-programming/"},{"@type":"ListItem","position":2,"name":"Ch06: Kernel Internals Essentials - Processes and Threads","item":"https://yamatrail.com/linux-kernel-programming/ch06/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Ch06: Kernel Internals Essentials - Processes and Threads","name":"Ch06: Kernel Internals Essentials - Processes and Threads","description":"Understanding process and interrupt contexts 各種 context 有以下的分類\nkernel code interrupt context: 可能是來自於 hard ware 的 interrupt process context: 來自於 system call 或是 exception user space user context 在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡\nUnderstanding the basics of the process VAS 大致上一個 process 的 virtual address space 長成下面這個樣子 Text segment: 這是 machine code 存放的地方 Data segment Initialized data segment: 已經初始化的變數 Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡 Libraries (text, data) Stack: 這個區域會對應到 function call 的過程 Organizing processes, threads, and their stacks – user and kernel space thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的 這本書會把重點著重於 thread 因為在最原始的 Unix 理念中\n","keywords":[],"articleBody":"Understanding process and interrupt contexts 各種 context 有以下的分類\nkernel code interrupt context: 可能是來自於 hard ware 的 interrupt process context: 來自於 system call 或是 exception user space user context 在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡\nUnderstanding the basics of the process VAS 大致上一個 process 的 virtual address space 長成下面這個樣子 Text segment: 這是 machine code 存放的地方 Data segment Initialized data segment: 已經初始化的變數 Uninitialized data segment: 還沒有被初始化的變數，有時候會被稱為 bss Heap segment: 被 malloc() 或是 mmap() 出來的區域會放在這裡 Libraries (text, data) Stack: 這個區域會對應到 function call 的過程 Organizing processes, threads, and their stacks – user and kernel space thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的 這本書會把重點著重於 thread 因為在最原始的 Unix 理念中\nEverything is a process; if it’s not a process, it’s a file\n這句話雖然在當今也算是正確的，不過\nThe thread, not the process, is the kernel schedulable entity\n在當今會更加貼切一些\n每一個 thread 都會有一個對應的 task structure (也被稱為 process descriptor)\n下一個重點為：\nwe require one stack per thread per privilege level supported by the CPU\n所以可以得到下一個結論\nevery user space thread alive has two stacks\nA user space stack A kernel space stack: 進入到 kernel mode 之後才會用這個 stack 但如果是 kernel thread 的話，就只會有一個 kernel thread\n整個架構長成這個樣子\ncd ~/Linux-Kernel-Programming/ch6/ ./countem.sh ","wordCount":"179","inLanguage":"en","datePublished":"2026-03-07T14:59:44+08:00","dateModified":"2026-03-07T14:59:44+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://yamatrail.com/linux-kernel-programming/ch06/"},"publisher":{"@type":"Organization","name":"Yama's Trail","logo":{"@type":"ImageObject","url":"https://yamatrail.com/favicon_io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">Ch06: Kernel Internals Essentials - Processes and Threads</h1><div class=post-meta><span title='2026-03-07 14:59:44 +0800 CST'>March 7, 2026</span></div></header><div class=post-content><h1 id=understanding-process-and-interrupt-contexts>Understanding process and interrupt contexts<a hidden class=anchor aria-hidden=true href=#understanding-process-and-interrupt-contexts>#</a></h1><p><img loading=lazy src=/linux-kernel-programming/ch06/270.png>
-各種 context 有以下的分類</p><ul><li>kernel code<ul><li>interrupt context: 可能是來自於 hard ware 的 interrupt</li><li>process context: 來自於 system call 或是 exception</li></ul></li><li>user space<ul><li>user context</li></ul></li></ul><p>在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡</p><h1 id=understanding-the-basics-of-the-process-vas>Understanding the basics of the process VAS<a hidden class=anchor aria-hidden=true href=#understanding-the-basics-of-the-process-vas>#</a></h1><p>大致上一個 process 的 virtual address space 長成下面這個樣子
-<img loading=lazy src=/linux-kernel-programming/ch06/271.png></p><ul><li><strong>Text segment</strong>: 這是 machine code 存放的地方</li><li><strong>Data segment</strong><ul><li><strong>Initialized data segment</strong>: 已經初始化的變數</li><li><strong>Uninitialized data segment</strong>: 還沒有被初始化的變數，有時候會被稱為 <em>bss</em></li></ul></li><li><strong>Heap segment</strong>: 被 <code>malloc()</code> 或是 <code>mmap()</code> 出來的區域會放在這裡</li><li><strong>Libraries (text, data)</strong></li><li><strong>Stack</strong>: 這個區域會對應到 function call 的過程</li></ul><h1 id=organizing-processes-threads-and-their-stacks--user-and-kernel-space>Organizing processes, threads, and their stacks – user and kernel space<a hidden class=anchor aria-hidden=true href=#organizing-processes-threads-and-their-stacks--user-and-kernel-space>#</a></h1><p>thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
-這本書會把重點著重於 thread 因為在最原始的 Unix 理念中</p><blockquote><p>Everything is a process; if it&rsquo;s not a process, it&rsquo;s a file</p></blockquote><p>這句話雖然在當今也算是正確的，不過</p><blockquote><p>The thread, not the process, is the kernel schedulable entity</p></blockquote><p>在當今會更加貼切一些</p><p>每一個 thread 都會有一個對應的 task structure (也被稱為 process descriptor)</p><p>下一個重點為：</p><blockquote><p>we require one stack per thread per privilege level supported by the CPU</p></blockquote><p>所以可以得到下一個結論</p><blockquote><p>every user space thread alive has two stacks</p></blockquote><ul><li><strong>A user space stack</strong></li><li><strong>A kernel space stack</strong>: 進入到 kernel mode 之後才會用這個 stack</li></ul><p>但如果是 kernel thread 的話，就只會有一個 kernel thread</p><p><img loading=lazy src=/linux-kernel-programming/ch06/274.png></p><p>整個架構長成這個樣子</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>cd ~/Linux-Kernel-Programming/ch6/
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sh data-lang=sh><span style=display:flex><span>./countem.sh
-</span></span></code></pre></div><p><img loading=lazy src=/linux-kernel-programming/ch06/275.png></p></div><footer class=post-footer><ul class=post-tags></ul><nav class=paginav><a class=prev href=https://yamatrail.com/linux-kernel-programming/ch05/><span class=title>« Prev</span><br><span>Ch05: Writing Your First Kernel Module - LKMs Part 2</span>
-</a><a class=next href=https://yamatrail.com/linux-kernel-programming/pi-wifi/><span class=title>Next »</span><br><span>如何在文字界面底下讓樹莓派連上 Wi-Fi</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
