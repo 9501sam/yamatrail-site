@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Yama's Trail</title><link>https://yamatrail.com/</link><description>Recent content on Yama's Trail</description><generator>Hugo -- 0.146.0</generator><language>zh-tw</language><lastBuildDate>Sat, 07 Mar 2026 14:59:44 +0800</lastBuildDate><atom:link href="https://yamatrail.com/index.xml" rel="self" type="application/rss+xml"/><item><title>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</title><link>https://yamatrail.com/leetcode/17-letter-combinations-of-a-phone-number/</link><pubDate>Sat, 27 Sep 2025 00:37:29 +0800</pubDate><guid>https://yamatrail.com/leetcode/17-letter-combinations-of-a-phone-number/</guid><description>&lt;p>題目連結：&lt;a href="https://leetcode.com/problems/letter-combinations-of-a-phone-number">17. Letter Combinations of a Phone Number&lt;/a>&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Yama's Trail</title><link>https://yamatrail.com/</link><description>Recent content on Yama's Trail</description><generator>Hugo -- 0.146.0</generator><language>zh-tw</language><lastBuildDate>Mon, 04 May 2026 21:02:50 +0800</lastBuildDate><atom:link href="https://yamatrail.com/index.xml" rel="self" type="application/rss+xml"/><item><title>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</title><link>https://yamatrail.com/leetcode/17-letter-combinations-of-a-phone-number/</link><pubDate>Sat, 27 Sep 2025 00:37:29 +0800</pubDate><guid>https://yamatrail.com/leetcode/17-letter-combinations-of-a-phone-number/</guid><description>&lt;p>題目連結：&lt;a href="https://leetcode.com/problems/letter-combinations-of-a-phone-number">17. Letter Combinations of a Phone Number&lt;/a>&lt;/p>
 &lt;p>我覺得這種 backtracking 或是 dfs 的題目都需要想清處 depth 的定義是什麼，想清楚就會好寫許多。&lt;/p>
 &lt;h2 id="程式實做">程式實做&lt;/h2>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-c++" data-lang="c++">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">class&lt;/span> &lt;span style="color:#a6e22e">Solution&lt;/span> {
@@ -446,7 +446,20 @@
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Error: Scanning not allowed &lt;span style="color:#66d9ef">while&lt;/span> unavailable.
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>這是因為還沒有設定國家代碼，這時要先&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo raspi-config
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p></description></item><item><title>[xv6 學習紀錄 03-1] Virtual Memory 程式碼解析</title><link>https://yamatrail.com/xv6/lab3.1/</link><pubDate>Mon, 13 Oct 2025 12:32:56 +0800</pubDate><guid>https://yamatrail.com/xv6/lab3.1/</guid><description>&lt;h2 id="xv6-中的-virtual-memory">xv6 中的 virtual memory&lt;/h2>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p></description></item><item><title>Ch07: Memory Management Internals - Essentials</title><link>https://yamatrail.com/linux-kernel-programming/ch07/</link><pubDate>Mon, 04 May 2026 21:02:50 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch07/</guid><description>&lt;h1 id="understanding-the-vm-split">Understanding the VM split&lt;/h1>
+&lt;p>Linux kernel 管理記憶體時有一下兩種方式&lt;/p>
+&lt;ul>
+&lt;li>virtual memory-based (通常是使用這種方式)&lt;/li>
+&lt;li>直接以 physical memory 的觀點去處理&lt;/li>
+&lt;/ul>
+&lt;p>這個章節會先討論 virtual memory 的方式，接著再討論 physical memory 的方式&lt;/p>
+&lt;ul>
+&lt;li>在 32-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 32 = 4GB&lt;/li>
+&lt;li>在 64-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 64 = 4EB&lt;/li>
+&lt;/ul>
+&lt;p>為了討論方便，這裡會先使用 32-bit 的方式&lt;/p>
+&lt;h2 id="looking-under-the-hood--the-hello-world-c-program">Looking under the hood – the Hello, world C program&lt;/h2>
+&lt;p>這裡在說明像是在這樣的 &lt;code>helloworld.c&lt;/code> 中，&lt;code>printf()&lt;/code> 是透過 loader 呼叫 system call &lt;code>mmap()&lt;/code>，讓 &lt;code>printf()&lt;/code> 可以被 map 到這個 process 的 VAS 中。&lt;/p></description></item><item><title>[xv6 學習紀錄 03-1] Virtual Memory 程式碼解析</title><link>https://yamatrail.com/xv6/lab3.1/</link><pubDate>Mon, 13 Oct 2025 12:32:56 +0800</pubDate><guid>https://yamatrail.com/xv6/lab3.1/</guid><description>&lt;h2 id="xv6-中的-virtual-memory">xv6 中的 virtual memory&lt;/h2>
 &lt;p>&lt;img alt="page_table.png" loading="lazy" src="https://yamatrail.com/xv6/lab3.1/page_table.png">
 &lt;img alt="3levels_page_table.png" loading="lazy" src="https://yamatrail.com/xv6/lab3.1/3levels_page_table.png">&lt;/p>
 &lt;h2 id="memory-layout">memory layout&lt;/h2>
@@ -1465,7 +1478,34 @@ Read the code in &lt;code>call.asm&lt;/code> for the functions &lt;code>g&lt;/co
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img loading="lazy" src="https://yamatrail.com/xv6/e1000-mannual/kernel_layout.png">&lt;/p></description></item><item><title>[xv6 學習紀錄 11] Lab net: Network driver</title><link>https://yamatrail.com/xv6/lab11/</link><pubDate>Sat, 01 Nov 2025 13:01:44 +0800</pubDate><guid>https://yamatrail.com/xv6/lab11/</guid><description>&lt;p>Lab 連結：&lt;a href="https://pdos.csail.mit.edu/6.S081/2022/labs/net.html">Lab net: Network driver&lt;/a>&lt;/p>
 &lt;h2 id="background">Background&lt;/h2>
 &lt;blockquote>
-&lt;p>You&amp;rsquo;ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the &amp;ldquo;guest&amp;rdquo;) has an IP address of &lt;code>10.0.2.15&lt;/code>. Qemu also arranges for the computer running qemu to appear on the LAN with IP address &lt;code>10.0.2.2&lt;/code>. When xv6 uses the E1000 to send a packet to &lt;code>10.0.2.2&lt;/code>, qemu delivers the packet to the appropriate application on the (real) computer on which you&amp;rsquo;re running qemu (the &amp;ldquo;host&amp;rdquo;).&lt;/p></description></item><item><title>[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C++)</title><link>https://yamatrail.com/leetcode/136-single-number/</link><pubDate>Sat, 01 Nov 2025 09:21:12 +0800</pubDate><guid>https://yamatrail.com/leetcode/136-single-number/</guid><description>&lt;p>題目連結：&lt;a href="https://leetcode.com/problems/single-number/description/">136. Single Number&lt;/a>&lt;/p>
+&lt;p>You&amp;rsquo;ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the &amp;ldquo;guest&amp;rdquo;) has an IP address of &lt;code>10.0.2.15&lt;/code>. Qemu also arranges for the computer running qemu to appear on the LAN with IP address &lt;code>10.0.2.2&lt;/code>. When xv6 uses the E1000 to send a packet to &lt;code>10.0.2.2&lt;/code>, qemu delivers the packet to the appropriate application on the (real) computer on which you&amp;rsquo;re running qemu (the &amp;ldquo;host&amp;rdquo;).&lt;/p></description></item><item><title>Quick Start</title><link>https://yamatrail.com/linux-kernel-programming/quick-start/</link><pubDate>Fri, 01 May 2026 20:10:13 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/quick-start/</guid><description>&lt;blockquote>
+&lt;p>這篇文章的目的在於讓我自己快速的進入到開發環境中。&lt;/p>&lt;/blockquote>
+&lt;h2 id="進入到-vm-中">進入到 vm 中&lt;/h2>
+&lt;h3 id="結論使用以下指令">結論：使用以下指令&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>ub &lt;span style="color:#75715e"># `ub` for ubuntu vm&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="環境建立過程">環境建立過程&lt;/h3>
+&lt;p>這裡結合&lt;/p>
+&lt;ol>
+&lt;li>power on the vm&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>VBoxManage startvm &lt;span style="color:#e6db74">&amp;#34;ubuntu&amp;#34;&lt;/span> --type headless
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="2">
+&lt;li>ssh to the vm&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># ubuntu on virtualbox&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Host ubuntu
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> HostName 192.168.56.103
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> User user
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PasswordAuthentication no
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> RequestTTY force
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ForwardX11 yes
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>ssh ubuntu
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>最後在 &lt;code>~/.config/fish/config.fish&lt;/code> 做 alias 的設定&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>alias ub&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;VBoxManage startvm &amp;#34;ubuntu&amp;#34; --type headless; ssh ubuntu&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="logs">Logs&lt;/h2>
+&lt;p>清除 log&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo dmesg -C
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>[LeetCode 解題] 136. Single Number | XOR 與重複出現 (C++)</title><link>https://yamatrail.com/leetcode/136-single-number/</link><pubDate>Sat, 01 Nov 2025 09:21:12 +0800</pubDate><guid>https://yamatrail.com/leetcode/136-single-number/</guid><description>&lt;p>題目連結：&lt;a href="https://leetcode.com/problems/single-number/description/">136. Single Number&lt;/a>&lt;/p>
 &lt;h2 id="解題思路">解題思路&lt;/h2>
 &lt;p>這題是一個蠻神奇蠻剛好的一題，同時使用了 xor 與「出現兩次」這兩個元素，因為&lt;/p>
 &lt;ul>

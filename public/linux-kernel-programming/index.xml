@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux Kernel Programming 學習紀錄 on Yama's Trail</title><link>https://yamatrail.com/linux-kernel-programming/</link><description>Recent content in Linux Kernel Programming 學習紀錄 on Yama's Trail</description><generator>Hugo -- 0.146.0</generator><language>zh-tw</language><lastBuildDate>Sat, 07 Mar 2026 14:59:44 +0800</lastBuildDate><atom:link href="https://yamatrail.com/linux-kernel-programming/index.xml" rel="self" type="application/rss+xml"/><item><title>Ch02: Building the 5.x Linux Kernel from Source - Part 1</title><link>https://yamatrail.com/linux-kernel-programming/ch02/</link><pubDate>Wed, 03 Dec 2025 20:16:29 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch02/</guid><description>&lt;h1 id="step-1--obtaining-a-linux-kernel-source-tree">Step 1 – obtaining a Linux kernel source tree&lt;/h1>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux Kernel Programming 學習紀錄 on Yama's Trail</title><link>https://yamatrail.com/linux-kernel-programming/</link><description>Recent content in Linux Kernel Programming 學習紀錄 on Yama's Trail</description><generator>Hugo -- 0.146.0</generator><language>zh-tw</language><lastBuildDate>Mon, 04 May 2026 21:02:50 +0800</lastBuildDate><atom:link href="https://yamatrail.com/linux-kernel-programming/index.xml" rel="self" type="application/rss+xml"/><item><title>Ch02: Building the 5.x Linux Kernel from Source - Part 1</title><link>https://yamatrail.com/linux-kernel-programming/ch02/</link><pubDate>Wed, 03 Dec 2025 20:16:29 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch02/</guid><description>&lt;h1 id="step-1--obtaining-a-linux-kernel-source-tree">Step 1 – obtaining a Linux kernel source tree&lt;/h1>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>wget --https-only -O ~/Downloads/linux-5.4.1.tar.xz https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.1.tar.xz
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="step-2--extracting-the-kernel-source-tree">Step 2 – extracting the kernel source tree&lt;/h1>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>cd ~/Downloads ; ls -lh linux-5.4.1.tar.xz
@@ -195,4 +195,44 @@
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Error: Scanning not allowed &lt;span style="color:#66d9ef">while&lt;/span> unavailable.
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>這是因為還沒有設定國家代碼，這時要先&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo raspi-config
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p></description></item></channel></rss>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p></description></item><item><title>Ch07: Memory Management Internals - Essentials</title><link>https://yamatrail.com/linux-kernel-programming/ch07/</link><pubDate>Mon, 04 May 2026 21:02:50 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch07/</guid><description>&lt;h1 id="understanding-the-vm-split">Understanding the VM split&lt;/h1>
+&lt;p>Linux kernel 管理記憶體時有一下兩種方式&lt;/p>
+&lt;ul>
+&lt;li>virtual memory-based (通常是使用這種方式)&lt;/li>
+&lt;li>直接以 physical memory 的觀點去處理&lt;/li>
+&lt;/ul>
+&lt;p>這個章節會先討論 virtual memory 的方式，接著再討論 physical memory 的方式&lt;/p>
+&lt;ul>
+&lt;li>在 32-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 32 = 4GB&lt;/li>
+&lt;li>在 64-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 64 = 4EB&lt;/li>
+&lt;/ul>
+&lt;p>為了討論方便，這裡會先使用 32-bit 的方式&lt;/p>
+&lt;h2 id="looking-under-the-hood--the-hello-world-c-program">Looking under the hood – the Hello, world C program&lt;/h2>
+&lt;p>這裡在說明像是在這樣的 &lt;code>helloworld.c&lt;/code> 中，&lt;code>printf()&lt;/code> 是透過 loader 呼叫 system call &lt;code>mmap()&lt;/code>，讓 &lt;code>printf()&lt;/code> 可以被 map 到這個 process 的 VAS 中。&lt;/p></description></item><item><title>Quick Start</title><link>https://yamatrail.com/linux-kernel-programming/quick-start/</link><pubDate>Fri, 01 May 2026 20:10:13 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/quick-start/</guid><description>&lt;blockquote>
+&lt;p>這篇文章的目的在於讓我自己快速的進入到開發環境中。&lt;/p>&lt;/blockquote>
+&lt;h2 id="進入到-vm-中">進入到 vm 中&lt;/h2>
+&lt;h3 id="結論使用以下指令">結論：使用以下指令&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>ub &lt;span style="color:#75715e"># `ub` for ubuntu vm&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="環境建立過程">環境建立過程&lt;/h3>
+&lt;p>這裡結合&lt;/p>
+&lt;ol>
+&lt;li>power on the vm&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>VBoxManage startvm &lt;span style="color:#e6db74">&amp;#34;ubuntu&amp;#34;&lt;/span> --type headless
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="2">
+&lt;li>ssh to the vm&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># ubuntu on virtualbox&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Host ubuntu
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> HostName 192.168.56.103
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> User user
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PasswordAuthentication no
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> RequestTTY force
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ForwardX11 yes
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>ssh ubuntu
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>最後在 &lt;code>~/.config/fish/config.fish&lt;/code> 做 alias 的設定&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>alias ub&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;VBoxManage startvm &amp;#34;ubuntu&amp;#34; --type headless; ssh ubuntu&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="logs">Logs&lt;/h2>
+&lt;p>清除 log&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo dmesg -C
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>
