@@ -122,13 +122,80 @@ sudo ./install_procmap
 ./procmap --pid=$(pgrep bash)
 ```
 ### Understanding VMA basics
+在 `/proc/PID/maps` 的 output 中，每一行都代表著一個 VMA:
+```sh
+user@ubuntu:~$ cat /proc/self/maps
+55cafa4b2000-55cafa4ba000 r-xp 00000000 08:02 1703978                    /bin/cat
+55cafa6b9000-55cafa6ba000 r--p 00007000 08:02 1703978                    /bin/cat
+55cafa6ba000-55cafa6bb000 rw-p 00008000 08:02 1703978                    /bin/cat
+55cafc3ce000-55cafc3ef000 rw-p 00000000 00:00 0                          [heap]
+7fc71737c000-7fc71739e000 rw-p 00000000 00:00 0 
+7fc71739e000-7fc717511000 r--p 00000000 08:02 1186758                    /usr/lib/locale/C.UTF-8/LC_COLLATE
+7fc717511000-7fc7176f8000 r-xp 00000000 08:02 1316249                    /lib/x86_64-linux-gnu/libc-2.27.so
+7fc7176f8000-7fc7178f8000 ---p 001e7000 08:02 1316249                    /lib/x86_64-linux-gnu/libc-2.27.so
+7fc7178f8000-7fc7178fc000 r--p 001e7000 08:02 1316249                    /lib/x86_64-linux-gnu/libc-2.27.so
+7fc7178fc000-7fc7178fe000 rw-p 001eb000 08:02 1316249                    /lib/x86_64-linux-gnu/libc-2.27.so
+7fc7178fe000-7fc717902000 rw-p 00000000 00:00 0 
+7fc717902000-7fc71792b000 r-xp 00000000 08:02 1316245                    /lib/x86_64-linux-gnu/ld-2.27.so
+7fc71794c000-7fc71797d000 r--p 00000000 08:02 1186759                    /usr/lib/locale/C.UTF-8/LC_CTYPE
+7fc71797d000-7fc71797e000 r--p 00000000 08:02 1186774                    /usr/lib/locale/C.UTF-8/LC_NUMERIC
+7fc71797e000-7fc71797f000 r--p 00000000 08:02 1186777                    /usr/lib/locale/C.UTF-8/LC_TIME
+7fc71797f000-7fc717980000 r--p 00000000 08:02 1186764                    /usr/lib/locale/C.UTF-8/LC_MONETARY
+7fc717980000-7fc717981000 r--p 00000000 08:02 1186762                    /usr/lib/locale/C.UTF-8/LC_MESSAGES/SYS_LC_MESSAGES
+7fc717981000-7fc717982000 r--p 00000000 08:02 1186775                    /usr/lib/locale/C.UTF-8/LC_PAPER
+7fc717982000-7fc717b1d000 r--p 00000000 08:02 1180495                    /usr/lib/locale/locale-archive
+```
 
+像是這樣的一個 VMA 會對應到 `vm_area_struct`，被定義在 `mm_types.h`
+
+```sh
+vim ${KSRC}/include/linux/mm_types.h
+```
+```c
+struct vm_area_struct {
+    /* The first cache line has the info for VMA tree walking. */
+
+    unsigned long vm_start;     /* Our start address within vm_mm. */
+    unsigned long vm_end;       /* The first byte after our end address
+                       within vm_mm. */
+
+    /* linked list of VM areas per task, sorted by address */
+    struct vm_area_struct *vm_next, *vm_prev;
+
+    struct rb_node vm_rb;
+
+    [...]
+
+    struct mm_struct *vm_mm;    /* The address space we belong to. */
+    pgprot_t vm_page_prot;      /* Access permissions of this VMA. */
+    unsigned long vm_flags;     /* Flags, see mm.h. */
+
+    [...]
+    /* Function pointers to deal with this struct. */
+    const struct vm_operations_struct *vm_ops;
+
+    /* Information about our backing store: */
+    unsigned long vm_pgoff;     /* Offset (within vm_file) in PAGE_SIZE
+                       units */
+    struct file * vm_file;      /* File we map to (can be NULL). */
+    [...]
+
+} __randomize_layout;
+```
 # Examining the kernel segment
+如同先前提到的，每一個 process 都有各自的 VAS 但他們都共享同一個 kernel segment，kernel segment 非常的 arch (CPU)-dependent 但是都有一點相似，以下是 x86_32 with a 3:1 VM split
 ![](341.png)
-* User VAS: 比較低的區域
-* Direct-mapped RAM: 應該不是 map 到 memory
-* Kernel Segment: 在比較高的位置
+* User VAS: `0x0 ~ 0xbfff ffff` (3 GB) 這裡可以自己用紙筆算一下比較有感覺
+* Kernel VAS: `0xc000 0000 ~ 0xffff ffff` (4 GB)
+* The lowmem region
+    * `PAGE_OFFSET = 0xcfff ffff` (again, this is arch-dependent)
+    * `Physical Address = Logical Address - PAGE_OFFSET`
+* The kernel vmalloc region：這在 Ch8, Ch9 會講更多
+The kernel modules space：這是 Loadable Kernel Modules 的 static text and data 的區域
 ## High memory on 32-bit systems
+這個頁面在介紹 highmem 的概念
+https://www.kernel.org/doc/Documentation/vm/highmem.txt  
+主要是在說在上面那個圖上，kernel 只有 1 GB 的空間，可是如果 memory 有 1 GB 以上該怎麼辦？會有一些 mapping 的 function 可以去做管理。
 ## Writing a kernel module to show information about the kernel segment
 ### Viewing the kernel segment on a Raspberry Pi via dmesg
 ### Macros and variables describing the kernel segment layout
