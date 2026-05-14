@@ -1,20 +1,266 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>Xv6 學習紀錄 | Yama's Trail</title>
-<meta name=keywords content><meta name=description content><meta name=author content><link rel=canonical href=https://yamatrail.com/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate type=application/rss+xml href=https://yamatrail.com/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/index.xml><link rel=alternate hreflang=en href=https://yamatrail.com/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="Xv6 學習紀錄"><meta property="og:locale" content="zh-tw"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content="Xv6 學習紀錄"><meta name=twitter:description content></head><body class=list id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><header class=page-header><h1>Xv6 學習紀錄</h1></header><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>Lec17 vm for app</h2></header><div class=entry-content><p>課程連結：6.S081 Lecture 17: Virtual Memory for Applications</p></div><footer class=entry-footer><span title='2025-11-04 19:20:31 +0800 CST'>November 4, 2025</span></footer><a class=entry-link aria-label="post link to Lec17 vm for app" href=https://yamatrail.com/xv6/lec17-vm-for-app/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 10] Lab: mmap</h2></header><div class=entry-content><p>Lab 連結：Lab: mmap
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Xv6 學習紀錄 | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
+                    <span>Linux Kernel Programming</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    Xv6 學習紀錄
+  </h1>
+</header>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Lec17 vm for app
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程連結：6.S081 Lecture 17: Virtual Memory for Applications
+</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-04 19:20:31 +0800 CST'>November 4, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Lec17 vm for app" href="http://localhost:1313/xv6/lec17-vm-for-app/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 10] Lab: mmap
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: mmap
 Lab: mmap (hard) The mmap and munmap system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you’ll add mmap and munmap to xv6, focusing on memory-mapped files.
 目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處
-...</p></div><footer class=entry-footer><span title='2025-11-01 12:05:39 +0800 CST'>November 1, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 10] Lab: mmap" href=https://yamatrail.com/xv6/lab10/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 11-1] Networking</h2></header><div class=entry-content><p>課程連結：6.S081 Fall 2020 Lecture 21: Networking Protocal nesting header 的 type 決定了之後的內容要如何解讀 The OS network stack tcpdump 的解析 Queue 的使用 影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 12:05:39 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 10] Lab: mmap" href="http://localhost:1313/xv6/lab10/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-1] Networking
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程連結：6.S081 Fall 2020 Lecture 21: Networking Protocal nesting header 的 type 決定了之後的內容要如何解讀 The OS network stack tcpdump 的解析 Queue 的使用 影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的
 可能會有一個 buffer allocator MBUF
 E1000 NIC 這在 lab: network driver 中會運用的一個 NIC, 影片中有提及跟現代的 NIC 比較起來
 現在的 NIC 當中有做一些 check Livelock Problem 最後的結論是用 Polling 來解決
-...</p></div><footer class=entry-footer><span title='2025-11-06 12:45:24 +0800 CST'>November 6, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 11-1] Networking" href=https://yamatrail.com/xv6/lec21-networking/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers</h2></header><div class=entry-content><p>這一篇筆記主要是為了 lab: network driver 中，要我們先讀一下 xv6 book ch5: Interrupts and device drivers，這篇文章是我自己的筆記
-Interrupts and device drivers Driver 需要了解 device 的 interface，可能很複雜或是文件寫得很差 Device 通常可以製造一些 interrupt, 在 xv6 中，這在 devintr() 中處理 kernel/trap.c: devintr(): 像是這裡回傳是否為 device interrupt // check if it's an external interrupt or software interrupt, // and handle it. // returns 2 if timer interrupt, // 1 if other device, // 0 if not recognized. int devintr() { uint64 scause = r_scause(); if((scause & 0x8000000000000000L) && (scause & 0xff) == 9){ // this is a supervisor external interrupt, via PLIC. // irq indicates which device interrupted. int irq = plic_claim(); if(irq == UART0_IRQ){ uartintr(); } else if(irq == VIRTIO0_IRQ){ virtio_disk_intr(); } #ifdef LAB_NET else if(irq == E1000_IRQ){ e1000_intr(); } #endif else if(irq){ printf("unexpected interrupt irq=%d\n", irq); } // the PLIC allows each device to raise at most one // interrupt at a time; tell the PLIC the device is // now allowed to interrupt again. if(irq) plic_complete(irq); return 1; } else if(scause == 0x8000000000000001L){ // software interrupt from a machine-mode timer interrupt, // forwarded by timervec in kernelvec.S. if(cpuid() == 0){ clockintr(); } // acknowledge the software interrupt by clearing // the SSIP bit in sip. w_sip(r_sip() & ~2); return 2; } else { return 0; } } 許多 device driver 分為兩個部份： process’s kernel thread interrupt time 接著分別使用 Console input/output 來看 driver 如何運作
-...</p></div><footer class=entry-footer><span title='2025-11-06 13:40:57 +0800 CST'>November 6, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers" href=https://yamatrail.com/xv6/ch5-interrupt-and-device-drivers/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做</h2></header><div class=entry-content><p>Initialize 我們首先觀察 lab net 所提供的初始化過程，大致上了解要如何從 E1000 manual 轉換到程式碼
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-06 12:45:24 +0800 CST'>November 6, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-1] Networking" href="http://localhost:1313/xv6/lec21-networking/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>這一篇筆記主要是為了 lab: network driver 中，要我們先讀一下 xv6 book ch5: Interrupts and device drivers，這篇文章是我自己的筆記
+Interrupts and device drivers Driver 需要了解 device 的 interface，可能很複雜或是文件寫得很差 Device 通常可以製造一些 interrupt, 在 xv6 中，這在 devintr() 中處理 kernel/trap.c: devintr(): 像是這裡回傳是否為 device interrupt // check if it&#39;s an external interrupt or software interrupt, // and handle it. // returns 2 if timer interrupt, // 1 if other device, // 0 if not recognized. int devintr() { uint64 scause = r_scause(); if((scause &amp; 0x8000000000000000L) &amp;&amp; (scause &amp; 0xff) == 9){ // this is a supervisor external interrupt, via PLIC. // irq indicates which device interrupted. int irq = plic_claim(); if(irq == UART0_IRQ){ uartintr(); } else if(irq == VIRTIO0_IRQ){ virtio_disk_intr(); } #ifdef LAB_NET else if(irq == E1000_IRQ){ e1000_intr(); } #endif else if(irq){ printf(&#34;unexpected interrupt irq=%d\n&#34;, irq); } // the PLIC allows each device to raise at most one // interrupt at a time; tell the PLIC the device is // now allowed to interrupt again. if(irq) plic_complete(irq); return 1; } else if(scause == 0x8000000000000001L){ // software interrupt from a machine-mode timer interrupt, // forwarded by timervec in kernelvec.S. if(cpuid() == 0){ clockintr(); } // acknowledge the software interrupt by clearing // the SSIP bit in sip. w_sip(r_sip() &amp; ~2); return 2; } else { return 0; } } 許多 device driver 分為兩個部份： process’s kernel thread interrupt time 接著分別使用 Console input/output 來看 driver 如何運作
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-06 13:40:57 +0800 CST'>November 6, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers" href="http://localhost:1313/xv6/ch5-interrupt-and-device-drivers/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Initialize 我們首先觀察 lab net 所提供的初始化過程，大致上了解要如何從 E1000 manual 轉換到程式碼
 kernel/main.c: main()
 kernel/pci.c: pci_init() kernel/e1000.c: e1000_init(uint32 *xregs) regs[XXX] = OOO kernel/sysnet.c: sockinit() initlock() kernel/pci.c: pci_init()
-void pci_init() { // we'll place the e1000 registers at this address. // vm.c maps this range. // 我們會把 e1000 registers 放到這個位置 // 如下圖，他會被放在 unused and other I/O devices 的區塊 // vm.c 會負責做這個 mapping uint64 e1000_regs = 0x40000000L; // qemu -machine virt puts PCIe config space here. // vm.c maps this range. // 這裡則是在 mapping PCIe config // 跟前面一樣，是放在 unused and other I/O devices 的區塊 // ECAM for Extended Configuration Access Mechanism uint32 *ecam = (uint32 *) 0x30000000L; // look at each possible PCI device on bus 0. // bus == 0 是固定的，只掃描 Primary Bus // dev: 0 ~ 31 設備號碼，每一個代表一個獨立設備例如 E1000 網卡、顯示卡，現在要尋找 E1000 // func: 功能號碼，每一個設備可以有多個 function, 這裡只需要尋找第 0 個功能，E1000 也只有一個功能 // offset: 指向配置空間中特定 4 位元組暫存器的偏移量, 設為 0 // off: 透過上面的資訊取得總 offset for(int dev = 0; dev &lt; 32; dev++){ int bus = 0; int func = 0; int offset = 0; uint32 off = (bus &lt;&lt; 16) | (dev &lt;&lt; 11) | (func &lt;&lt; 8) | (offset); volatile uint32 *base = ecam + off; uint32 id = base[0]; // 100e:8086 is an e1000 if(id == 0x100e8086){ // command and status register. // bit 0 : I/O access enable // bit 1 : memory access enable // bit 2 : enable mastering base[1] = 7; __sync_synchronize(); for(int i = 0; i &lt; 6; i++){ uint32 old = base[4+i]; // writing all 1's to the BAR causes it to be // replaced with its size. base[4+i] = 0xffffffff; __sync_synchronize(); base[4+i] = old; } // tell the e1000 to reveal its registers at // physical address 0x40000000. base[4+0] = e1000_regs; e1000_init((uint32*)e1000_regs); } } } ...</p></div><footer class=entry-footer><span title='2025-11-21 15:49:48 +0800 CST'>November 21, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做" href=https://yamatrail.com/xv6/e1000-mannual/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 11] Lab net: Network driver</h2></header><div class=entry-content><p>Lab 連結：Lab net: Network driver
+void pci_init() { // we&#39;ll place the e1000 registers at this address. // vm.c maps this range. // 我們會把 e1000 registers 放到這個位置 // 如下圖，他會被放在 unused and other I/O devices 的區塊 // vm.c 會負責做這個 mapping uint64 e1000_regs = 0x40000000L; // qemu -machine virt puts PCIe config space here. // vm.c maps this range. // 這裡則是在 mapping PCIe config // 跟前面一樣，是放在 unused and other I/O devices 的區塊 // ECAM for Extended Configuration Access Mechanism uint32 *ecam = (uint32 *) 0x30000000L; // look at each possible PCI device on bus 0. // bus == 0 是固定的，只掃描 Primary Bus // dev: 0 ~ 31 設備號碼，每一個代表一個獨立設備例如 E1000 網卡、顯示卡，現在要尋找 E1000 // func: 功能號碼，每一個設備可以有多個 function, 這裡只需要尋找第 0 個功能，E1000 也只有一個功能 // offset: 指向配置空間中特定 4 位元組暫存器的偏移量, 設為 0 // off: 透過上面的資訊取得總 offset for(int dev = 0; dev &lt; 32; dev&#43;&#43;){ int bus = 0; int func = 0; int offset = 0; uint32 off = (bus &lt;&lt; 16) | (dev &lt;&lt; 11) | (func &lt;&lt; 8) | (offset); volatile uint32 *base = ecam &#43; off; uint32 id = base[0]; // 100e:8086 is an e1000 if(id == 0x100e8086){ // command and status register. // bit 0 : I/O access enable // bit 1 : memory access enable // bit 2 : enable mastering base[1] = 7; __sync_synchronize(); for(int i = 0; i &lt; 6; i&#43;&#43;){ uint32 old = base[4&#43;i]; // writing all 1&#39;s to the BAR causes it to be // replaced with its size. base[4&#43;i] = 0xffffffff; __sync_synchronize(); base[4&#43;i] = old; } // tell the e1000 to reveal its registers at // physical address 0x40000000. base[4&#43;0] = e1000_regs; e1000_init((uint32*)e1000_regs); } } } ...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-21 15:49:48 +0800 CST'>November 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11-3] E1000 mannual 與其中概念的程式碼實做" href="http://localhost:1313/xv6/e1000-mannual/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 11] Lab net: Network driver
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab net: Network driver
 Background You’ll use a network device called the E1000 to handle network communication. To xv6 (and the driver you write), the E1000 looks like a real piece of hardware connected to a real Ethernet local area network (LAN). In fact, the E1000 your driver will talk to is an emulation provided by qemu, connected to a LAN that is also emulated by qemu. On this emulated LAN, xv6 (the “guest”) has an IP address of 10.0.2.15. Qemu also arranges for the computer running qemu to appear on the LAN with IP address 10.0.2.2. When xv6 uses the E1000 to send a packet to 10.0.2.2, qemu delivers the packet to the appropriate application on the (real) computer on which you’re running qemu (the “host”).
-...</p></div><footer class=entry-footer><span title='2025-11-01 13:01:44 +0800 CST'>November 1, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 11] Lab net: Network driver" href=https://yamatrail.com/xv6/lab11/></a></article><footer class=page-footer><nav class=pagination><a class=prev href=https://yamatrail.com/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/page/2/>«&nbsp;Prev&nbsp;</a></nav></footer></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 13:01:44 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 11] Lab net: Network driver" href="http://localhost:1313/xv6/lab11/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="prev" href="http://localhost:1313/series/xv6-%E5%AD%B8%E7%BF%92%E7%B4%80%E9%8C%84/page/2/">
+      «&nbsp;Prev&nbsp;
+    </a>
+  </nav>
+</footer>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

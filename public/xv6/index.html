@@ -1,5 +1,13 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>xv6 學習紀錄 | Yama's Trail</title>
-<meta name=keywords content><meta name=description content="為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 6.1810: Operating System Engineering  做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>xv6 學習紀錄 | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 6.1810: Operating System Engineering  做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：
 
   
       
@@ -53,43 +61,384 @@
           學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver
       
   
-"><meta name=author content><link rel=canonical href=https://yamatrail.com/xv6/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate type=application/rss+xml href=https://yamatrail.com/xv6/index.xml><link rel=alternate hreflang=en href=https://yamatrail.com/xv6/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/xv6/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="xv6 學習紀錄"><meta property="og:description" content="為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 6.1810: Operating System Engineering 做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：
-Lab 名稱 學習重點與實作內容 Xv6 and Unix utilities 學習 xv6 的編譯與運行在 qemu 所模擬的 RISC-V 環境中 System calls 學習 system call 的概念原理、程式實作 Page tables 學習 RISC-V 的 3-level page table 架構、memory layout、追蹤及修改 virtual memory 程式碼 Traps 學習 Trap 的概念、使用 GDB 追蹤 trap 的過程 Xv6 lazy page allocation 使用 page fault 的技術，針對 sbrk() 的優化 Copy-on-write fork 使用 page fault 的技術，針對 fork() 的優化 Multithreading 學習 context switch 的流程與 scheduler 的原理 Locks 了解 lock 的運作原理及使用方式 File system 了解 file system 從 disk, bcache, log 一直到 file descriptor level，修改 inode 以支援更大的 file size Mmap 透過 page fault 與 process 中加入 virtual memory area 的資訊，把 virtual memory 映射到檔案內容 Network driver 學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver "><meta property="og:locale" content="zh-tw"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content="xv6 學習紀錄"><meta name=twitter:description content><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"xv6 學習紀錄","item":"https://yamatrail.com/xv6/"}]}</script></head><body class=list id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span class=active>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><header class=page-header><h1>xv6 學習紀錄</h1></header><div class=post-content><p>為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 <a href=https://pdos.csail.mit.edu/6.S081/2022/schedule.html>6.1810: Operating System Engineering</a> 做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：</p><table><thead><tr><th style=text-align:left>Lab 名稱</th><th style=text-align:left>學習重點與實作內容</th></tr></thead><tbody><tr><td style=text-align:left><strong>Xv6 and Unix utilities</strong></td><td style=text-align:left>學習 xv6 的編譯與運行在 qemu 所模擬的 RISC-V 環境中</td></tr><tr><td style=text-align:left><strong>System calls</strong></td><td style=text-align:left>學習 system call 的概念原理、程式實作</td></tr><tr><td style=text-align:left><strong>Page tables</strong></td><td style=text-align:left>學習 RISC-V 的 3-level page table 架構、memory layout、追蹤及修改 virtual memory 程式碼</td></tr><tr><td style=text-align:left><strong>Traps</strong></td><td style=text-align:left>學習 Trap 的概念、使用 GDB 追蹤 trap 的過程</td></tr><tr><td style=text-align:left><strong>Xv6 lazy page allocation</strong></td><td style=text-align:left>使用 page fault 的技術，針對 <code>sbrk()</code> 的優化</td></tr><tr><td style=text-align:left><strong>Copy-on-write fork</strong></td><td style=text-align:left>使用 page fault 的技術，針對 <code>fork()</code> 的優化</td></tr><tr><td style=text-align:left><strong>Multithreading</strong></td><td style=text-align:left>學習 context switch 的流程與 scheduler 的原理</td></tr><tr><td style=text-align:left><strong>Locks</strong></td><td style=text-align:left>了解 lock 的運作原理及使用方式</td></tr><tr><td style=text-align:left><strong>File system</strong></td><td style=text-align:left>了解 file system 從 disk, bcache, log 一直到 file descriptor level，修改 inode 以支援更大的 file size</td></tr><tr><td style=text-align:left><strong>Mmap</strong></td><td style=text-align:left>透過 page fault 與 process 中加入 virtual memory area 的資訊，把 virtual memory 映射到檔案內容</td></tr><tr><td style=text-align:left><strong>Network driver</strong></td><td style=text-align:left>學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver</td></tr></tbody></table></div><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities</h2></header><div class=entry-content><p>Lab 連結: Lab: Xv6 and Unix utilities
+">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/xv6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/xv6/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span class="active">xv6 學習紀錄</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
+                    <span>Linux Kernel Programming</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    xv6 學習紀錄
+  </h1>
+</header>
+<div class="post-content"><p>為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 <a href="https://pdos.csail.mit.edu/6.S081/2022/schedule.html">6.1810: Operating System Engineering</a>  做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Lab 名稱</th>
+          <th style="text-align: left">學習重點與實作內容</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><strong>Xv6 and Unix utilities</strong></td>
+          <td style="text-align: left">學習 xv6 的編譯與運行在 qemu 所模擬的 RISC-V 環境中</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>System calls</strong></td>
+          <td style="text-align: left">學習 system call 的概念原理、程式實作</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Page tables</strong></td>
+          <td style="text-align: left">學習 RISC-V 的 3-level page table 架構、memory layout、追蹤及修改 virtual memory 程式碼</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Traps</strong></td>
+          <td style="text-align: left">學習 Trap 的概念、使用 GDB 追蹤 trap 的過程</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Xv6 lazy page allocation</strong></td>
+          <td style="text-align: left">使用 page fault 的技術，針對 <code>sbrk()</code> 的優化</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Copy-on-write fork</strong></td>
+          <td style="text-align: left">使用 page fault 的技術，針對 <code>fork()</code> 的優化</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Multithreading</strong></td>
+          <td style="text-align: left">學習 context switch 的流程與 scheduler 的原理</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Locks</strong></td>
+          <td style="text-align: left">了解 lock 的運作原理及使用方式</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>File system</strong></td>
+          <td style="text-align: left">了解 file system 從 disk, bcache, log 一直到 file descriptor level，修改 inode 以支援更大的 file size</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Mmap</strong></td>
+          <td style="text-align: left">透過 page fault 與 process 中加入 virtual memory area 的資訊，把 virtual memory 映射到檔案內容</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Network driver</strong></td>
+          <td style="text-align: left">學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver</td>
+      </tr>
+  </tbody>
+</table>
+
+
+</div>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: Lab: Xv6 and Unix utilities
 Boot xv6(Easy) 題目敘述： 這部份的詳細內容都寫在 lab util 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。
 下載原始碼 git clone git://g.csail.mit.edu/xv6-labs-2022 cd xv6-labs-2022 安裝架設虛擬機的套件 我自己是用 Debian，如果你用的是 ubuntu 的話下載步驟應該也是一樣的，至於是其他系統的使用者，可以看這裡 sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu compile程式碼並且讓他跑在虛擬機上 $ make qemu ... (一大串訊息) ... xv6 kernel is booting hart 2 starting hart 1 starting init: starting sh $ 到這裡，Xv6已經成功開機了！
 嘗試打個指令 $ ls . 1 1 1024 .. 1 1 1024 README 2 2 2059 xargstest.sh 2 3 93 cat 2 4 24120 echo 2 5 22944 forktest 2 6 13184 grep 2 7 27424 init 2 8 23680 kill 2 9 22904 ln 2 10 22744 ls 2 11 26312 mkdir 2 12 23040 rm 2 13 23032 sh 2 14 41856 stressfs 2 15 23904 usertests 2 16 148312 grind 2 17 38008 wc 2 18 25232 zombie 2 19 22280 console 3 20 0 沒意外的話，會出現以上的畫面
-...</p></div><footer class=entry-footer><span title='2025-09-24 16:13:25 +0800 CST'>September 24, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 01] Lab: Xv6 and Unix utilities" href=https://yamatrail.com/xv6/lab1/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 02] Lab: system calls</h2></header><div class=entry-content><p>Lab 連結: Lab: system calls
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-24 16:13:25 +0800 CST'>September 24, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 01] Lab: Xv6 and Unix utilities" href="http://localhost:1313/xv6/lab1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 02] Lab: system calls
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: Lab: system calls
 大綱 xv6 有哪些 system call，以及他們的作用為何 ? 以程式碼的觀點來理解 xv6 的 system call 流程 Using gdb System call tracing 1. xv6 有哪些 system call，以及他們的作用為何 ? 0. kernel/syscall.h 定義 syste mcall 的編號 // System call numbers #define SYS_fork 1 #define SYS_exit 2 #define SYS_wait 3 #define SYS_pipe 4 #define SYS_read 5 #define SYS_kill 6 #define SYS_exec 7 #define SYS_fstat 8 #define SYS_chdir 9 #define SYS_dup 10 #define SYS_getpid 11 #define SYS_sbrk 12 #define SYS_sleep 13 #define SYS_uptime 14 #define SYS_open 15 #define SYS_write 16 #define SYS_mknod 17 #define SYS_unlink 18 #define SYS_link 19 #define SYS_mkdir 20 #define SYS_close 21 2. 以程式碼的觀點來理解 xv6 的 system call 流程 以下使用 user/cat.c 為例，來探討 xv6 的 system call 流程，流程中有 3 大步驟
-...</p></div><footer class=entry-footer><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 02] Lab: system calls" href=https://yamatrail.com/xv6/lab2/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 03-1] Virtual Memory 程式碼解析</h2></header><div class=entry-content><p>xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
-MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 + 9 + 9 + 12 - 1)) 最大的 virtual address MAXVA 是 0b100 0000 0000 0000 0000 0000 0000 0000 0000 0000(38 0s): 可以得知 Sv39 並沒有把 39 個 bits 用滿，實際上最大的 address 只會到 MAXVA - 1 = 0b011 1111 1111 1111 1111 1111 1111 1111 1111 1111
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 02] Lab: system calls" href="http://localhost:1313/xv6/lab2/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 03-1] Virtual Memory 程式碼解析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>xv6 中的 virtual memory memory layout 每一個 process 都會有自己的一個 page table，kernel 則是有它自己獨立的一個 page table 一般來說 kernel page table 會 map 所有的 physical address，這樣在 kernel mode 的時候就可以針對所有 pa 做動作 Kernel address space 接著依序講解 MAXVA, PHYSTOP, KERNBASE
+MAXVA 如同先前提及，在 Sv39 中 virtual address 由 39 bits 組成 // kernel/riscv.h // one beyond the highest possible virtual address. // MAXVA is actually one bit less than the max allowed by // Sv39, to avoid having to sign-extend virtual addresses // that have the high bit set. #define MAXVA (1L &lt;&lt; (9 &#43; 9 &#43; 9 &#43; 12 - 1)) 最大的 virtual address MAXVA 是 0b100 0000 0000 0000 0000 0000 0000 0000 0000 0000(38 0s): 可以得知 Sv39 並沒有把 39 個 bits 用滿，實際上最大的 address 只會到 MAXVA - 1 = 0b011 1111 1111 1111 1111 1111 1111 1111 1111 1111
 = 0x3fffffffff
-...</p></div><footer class=entry-footer><span title='2025-10-13 12:32:56 +0800 CST'>October 13, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 03-1] Virtual Memory 程式碼解析" href=https://yamatrail.com/xv6/lab3.1/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 03] Lab: page tables</h2></header><div class=entry-content><p>Lab 連結: lab pgtbl
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-13 12:32:56 +0800 CST'>October 13, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03-1] Virtual Memory 程式碼解析" href="http://localhost:1313/xv6/lab3.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 03] Lab: page tables
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: lab pgtbl
 Speed up system calls (easy) 題目敘述:
 When each process is created, map one read-only page at USYSCALL (a virtual address defined in memlayout.h). At the start of this page, store a struct usyscall (also defined in memlayout.h), and initialize it to store the PID of the current process. For this lab, ugetpid() has been provided on the userspace side and will automatically use the USYSCALL mapping. You will receive full credit for this part of the lab if the ugetpid test case passes when running pgtbltest.
-...</p></div><footer class=entry-footer><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href=https://yamatrail.com/xv6/lab3/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 04-1] 使用 GDB 追蹤 xv6 以了解 RISC-V 的 Calling Convention 與 Stack Frames</h2></header><div class=entry-content><p>課程影片連結：
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-02 13:09:35 +0800 CST'>October 2, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 03] Lab: page tables" href="http://localhost:1313/xv6/lab3/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 04-1] 使用 GDB 追蹤 xv6 以了解 RISC-V 的 Calling Convention 與 Stack Frames
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程影片連結：
 6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 這篇文章目的在於整理這個影片的重點，主要有以下的重點
 如何用 GDB 追蹤 user program RISC-V 的 Calling Convention RISC-V 的 register (Caller and Callee saved) RISC-V 的 Stack Frame 影片中的範例程式並沒有附在 lab 中，要自己新增：
-新增影片中的範例程式 kernel/defs.h // demos.c void demo1(void); void demo2(void); void demo3(void); void demo4(void); void demo5(void); void demo6(void); void demo7(void); // asmdemo.S int sum_to(int); int sum_then_double(int); kernel/demos.c #include "types.h" #include "riscv.h" #include "defs.h" #include "date.h" #include "param.h" #include "memlayout.h" #include "spinlock.h" #include "proc.h" #include "sysinfo.h" void demo1() { printf("Result: %d\n", sum_to(5)); } void demo2() { printf("Tesult: %d\n", sum_ten_double(5)); } void _demo3(char a, char b, char c, char d, char e, char f, char g, char h, char i, char j) { printf("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n", a, b, c, d, e, f, g, h, i, j); } void demo3() { _demo3('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'); } int dummymain(int argc, char *argv[]) { int i = 0; for (; i &lt; argc; i++) { printf("Argument %d: %s\n", i, argv[i]); } return 0; } void demo4() { char *args[] = {"foo", "bar", "baz"}; int result = dummymain(sizeof(args)/sizeof(args[0]), args); if (result &lt; 0) panic("Demo 4"); } int _dummy(int n) { int div = 5; int sum = 0; for (int i=0; i &lt; n; i++) { if (i % div == 0) sum += i; } return sum; } void demo5() { printf("Demo\n"); int top = 50; int result = _dummy(top); printf("Result: %d\n", result); } void demo6() { int sum = 0; for (int i = 1; i &lt; 10; i++) { sum += 3 *i; printf("%d\n", sum_to(i)); } printf("Sum: %d\n", sum); } struct Person { int id; int age; // char *name; }; void printPerson(struct Person *p) { printf("Person %d (%d)\n", p->id, p->age); // printf("Name:%s: %d (%d)\n", p->name, p->id, p->age); } void demo7() { // Structs struct Person p; p.id = 1215; p.age = 22; // p.name = "Nick"; printPerson(&amp;p); } kernel/asmdemo.S .section .text .global sum_to /* int sum_to() { int acc = 0; for (int i = 0; i &lt;= n; i++) { acc += i; } return acc; } */ sum_to: mv t0, a0 # t0 &lt;- a0 li a0, 0 # a0 &lt;- 0 loop: add a0, a0, t0 # a0 &lt;- a0 + t0 addi t0, t0, -1 # t0 &lt;- t0 - 1 bnez t0, loop # if t0 != 0: pc &lt;- loop ret .global sum_then_double sum_then_double: addi sp, sp, -16 sd ra, 0(sp) call sum_to li t0, 2 mul a0, a0, t0 ld ra, 0(sp) addi sp, sp, 16 ret Makefile OBJS = \ $K/entry.o \ $K/kalloc.o \ $K/string.o \ ... $K/plic.o \ $K/virtio_disk.o \ $K/demos.o \ $K/asmdemo.o 新增 system call demo() user/usys.pl 加上 entry(demo);
-...</p></div><footer class=entry-footer><span title='2025-10-09 19:09:13 +0800 CST'>October 9, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 04-1] 使用 GDB 追蹤 xv6 以了解 RISC-V 的 Calling Convention 與 Stack Frames" href=https://yamatrail.com/xv6/lab4.1/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程</h2></header><div class=entry-content><p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。 2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
+新增影片中的範例程式 kernel/defs.h // demos.c void demo1(void); void demo2(void); void demo3(void); void demo4(void); void demo5(void); void demo6(void); void demo7(void); // asmdemo.S int sum_to(int); int sum_then_double(int); kernel/demos.c #include &#34;types.h&#34; #include &#34;riscv.h&#34; #include &#34;defs.h&#34; #include &#34;date.h&#34; #include &#34;param.h&#34; #include &#34;memlayout.h&#34; #include &#34;spinlock.h&#34; #include &#34;proc.h&#34; #include &#34;sysinfo.h&#34; void demo1() { printf(&#34;Result: %d\n&#34;, sum_to(5)); } void demo2() { printf(&#34;Tesult: %d\n&#34;, sum_ten_double(5)); } void _demo3(char a, char b, char c, char d, char e, char f, char g, char h, char i, char j) { printf(&#34;%d, %d, %d, %d, %d, %d, %d, %d, %d, %d\n&#34;, a, b, c, d, e, f, g, h, i, j); } void demo3() { _demo3(&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;, &#39;h&#39;, &#39;i&#39;, &#39;j&#39;); } int dummymain(int argc, char *argv[]) { int i = 0; for (; i &lt; argc; i&#43;&#43;) { printf(&#34;Argument %d: %s\n&#34;, i, argv[i]); } return 0; } void demo4() { char *args[] = {&#34;foo&#34;, &#34;bar&#34;, &#34;baz&#34;}; int result = dummymain(sizeof(args)/sizeof(args[0]), args); if (result &lt; 0) panic(&#34;Demo 4&#34;); } int _dummy(int n) { int div = 5; int sum = 0; for (int i=0; i &lt; n; i&#43;&#43;) { if (i % div == 0) sum &#43;= i; } return sum; } void demo5() { printf(&#34;Demo\n&#34;); int top = 50; int result = _dummy(top); printf(&#34;Result: %d\n&#34;, result); } void demo6() { int sum = 0; for (int i = 1; i &lt; 10; i&#43;&#43;) { sum &#43;= 3 *i; printf(&#34;%d\n&#34;, sum_to(i)); } printf(&#34;Sum: %d\n&#34;, sum); } struct Person { int id; int age; // char *name; }; void printPerson(struct Person *p) { printf(&#34;Person %d (%d)\n&#34;, p-&gt;id, p-&gt;age); // printf(&#34;Name:%s: %d (%d)\n&#34;, p-&gt;name, p-&gt;id, p-&gt;age); } void demo7() { // Structs struct Person p; p.id = 1215; p.age = 22; // p.name = &#34;Nick&#34;; printPerson(&amp;p); } kernel/asmdemo.S .section .text .global sum_to /* int sum_to() { int acc = 0; for (int i = 0; i &lt;= n; i&#43;&#43;) { acc &#43;= i; } return acc; } */ sum_to: mv t0, a0 # t0 &lt;- a0 li a0, 0 # a0 &lt;- 0 loop: add a0, a0, t0 # a0 &lt;- a0 &#43; t0 addi t0, t0, -1 # t0 &lt;- t0 - 1 bnez t0, loop # if t0 != 0: pc &lt;- loop ret .global sum_then_double sum_then_double: addi sp, sp, -16 sd ra, 0(sp) call sum_to li t0, 2 mul a0, a0, t0 ld ra, 0(sp) addi sp, sp, 16 ret Makefile OBJS = \ $K/entry.o \ $K/kalloc.o \ $K/string.o \ ... $K/plic.o \ $K/virtio_disk.o \ $K/demos.o \ $K/asmdemo.o 新增 system call demo() user/usys.pl 加上 entry(demo);
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-09 19:09:13 +0800 CST'>October 9, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 04-1] 使用 GDB 追蹤 xv6 以了解 RISC-V 的 Calling Convention 與 Stack Frames" href="http://localhost:1313/xv6/lab4.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>本文目標：照著以下步驟就可以看到整個 system call 的過程 整個過程大致上都是照著這個影片做的，但其中有幾個步驟稍稍的不同。 2. 用 gdb-multiarch debug xv6 的方式 這裡會需要開啟 2 個終端機，
 先在其中一個終端機輸入
 make qemu-gdb #　這是被 debug 的對象 在另一個終端機輸入
 gdb-multiarch # 開啟 debuger 會開始針對上面的那個終端機中的程式進行除錯 gdb-multiarch 是透過 .gdbinit 這個檔案找到 debug 的對象的 # .gdbinit set confirm off set architecture riscv:rv64 target remote 127.0.0.1:26000 # 透過這個來找到 qemu symbol-file kernel/kernel set disassemble-next-line auto set riscv use-compressed-breakpoints yes 動機：$ 的出現 make qemu 後 xv6 開機時，會顯示的畫面
-...</p></div><footer class=entry-footer><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程" href=https://yamatrail.com/xv6/gdb/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 04] Lab: Traps</h2></header><div class=entry-content><p>Lab 連結: lab traps
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-27 15:46:30 +0800 CST'>September 27, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程" href="http://localhost:1313/xv6/gdb/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 04] Lab: Traps
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: lab traps
 課程影片連結：
-6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 6.S081 Fall 2020 Lecture 6: Isolation & System Call Entry/Exit RISC-V assembly (easy) It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file user/call.c in your xv6 repo. make fs.img compiles it and also produces a readable assembly version of the program in user/call.asm. Read the code in call.asm for the functions g, f, and main. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file answers-traps.txt):
-...</p></div><footer class=entry-footer><span title='2025-10-09 11:31:37 +0800 CST'>October 9, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 04] Lab: Traps" href=https://yamatrail.com/xv6/lab4/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 05-1] Page Fault</h2></header><div class=entry-content><p>課程影片連結：
+6.S081 Fall 2020 Lecture 5: RISC-V Calling Convention and Stack Frames 6.S081 Fall 2020 Lecture 6: Isolation &amp; System Call Entry/Exit RISC-V assembly (easy) It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file user/call.c in your xv6 repo. make fs.img compiles it and also produces a readable assembly version of the program in user/call.asm. Read the code in call.asm for the functions g, f, and main. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file answers-traps.txt):
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-09 11:31:37 +0800 CST'>October 9, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 04] Lab: Traps" href="http://localhost:1313/xv6/lab4/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 05-1] Page Fault
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程影片連結：
 6.S081 Fall 2020 Lecture 8: Page Faults Page Fault 回顧 virtual memory 的特性
-isolation level of indirection 在原先 xv6 的設計中 pagetable 的設計是 static 現在在 page fault 的時候做一些動作，可以設計為 dynamic 的 mapping Information neede 造成 page fault 的 virtual memory stval register The type of page fault scause: R/W/Instruction Virtual address of instruction that cause page fault 這是為了在處理完 page fault 之後，可以回到原本的地方繼續執行 trampframe->epc Allocation: sbrk() 原先的方式：eager allocatoin 可變更為：Lazy Allocation 1. Lazy Allocation 先把 sys_sbrk() 變更為：
-...</p></div><footer class=entry-footer><span title='2025-10-11 11:20:50 +0800 CST'>October 11, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 05-1] Page Fault" href=https://yamatrail.com/xv6/lab5.1/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 05] Lab: xv6 lazy page allocation</h2></header><div class=entry-content><p>Lab 連結: Lab: xv6 lazy page allocation Eliminate allocation from sbrk() (easy) Your first task is to delete page allocation from the sbrk(n) system call implementation, which is the function sys_sbrk() in sysproc.c. The sbrk(n) system call grows the process’s memory size by n bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new sbrk(n) should just increment the process’s size (myproc()->sz) by n and return the old size. It should not allocate memory – so you should delete the call to growproc() (but you still need to increase the process’s size!).
-...</p></div><footer class=entry-footer><span title='2025-10-11 11:28:40 +0800 CST'>October 11, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 05] Lab: xv6 lazy page allocation" href=https://yamatrail.com/xv6/lab5/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 06-1] Interrupts</h2></header><div class=entry-content><p>課程影片連結：
+isolation level of indirection 在原先 xv6 的設計中 pagetable 的設計是 static 現在在 page fault 的時候做一些動作，可以設計為 dynamic 的 mapping Information neede 造成 page fault 的 virtual memory stval register The type of page fault scause: R/W/Instruction Virtual address of instruction that cause page fault 這是為了在處理完 page fault 之後，可以回到原本的地方繼續執行 trampframe-&gt;epc Allocation: sbrk() 原先的方式：eager allocatoin 可變更為：Lazy Allocation 1. Lazy Allocation 先把 sys_sbrk() 變更為：
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-11 11:20:50 +0800 CST'>October 11, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 05-1] Page Fault" href="http://localhost:1313/xv6/lab5.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 05] Lab: xv6 lazy page allocation
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p> Lab 連結: Lab: xv6 lazy page allocation Eliminate allocation from sbrk() (easy) Your first task is to delete page allocation from the sbrk(n) system call implementation, which is the function sys_sbrk() in sysproc.c. The sbrk(n) system call grows the process’s memory size by n bytes, and then returns the start of the newly allocated region (i.e., the old size). Your new sbrk(n) should just increment the process’s size (myproc()-&gt;sz) by n and return the old size. It should not allocate memory – so you should delete the call to growproc() (but you still need to increase the process’s size!).
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-11 11:28:40 +0800 CST'>October 11, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 05] Lab: xv6 lazy page allocation" href="http://localhost:1313/xv6/lab5/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 06-1] Interrupts
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程影片連結：
 6.S081 Fall 2020 Lecture 9: Interrupts Terms PLIC UART Interrupts 的意義 跟 syscall, traps 很像
 Interrupts 從哪裡來? 一些 CPU 的 fig
 programming device,
 memory mapped I/O
 UART store/load to registers
-Case Study: $ ls 的出現 kerenl/main.c kernel/console.c: consoleinit() kernel/uart.c: uartinit() kernel/plic.c: plicinit() kernel/plic.c: plicinithart() kernel/proc.c: scheduler() void main() { if(cpuid() == 0){ consoleinit(); // &lt;-- printfinit(); printf("\n"); printf("xv6 kernel is booting\n"); printf("\n"); kinit(); // physical page allocator kvminit(); // create kernel page table kvminithart(); // turn on paging procinit(); // process table trapinit(); // trap vectors trapinithart(); // install kernel trap vector plicinit(); // set up interrupt controller plicinithart(); // ask PLIC for device interrupts binit(); // buffer cache iinit(); // inode table fileinit(); // file table virtio_disk_init(); // emulated hard disk userinit(); // first user process __sync_synchronize(); started = 1; } else { while(started == 0) ; __sync_synchronize(); printf("hart %d starting\n", cpuid()); kvminithart(); // turn on paging trapinithart(); // install kernel trap vector plicinithart(); // ask PLIC for device interrupts } scheduler(); } UART kernel/console.c: consoleinit() void consoleinit(void) { initlock(&amp;cons.lock, "cons"); uartinit(); // &lt;-- // connect read and write system calls // to consoleread and consolewrite. devsw[CONSOLE].read = consoleread; devsw[CONSOLE].write = consolewrite; } kernel/uart.c: uartinit() void uartinit(void) { // disable interrupts. WriteReg(IER, 0x00); // special mode to set baud rate. WriteReg(LCR, LCR_BAUD_LATCH); // LSB for baud rate of 38.4K. WriteReg(0, 0x03); // MSB for baud rate of 38.4K. WriteReg(1, 0x00); // leave set-baud mode, // and set word length to 8 bits, no parity. WriteReg(LCR, LCR_EIGHT_BITS); // reset and enable FIFOs. WriteReg(FCR, FCR_FIFO_ENABLE | FCR_FIFO_CLEAR); // enable transmit and receive interrupts. WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE); initlock(&amp;uart_tx_lock, "uart"); } 在這裡可以設定一些 UART 的參數，像是 baud rate 等等
-...</p></div><footer class=entry-footer><span title='2025-10-16 15:52:53 +0800 CST'>October 16, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 06-1] Interrupts" href=https://yamatrail.com/xv6/lab6.1/></a></article><footer class=page-footer><nav class=pagination><a class=next href=https://yamatrail.com/xv6/page/2/>Next&nbsp;&nbsp;»</a></nav></footer></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>
+Case Study: $ ls 的出現 kerenl/main.c kernel/console.c: consoleinit() kernel/uart.c: uartinit() kernel/plic.c: plicinit() kernel/plic.c: plicinithart() kernel/proc.c: scheduler() void main() { if(cpuid() == 0){ consoleinit(); // &lt;-- printfinit(); printf(&#34;\n&#34;); printf(&#34;xv6 kernel is booting\n&#34;); printf(&#34;\n&#34;); kinit(); // physical page allocator kvminit(); // create kernel page table kvminithart(); // turn on paging procinit(); // process table trapinit(); // trap vectors trapinithart(); // install kernel trap vector plicinit(); // set up interrupt controller plicinithart(); // ask PLIC for device interrupts binit(); // buffer cache iinit(); // inode table fileinit(); // file table virtio_disk_init(); // emulated hard disk userinit(); // first user process __sync_synchronize(); started = 1; } else { while(started == 0) ; __sync_synchronize(); printf(&#34;hart %d starting\n&#34;, cpuid()); kvminithart(); // turn on paging trapinithart(); // install kernel trap vector plicinithart(); // ask PLIC for device interrupts } scheduler(); } UART kernel/console.c: consoleinit() void consoleinit(void) { initlock(&amp;cons.lock, &#34;cons&#34;); uartinit(); // &lt;-- // connect read and write system calls // to consoleread and consolewrite. devsw[CONSOLE].read = consoleread; devsw[CONSOLE].write = consolewrite; } kernel/uart.c: uartinit() void uartinit(void) { // disable interrupts. WriteReg(IER, 0x00); // special mode to set baud rate. WriteReg(LCR, LCR_BAUD_LATCH); // LSB for baud rate of 38.4K. WriteReg(0, 0x03); // MSB for baud rate of 38.4K. WriteReg(1, 0x00); // leave set-baud mode, // and set word length to 8 bits, no parity. WriteReg(LCR, LCR_EIGHT_BITS); // reset and enable FIFOs. WriteReg(FCR, FCR_FIFO_ENABLE | FCR_FIFO_CLEAR); // enable transmit and receive interrupts. WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE); initlock(&amp;uart_tx_lock, &#34;uart&#34;); } 在這裡可以設定一些 UART 的參數，像是 baud rate 等等
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-16 15:52:53 +0800 CST'>October 16, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06-1] Interrupts" href="http://localhost:1313/xv6/lab6.1/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="http://localhost:1313/xv6/page/2/">Next&nbsp;&nbsp;»
+    </a>
+  </nav>
+</footer>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

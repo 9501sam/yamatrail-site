@@ -1,238 +1,305 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Linux Kernel Programming 學習紀錄 on Yama's Trail</title><link>https://yamatrail.com/linux-kernel-programming/</link><description>Recent content in Linux Kernel Programming 學習紀錄 on Yama's Trail</description><generator>Hugo -- 0.146.0</generator><language>zh-tw</language><lastBuildDate>Mon, 04 May 2026 21:02:50 +0800</lastBuildDate><atom:link href="https://yamatrail.com/linux-kernel-programming/index.xml" rel="self" type="application/rss+xml"/><item><title>Ch02: Building the 5.x Linux Kernel from Source - Part 1</title><link>https://yamatrail.com/linux-kernel-programming/ch02/</link><pubDate>Wed, 03 Dec 2025 20:16:29 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch02/</guid><description>&lt;h1 id="step-1--obtaining-a-linux-kernel-source-tree">Step 1 – obtaining a Linux kernel source tree&lt;/h1>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>wget --https-only -O ~/Downloads/linux-5.4.1.tar.xz https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.1.tar.xz
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h1 id="step-2--extracting-the-kernel-source-tree">Step 2 – extracting the kernel source tree&lt;/h1>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>cd ~/Downloads ; ls -lh linux-5.4.1.tar.xz
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>tar xf ~/Downloads/linux-5.4.1.tar.xz
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>mkdir -p ~/kernels
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>tar xf ~/Downloads/linux-5.4.1.tar.xz --directory&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>HOME&lt;span style="color:#e6db74">}&lt;/span>/kernels/
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>設定環境變數是一個 good practice，可加入 &lt;code>~/.bashrc&lt;/code> 中:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>export LLKD_KSRC&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>HOME&lt;span style="color:#e6db74">}&lt;/span>/kernels/linux-5.4
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
-&lt;li>現在已經不像以前一定會把 source code 放到 &lt;code>usr/src&lt;/code> 了&lt;/li>
-&lt;/ul>
-&lt;h2 id="a-brief-tour-of-the-kernel-source-tree">A brief tour of the kernel source tree&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>user@ubuntu:~/kernels/linux-5.4$ ls
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>COPYING Kconfig README crypto init mm security virt
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>CREDITS LICENSES arch drivers ipc net sound
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Documentation MAINTAINERS block fs kernel samples tools
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Kbuild Makefile certs include lib scripts usr
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
-&lt;li>使用 &lt;code>du -m .&lt;/code> 可以看到檔案大小為 &lt;code>1011M&lt;/code> 幾乎是 1 GB 了&lt;/li>
-&lt;/ul>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>user@ubuntu:~/kernels/linux-5.4$ head Makefile
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># SPDX-License-Identifier: GPL-2.0&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>VERSION &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">5&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>PATCHLEVEL &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">4&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>SUBLEVEL &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>EXTRAVERSION &lt;span style="color:#f92672">=&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>NAME &lt;span style="color:#f92672">=&lt;/span> Kleptomaniac Octopus
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># *DOCUMENTATION*&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># To see a list of typical targets execute &amp;#34;make help&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># More info can be located in ./README&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
-&lt;li>這裡可以知道目前的 source code 版本為 5.4.1&lt;/li>
-&lt;/ul>
-&lt;h3 id="最上層的檔案與資料夾">最上層的檔案與資料夾&lt;/h3>
-&lt;ul>
-&lt;li>&lt;code>README&lt;/code>: 告知 documents 的所在位置&lt;/li>
-&lt;li>&lt;code>COPYING&lt;/code>: licence 的所在位置&lt;/li>
-&lt;li>&lt;code>MAINTAINERS&lt;/code>&lt;/li>
-&lt;/ul>
-&lt;h4 id="major-subsystem-directories">Major subsystem directories&lt;/h4>
-&lt;ul>
-&lt;li>&lt;code>Makefile&lt;/code>: 這是 top-level 的 &lt;code>Makefile&lt;/code> 使用 &lt;code>kbuild&lt;/code> 與 kernel modules 使用這個 &lt;code>Makefile&lt;/code> (至少在初始化階段)&lt;/li>
-&lt;li>&lt;code>kernel&lt;/code>: Core kernel subsystem
-&lt;ul>
-&lt;li>process/thread life cycle&lt;/li>
-&lt;li>CPU scheduling&lt;/li>
-&lt;li>locking&lt;/li>
-&lt;li>cgroups,&lt;/li>
-&lt;li>timers&lt;/li>
-&lt;li>interrupts&lt;/li>
-&lt;li>signaling&lt;/li>
-&lt;li>modules&lt;/li>
-&lt;li>tracing&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;code>mm&lt;/code>: memory management&lt;/li>
-&lt;li>&lt;code>fs&lt;/code>: virtual file system&lt;/li>
-&lt;li>&lt;code>block&lt;/code>: block I/O, file system 的更底層&lt;/li>
-&lt;li>&lt;code>net&lt;/code>: network&lt;/li>
-&lt;li>&lt;code>ipc&lt;/code>: inter-processes communication&lt;/li>
-&lt;li>&lt;code>sound&lt;/code>: Advanced Linux Sound Architecture (ALSA)&lt;/li>
-&lt;li>&lt;code>virt&lt;/code>: virtualization code like KVM&lt;/li>
-&lt;/ul>
-&lt;h4 id="infrastructuremisc">Infrastructure/misc&lt;/h4>
-&lt;ul>
-&lt;li>&lt;code>arch&lt;/code>: architecture 相關，像是 x86-64, risc-v, arm 等等&lt;/li>
-&lt;li>&lt;code>crypto&lt;/code>: 加密相關&lt;/li>
-&lt;li>&lt;code>include&lt;/code>: arch-independent kernel headers, 但也有例外，像是 &lt;code>arch/&amp;lt;cpu&amp;gt;/include/...&lt;/code>&lt;/li>
-&lt;li>&lt;code>init&lt;/code>: 初始化的過程 &lt;code>init/main.c:start_kernel()&lt;/code>, &lt;code>start_kernel()&lt;/code>&lt;/li>
-&lt;li>&lt;code>lib&lt;/code>: 注意 kernel 並不支援 shared library&lt;/li>
-&lt;li>&lt;code>scripts&lt;/code>: 一些有用的 scripts&lt;/li>
-&lt;li>&lt;code>security&lt;/code>: Linux Security Module (LSM)&lt;/li>
-&lt;li>&lt;code>tools&lt;/code>: mostly userspace applications&lt;/li>
-&lt;/ul>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>user@ubuntu:~/kernels/linux-5.4$ cd &lt;span style="color:#e6db74">${&lt;/span>LLKD_KSRC&lt;span style="color:#e6db74">}&lt;/span> ; ls arch/
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Kconfig arm csky ia64 mips openrisc riscv sparc x86
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>alpha arm64 h8300 m68k nds32 parisc s390 um xtensa
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>arc c6x hexagon microblaze nios2 powerpc sh unicore32
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>kernel 所支援的 ISA&lt;/p></description></item><item><title>Ch03: Building the 5.x Linux Kernel from Source - Part 2</title><link>https://yamatrail.com/linux-kernel-programming/ch03/</link><pubDate>Sat, 06 Dec 2025 15:00:38 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch03/</guid><description>&lt;h1 id="step-4--building-the-kernel-image-and-modules">Step 4 – building the kernel image and modules&lt;/h1>
-&lt;p>從使用者的角度而言，這非常的簡單，只需要 &lt;code>make&lt;/code> 就行了&lt;/p>
-&lt;p>&lt;code>make help&lt;/code> 可以看到 help，這裡可以先觀察 target &lt;code>all&lt;/code>&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>$ make help
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>...&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Other generic targets:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> all - Build all targets marked with &lt;span style="color:#f92672">[&lt;/span>*&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>* vmlinux - Build the bare kernel
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>* modules - Build all modules
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>...&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Architecture specific targets &lt;span style="color:#f92672">(&lt;/span>x86&lt;span style="color:#f92672">)&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>* bzImage - Compressed kernel image &lt;span style="color:#f92672">(&lt;/span>arch/x86/boot/bzImage&lt;span style="color:#f92672">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">[&lt;/span>...&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>從這裡可以得知，&lt;code>make all&lt;/code> 的時候會有 &lt;code>vmlinux&lt;/code>, &lt;code>modules&lt;/code>, &lt;code>bzImage&lt;/code> 這三個 target 被觸發&lt;/p>
-&lt;ul>
-&lt;li>&lt;code>vmlinux&lt;/code>: 未壓縮的 kernel image&lt;/li>
-&lt;li>&lt;code>modules&lt;/code>: 在 config 中被標記為 &lt;code>M&lt;/code> 的會變成 kernel modules (&lt;code>.ko&lt;/code> files)&lt;/li>
-&lt;li>&lt;code>bzImage&lt;/code>: 壓縮過後的 kernel image (x86)&lt;/li>
-&lt;/ul>
-&lt;p>實際在開機時，會用壓縮過後的 &lt;code>bzImage&lt;/code>，&lt;code>vmlinux&lt;/code> 是作為 debug 用，（不在這本書的範圍）&lt;/p></description></item><item><title>Ch04: Writing Your First Kernel Module - LKMs Part 1</title><link>https://yamatrail.com/linux-kernel-programming/ch04/</link><pubDate>Mon, 08 Dec 2025 08:39:49 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch04/</guid><description>&lt;h1 id="understanding-kernel-architecture--part-1">Understanding kernel architecture – part 1&lt;/h1>
-&lt;h1 id="exploring-lkms">Exploring LKMs&lt;/h1>
-&lt;h2 id="the-lkm-framework">The LKM framework&lt;/h2>
-&lt;p>&lt;img alt="4.3.png" loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch04/4.3.png">&lt;/p>
-&lt;h2 id="kernel-modules-within-the-kernel-source-tree">Kernel modules within the kernel source tree&lt;/h2>
-&lt;ul>
-&lt;li>kernel modules 存放於 &lt;code>/lib/modules/$(uname -r)/&lt;/code>
-&lt;img alt="152.png" loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch04/152.png">
-以我的例子來說，正在運行 95 個 modules，可以發現跟書上的範例 5359 差很多，我的推測是我使用的是 server 版，書上使用的是 desktop 版。&lt;/li>
-&lt;/ul>
-&lt;p>其中一個大量使用 modules 這種方式的是 device driver，例如可以看 &lt;code>kernel/drivers/net/ethernet&lt;/code>&lt;/p>
-&lt;ul>
-&lt;li>
-&lt;p>原先 Ubuntu 18.04 的 netword drivers:
-&lt;img alt="153-1.png" loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch04/153-1.png">&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>我自己編譯的 &lt;code>5.4.1-llkd01&lt;/code> 的 device drivers:
-&lt;img alt="153-2.png" loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch04/153-2.png">
-明顯少了許多，這是因為當初在 build 時，是使用 &lt;code>lsmod&lt;/code> 抓取正在運行中的 module，並不像 ubuntu 需要考慮各種可能的情境&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>其中的個有名的 driver 是 Intel 1GbE Network Interface Card (NIC)&lt;/p>
-&lt;/li>
-&lt;/ul>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>lsmod | grep e1000
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img alt="153-3.png" loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch04/153-3.png">&lt;/p></description></item><item><title>Ch05: Writing Your First Kernel Module - LKMs Part 2</title><link>https://yamatrail.com/linux-kernel-programming/ch05/</link><pubDate>Thu, 25 Dec 2025 10:07:49 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch05/</guid><description>&lt;h1 id="cross-compiling-a-kernel-module">Cross-compiling a kernel module&lt;/h1>
-&lt;p>在 ch4 時，我們 compile 了一個 kernel module, 這次則是要 cross-compile 一個 kernel module&lt;/p>
-&lt;h2 id="attempt-1--setting-the-special-environment-variables">Attempt 1 – setting the &amp;ldquo;special&amp;rdquo; environment variables&lt;/h2>
-&lt;p>先試著設定 &lt;code>ARCH&lt;/code> 與 &lt;code>CROSS_COMPILE&lt;/code>&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>cd ~/Linux-Kernel-Programming/ch5/cross
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>make ARCH&lt;span style="color:#f92672">=&lt;/span>arm CROSS_COMPILE&lt;span style="color:#f92672">=&lt;/span>arm-linux-gnueabihf-
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;img loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch05/206.png">&lt;/p>
-&lt;p>但這個嘗試失敗了，這是因為在這個例子中，是因為 &lt;code>Makefile&lt;/code> 會去找目前這台電腦的 Kernel source，因此要來對 &lt;code>Makefile&lt;/code> 做下列的修改&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-makefile" data-lang="makefile">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">ifeq&lt;/span> &lt;span style="color:#960050;background-color:#1e0010">(&lt;/span>&lt;span style="color:#66d9ef">$(&lt;/span>ARCH&lt;span style="color:#66d9ef">)&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">,arm)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># *UPDATE* &amp;#39;KDIR&amp;#39; below to point to the ARM Linux kernel source tree on your box
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> KDIR ?&lt;span style="color:#f92672">=&lt;/span> /home/user/rpi_work/kernel_rpi/linux
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">else&lt;/span> &lt;span style="color:#960050;background-color:#1e0010">ifeq&lt;/span> &lt;span style="color:#960050;background-color:#1e0010">(&lt;/span>&lt;span style="color:#66d9ef">$(&lt;/span>ARCH&lt;span style="color:#66d9ef">)&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">,arm64)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># *UPDATE* &amp;#39;KDIR&amp;#39; below to point to the ARM64 (Aarch64) Linux kernel source
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> &lt;span style="color:#75715e"># tree on your box&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> KDIR ?&lt;span style="color:#f92672">=&lt;/span> /home/user/rpi_work/kernel_rpi/linux
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">else&lt;/span> &lt;span style="color:#960050;background-color:#1e0010">ifeq&lt;/span> &lt;span style="color:#960050;background-color:#1e0010">(&lt;/span>&lt;span style="color:#66d9ef">$(&lt;/span>ARCH&lt;span style="color:#66d9ef">)&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">,powerpc)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># *UPDATE* &amp;#39;KDIR&amp;#39; below to point to the PPC64 Linux kernel source tree on your box
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> KDIR ?&lt;span style="color:#f92672">=&lt;/span> ~/kernel/linux-4.9.1
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">else&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># &amp;#39;KDIR&amp;#39; is the Linux &amp;#39;kernel headers&amp;#39; package on your host system; this is
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">&lt;/span> &lt;span style="color:#75715e"># usually an x86_64, but could be anything, really (f.e. building directly&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># on a Raspberry Pi implies that it&amp;#39;s the host)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> KDIR ?&lt;span style="color:#f92672">=&lt;/span> /lib/modules/&lt;span style="color:#66d9ef">$(&lt;/span>shell uname -r&lt;span style="color:#66d9ef">)&lt;/span>/build
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">endif&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>這裡主要是把 kernel source 的路徑改為正確的 &lt;code>/home/user/rpi_work/kernel_rpi/linux&lt;/code>&lt;/p></description></item><item><title>Ch06: Kernel Internals Essentials - Processes and Threads</title><link>https://yamatrail.com/linux-kernel-programming/ch06/</link><pubDate>Sat, 07 Mar 2026 14:59:44 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch06/</guid><description>&lt;h1 id="understanding-process-and-interrupt-contexts">Understanding process and interrupt contexts&lt;/h1>
-&lt;p>&lt;img loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch06/270.png">
-各種 context 有以下的分類&lt;/p>
-&lt;ul>
-&lt;li>kernel code
-&lt;ul>
-&lt;li>interrupt context: 可能是來自於 hard ware 的 interrupt&lt;/li>
-&lt;li>process context: 來自於 system call 或是 exception&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>user space
-&lt;ul>
-&lt;li>user context&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;p>在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡&lt;/p>
-&lt;h1 id="understanding-the-basics-of-the-process-vas">Understanding the basics of the process VAS&lt;/h1>
-&lt;p>大致上一個 process 的 virtual address space 長成下面這個樣子
-&lt;img loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch06/271.png">&lt;/p>
-&lt;ul>
-&lt;li>&lt;strong>Text segment&lt;/strong>: 這是 machine code 存放的地方&lt;/li>
-&lt;li>&lt;strong>Data segment&lt;/strong>
-&lt;ul>
-&lt;li>&lt;strong>Initialized data segment&lt;/strong>: 已經初始化的變數&lt;/li>
-&lt;li>&lt;strong>Uninitialized data segment&lt;/strong>: 還沒有被初始化的變數，有時候會被稱為 &lt;em>bss&lt;/em>&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>Heap segment&lt;/strong>: 被 &lt;code>malloc()&lt;/code> 或是 &lt;code>mmap()&lt;/code> 出來的區域會放在這裡&lt;/li>
-&lt;li>&lt;strong>Libraries (text, data)&lt;/strong>&lt;/li>
-&lt;li>&lt;strong>Stack&lt;/strong>: 這個區域會對應到 function call 的過程&lt;/li>
-&lt;/ul>
-&lt;h1 id="organizing-processes-threads-and-their-stacks--user-and-kernel-space">Organizing processes, threads, and their stacks – user and kernel space&lt;/h1>
-&lt;p>thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
-這本書會把重點著重於 thread 因為在最原始的 Unix 理念中&lt;/p></description></item><item><title>如何在文字界面底下讓樹莓派連上 Wi-Fi</title><link>https://yamatrail.com/linux-kernel-programming/pi-wifi/</link><pubDate>Mon, 16 Feb 2026 14:10:41 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/pi-wifi/</guid><description>&lt;h2 id="啟用-wlan0">啟用 &lt;code>wlan0&lt;/code>&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo rfkill unblock wifi
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># or unlock all&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo rfkill unblock all
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo ip link set wlan0 up
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo iwlist wlan0 scan
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="使用-nmcli">使用 &lt;code>nmcli&lt;/code>&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>user@raspberrypi:~ $ sudo nmcli dev wifi rescan
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>user@raspberrypi:~ $ sudo nmcli device wifi connect &lt;span style="color:#e6db74">&amp;#34;xxx&amp;#34;&lt;/span> password &lt;span style="color:#e6db74">&amp;#34;yyyyyyyyyy&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>剛開始 scan 的時候，可能會看到&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>user@raspberrypi:~ $ sudo nmcli dev wifi rescan
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Error: Scanning not allowed &lt;span style="color:#66d9ef">while&lt;/span> unavailable.
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>這是因為還沒有設定國家代碼，這時要先&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo raspi-config
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p></description></item><item><title>Ch07: Memory Management Internals - Essentials</title><link>https://yamatrail.com/linux-kernel-programming/ch07/</link><pubDate>Mon, 04 May 2026 21:02:50 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch07/</guid><description>&lt;h1 id="understanding-the-vm-split">Understanding the VM split&lt;/h1>
-&lt;p>Linux kernel 管理記憶體時有一下兩種方式&lt;/p>
-&lt;ul>
-&lt;li>virtual memory-based (通常是使用這種方式)&lt;/li>
-&lt;li>直接以 physical memory 的觀點去處理&lt;/li>
-&lt;/ul>
-&lt;p>這個章節會先討論 virtual memory 的方式，接著再討論 physical memory 的方式&lt;/p>
-&lt;ul>
-&lt;li>在 32-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 32 = 4GB&lt;/li>
-&lt;li>在 64-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 64 = 4EB&lt;/li>
-&lt;/ul>
-&lt;p>為了討論方便，這裡會先使用 32-bit 的方式&lt;/p>
-&lt;h2 id="looking-under-the-hood--the-hello-world-c-program">Looking under the hood – the Hello, world C program&lt;/h2>
-&lt;p>這裡在說明像是在這樣的 &lt;code>helloworld.c&lt;/code> 中，&lt;code>printf()&lt;/code> 是透過 loader 呼叫 system call &lt;code>mmap()&lt;/code>，讓 &lt;code>printf()&lt;/code> 可以被 map 到這個 process 的 VAS 中。&lt;/p></description></item><item><title>Quick Start</title><link>https://yamatrail.com/linux-kernel-programming/quick-start/</link><pubDate>Fri, 01 May 2026 20:10:13 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/quick-start/</guid><description>&lt;blockquote>
-&lt;p>這篇文章的目的在於讓我自己快速的進入到開發環境中。&lt;/p>&lt;/blockquote>
-&lt;h2 id="進入到-vm-中">進入到 vm 中&lt;/h2>
-&lt;h3 id="結論使用以下指令">結論：使用以下指令&lt;/h3>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>ub &lt;span style="color:#75715e"># `ub` for ubuntu vm&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="環境建立過程">環境建立過程&lt;/h3>
-&lt;p>這裡結合&lt;/p>
-&lt;ol>
-&lt;li>power on the vm&lt;/li>
-&lt;/ol>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>VBoxManage startvm &lt;span style="color:#e6db74">&amp;#34;ubuntu&amp;#34;&lt;/span> --type headless
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="2">
-&lt;li>ssh to the vm&lt;/li>
-&lt;/ol>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># ubuntu on virtualbox&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Host ubuntu
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> HostName 192.168.56.103
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> User user
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> PasswordAuthentication no
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> RequestTTY force
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ForwardX11 yes
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>ssh ubuntu
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>最後在 &lt;code>~/.config/fish/config.fish&lt;/code> 做 alias 的設定&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>alias ub&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;VBoxManage startvm &amp;#34;ubuntu&amp;#34; --type headless; ssh ubuntu&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="logs">Logs&lt;/h2>
-&lt;p>清除 log&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo dmesg -C
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Linux Kernel Programming 學習紀錄 on Yama&#39;s Trail</title>
+    <link>http://localhost:1313/linux-kernel-programming/</link>
+    <description>Recent content in Linux Kernel Programming 學習紀錄 on Yama&#39;s Trail</description>
+    <generator>Hugo -- 0.146.0</generator>
+    <language>zh-tw</language>
+    <lastBuildDate>Mon, 04 May 2026 21:02:50 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/linux-kernel-programming/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Ch02: Building the 5.x Linux Kernel from Source - Part 1</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch02/</link>
+      <pubDate>Wed, 03 Dec 2025 20:16:29 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch02/</guid>
+      <description>&lt;h1 id=&#34;step-1--obtaining-a-linux-kernel-source-tree&#34;&gt;Step 1 – obtaining a Linux kernel source tree&lt;/h1&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;wget --https-only -O ~/Downloads/linux-5.4.1.tar.xz https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.1.tar.xz
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h1 id=&#34;step-2--extracting-the-kernel-source-tree&#34;&gt;Step 2 – extracting the kernel source tree&lt;/h1&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd ~/Downloads ; ls -lh linux-5.4.1.tar.xz
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tar xf ~/Downloads/linux-5.4.1.tar.xz
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mkdir -p ~/kernels
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;tar xf ~/Downloads/linux-5.4.1.tar.xz --directory&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;HOME&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;/kernels/
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;設定環境變數是一個 good practice，可加入 &lt;code&gt;~/.bashrc&lt;/code&gt; 中:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;export LLKD_KSRC&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;HOME&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;/kernels/linux-5.4
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;現在已經不像以前一定會把 source code 放到 &lt;code&gt;usr/src&lt;/code&gt; 了&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;a-brief-tour-of-the-kernel-source-tree&#34;&gt;A brief tour of the kernel source tree&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@ubuntu:~/kernels/linux-5.4$ ls
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;COPYING        Kconfig      README  crypto   init    mm       security  virt
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;CREDITS        LICENSES     arch    drivers  ipc     net      sound
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Documentation  MAINTAINERS  block   fs       kernel  samples  tools
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Kbuild         Makefile     certs   include  lib     scripts  usr
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;使用 &lt;code&gt;du -m .&lt;/code&gt; 可以看到檔案大小為 &lt;code&gt;1011M&lt;/code&gt; 幾乎是 1 GB 了&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@ubuntu:~/kernels/linux-5.4$ head Makefile
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# SPDX-License-Identifier: GPL-2.0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;VERSION &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;PATCHLEVEL &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;SUBLEVEL &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;EXTRAVERSION &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NAME &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Kleptomaniac Octopus
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# *DOCUMENTATION*&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# To see a list of typical targets execute &amp;#34;make help&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# More info can be located in ./README&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;這裡可以知道目前的 source code 版本為 5.4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;最上層的檔案與資料夾&#34;&gt;最上層的檔案與資料夾&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;README&lt;/code&gt;: 告知 documents 的所在位置&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;COPYING&lt;/code&gt;: licence 的所在位置&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;MAINTAINERS&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;major-subsystem-directories&#34;&gt;Major subsystem directories&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Makefile&lt;/code&gt;: 這是 top-level 的 &lt;code&gt;Makefile&lt;/code&gt; 使用 &lt;code&gt;kbuild&lt;/code&gt; 與 kernel modules 使用這個 &lt;code&gt;Makefile&lt;/code&gt; (至少在初始化階段)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;kernel&lt;/code&gt;: Core kernel subsystem
+&lt;ul&gt;
+&lt;li&gt;process/thread life cycle&lt;/li&gt;
+&lt;li&gt;CPU scheduling&lt;/li&gt;
+&lt;li&gt;locking&lt;/li&gt;
+&lt;li&gt;cgroups,&lt;/li&gt;
+&lt;li&gt;timers&lt;/li&gt;
+&lt;li&gt;interrupts&lt;/li&gt;
+&lt;li&gt;signaling&lt;/li&gt;
+&lt;li&gt;modules&lt;/li&gt;
+&lt;li&gt;tracing&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;mm&lt;/code&gt;: memory management&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fs&lt;/code&gt;: virtual file system&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;block&lt;/code&gt;: block I/O, file system 的更底層&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;net&lt;/code&gt;: network&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ipc&lt;/code&gt;: inter-processes communication&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sound&lt;/code&gt;: Advanced Linux Sound Architecture (ALSA)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;virt&lt;/code&gt;: virtualization code like KVM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;infrastructuremisc&#34;&gt;Infrastructure/misc&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;arch&lt;/code&gt;: architecture 相關，像是 x86-64, risc-v, arm 等等&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;crypto&lt;/code&gt;: 加密相關&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;include&lt;/code&gt;: arch-independent kernel headers, 但也有例外，像是 &lt;code&gt;arch/&amp;lt;cpu&amp;gt;/include/...&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;init&lt;/code&gt;: 初始化的過程 &lt;code&gt;init/main.c:start_kernel()&lt;/code&gt;, &lt;code&gt;start_kernel()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;lib&lt;/code&gt;: 注意 kernel 並不支援 shared library&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;scripts&lt;/code&gt;: 一些有用的 scripts&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;security&lt;/code&gt;: Linux Security Module (LSM)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;tools&lt;/code&gt;: mostly userspace applications&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@ubuntu:~/kernels/linux-5.4$ cd &lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;LLKD_KSRC&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt; ; ls arch/
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Kconfig  arm    csky     ia64        mips   openrisc  riscv  sparc      x86
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;alpha    arm64  h8300    m68k        nds32  parisc    s390   um         xtensa
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;arc      c6x    hexagon  microblaze  nios2  powerpc   sh     unicore32
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;kernel 所支援的 ISA&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ch03: Building the 5.x Linux Kernel from Source - Part 2</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch03/</link>
+      <pubDate>Sat, 06 Dec 2025 15:00:38 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch03/</guid>
+      <description>&lt;h1 id=&#34;step-4--building-the-kernel-image-and-modules&#34;&gt;Step 4 – building the kernel image and modules&lt;/h1&gt;
+&lt;p&gt;從使用者的角度而言，這非常的簡單，只需要 &lt;code&gt;make&lt;/code&gt; 就行了&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;make help&lt;/code&gt; 可以看到 help，這裡可以先觀察 target &lt;code&gt;all&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ make help
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;...&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Other generic targets:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  all - Build all targets marked with &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;* vmlinux - Build the bare kernel
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;* modules - Build all modules
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;...&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Architecture specific targets &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;x86&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;* bzImage - Compressed kernel image &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;arch/x86/boot/bzImage&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;...&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;從這裡可以得知，&lt;code&gt;make all&lt;/code&gt; 的時候會有 &lt;code&gt;vmlinux&lt;/code&gt;, &lt;code&gt;modules&lt;/code&gt;, &lt;code&gt;bzImage&lt;/code&gt; 這三個 target 被觸發&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;vmlinux&lt;/code&gt;: 未壓縮的 kernel image&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;modules&lt;/code&gt;: 在 config 中被標記為 &lt;code&gt;M&lt;/code&gt; 的會變成 kernel modules (&lt;code&gt;.ko&lt;/code&gt; files)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;bzImage&lt;/code&gt;: 壓縮過後的 kernel image (x86)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;實際在開機時，會用壓縮過後的 &lt;code&gt;bzImage&lt;/code&gt;，&lt;code&gt;vmlinux&lt;/code&gt; 是作為 debug 用，（不在這本書的範圍）&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ch04: Writing Your First Kernel Module - LKMs Part 1</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch04/</link>
+      <pubDate>Mon, 08 Dec 2025 08:39:49 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch04/</guid>
+      <description>&lt;h1 id=&#34;understanding-kernel-architecture--part-1&#34;&gt;Understanding kernel architecture – part 1&lt;/h1&gt;
+&lt;h1 id=&#34;exploring-lkms&#34;&gt;Exploring LKMs&lt;/h1&gt;
+&lt;h2 id=&#34;the-lkm-framework&#34;&gt;The LKM framework&lt;/h2&gt;
+&lt;p&gt;&lt;img alt=&#34;4.3.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/4.3.png&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;kernel-modules-within-the-kernel-source-tree&#34;&gt;Kernel modules within the kernel source tree&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;kernel modules 存放於 &lt;code&gt;/lib/modules/$(uname -r)/&lt;/code&gt;
+&lt;img alt=&#34;152.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/152.png&#34;&gt;
+以我的例子來說，正在運行 95 個 modules，可以發現跟書上的範例 5359 差很多，我的推測是我使用的是 server 版，書上使用的是 desktop 版。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;其中一個大量使用 modules 這種方式的是 device driver，例如可以看 &lt;code&gt;kernel/drivers/net/ethernet&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;原先 Ubuntu 18.04 的 netword drivers:
+&lt;img alt=&#34;153-1.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/153-1.png&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;我自己編譯的 &lt;code&gt;5.4.1-llkd01&lt;/code&gt; 的 device drivers:
+&lt;img alt=&#34;153-2.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/153-2.png&#34;&gt;
+明顯少了許多，這是因為當初在 build 時，是使用 &lt;code&gt;lsmod&lt;/code&gt; 抓取正在運行中的 module，並不像 ubuntu 需要考慮各種可能的情境&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;其中的個有名的 driver 是 Intel 1GbE Network Interface Card (NIC)&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lsmod | grep e1000
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img alt=&#34;153-3.png&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch04/153-3.png&#34;&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ch05: Writing Your First Kernel Module - LKMs Part 2</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch05/</link>
+      <pubDate>Thu, 25 Dec 2025 10:07:49 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch05/</guid>
+      <description>&lt;h1 id=&#34;cross-compiling-a-kernel-module&#34;&gt;Cross-compiling a kernel module&lt;/h1&gt;
+&lt;p&gt;在 ch4 時，我們 compile 了一個 kernel module, 這次則是要 cross-compile 一個 kernel module&lt;/p&gt;
+&lt;h2 id=&#34;attempt-1--setting-the-special-environment-variables&#34;&gt;Attempt 1 – setting the &amp;ldquo;special&amp;rdquo; environment variables&lt;/h2&gt;
+&lt;p&gt;先試著設定 &lt;code&gt;ARCH&lt;/code&gt; 與 &lt;code&gt;CROSS_COMPILE&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd ~/Linux-Kernel-Programming/ch5/cross
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make ARCH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;arm CROSS_COMPILE&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;arm-linux-gnueabihf-
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch05/206.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;但這個嘗試失敗了，這是因為在這個例子中，是因為 &lt;code&gt;Makefile&lt;/code&gt; 會去找目前這台電腦的 Kernel source，因此要來對 &lt;code&gt;Makefile&lt;/code&gt; 做下列的修改&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;ifeq&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;ARCH&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;,arm)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# *UPDATE* &amp;#39;KDIR&amp;#39; below to point to the ARM Linux kernel source tree on your box
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  KDIR ?&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; /home/user/rpi_work/kernel_rpi/linux
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;ifeq&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;ARCH&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;,arm64)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# *UPDATE* &amp;#39;KDIR&amp;#39; below to point to the ARM64 (Aarch64) Linux kernel source
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# tree on your box&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  KDIR ?&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; /home/user/rpi_work/kernel_rpi/linux
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;ifeq&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;ARCH&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;,powerpc)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# *UPDATE* &amp;#39;KDIR&amp;#39; below to point to the PPC64 Linux kernel source tree on your box
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  KDIR ?&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ~/kernel/linux-4.9.1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;else&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# &amp;#39;KDIR&amp;#39; is the Linux &amp;#39;kernel headers&amp;#39; package on your host system; this is
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# usually an x86_64, but could be anything, really (f.e. building directly&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;# on a Raspberry Pi implies that it&amp;#39;s the host)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  KDIR ?&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; /lib/modules/&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;shell uname -r&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;/build
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;endif&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;這裡主要是把 kernel source 的路徑改為正確的 &lt;code&gt;/home/user/rpi_work/kernel_rpi/linux&lt;/code&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ch06: Kernel Internals Essentials - Processes and Threads</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch06/</link>
+      <pubDate>Sat, 07 Mar 2026 14:59:44 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch06/</guid>
+      <description>&lt;h1 id=&#34;understanding-process-and-interrupt-contexts&#34;&gt;Understanding process and interrupt contexts&lt;/h1&gt;
+&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch06/270.png&#34;&gt;
+各種 context 有以下的分類&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;kernel code
+&lt;ul&gt;
+&lt;li&gt;interrupt context: 可能是來自於 hard ware 的 interrupt&lt;/li&gt;
+&lt;li&gt;process context: 來自於 system call 或是 exception&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;user space
+&lt;ul&gt;
+&lt;li&gt;user context&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在接下來的內容中，可以留意現在是在討論這三種 context 的那一個分類裡&lt;/p&gt;
+&lt;h1 id=&#34;understanding-the-basics-of-the-process-vas&#34;&gt;Understanding the basics of the process VAS&lt;/h1&gt;
+&lt;p&gt;大致上一個 process 的 virtual address space 長成下面這個樣子
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/linux-kernel-programming/ch06/271.png&#34;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Text segment&lt;/strong&gt;: 這是 machine code 存放的地方&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Data segment&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Initialized data segment&lt;/strong&gt;: 已經初始化的變數&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Uninitialized data segment&lt;/strong&gt;: 還沒有被初始化的變數，有時候會被稱為 &lt;em&gt;bss&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Heap segment&lt;/strong&gt;: 被 &lt;code&gt;malloc()&lt;/code&gt; 或是 &lt;code&gt;mmap()&lt;/code&gt; 出來的區域會放在這裡&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Libraries (text, data)&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Stack&lt;/strong&gt;: 這個區域會對應到 function call 的過程&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1 id=&#34;organizing-processes-threads-and-their-stacks--user-and-kernel-space&#34;&gt;Organizing processes, threads, and their stacks – user and kernel space&lt;/h1&gt;
+&lt;p&gt;thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
+這本書會把重點著重於 thread 因為在最原始的 Unix 理念中&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>如何在文字界面底下讓樹莓派連上 Wi-Fi</title>
+      <link>http://localhost:1313/linux-kernel-programming/pi-wifi/</link>
+      <pubDate>Mon, 16 Feb 2026 14:10:41 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/pi-wifi/</guid>
+      <description>&lt;h2 id=&#34;啟用-wlan0&#34;&gt;啟用 &lt;code&gt;wlan0&lt;/code&gt;&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo rfkill unblock wifi
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# or unlock all&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo rfkill unblock all
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo ip link set wlan0 up
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo iwlist wlan0 scan
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;使用-nmcli&#34;&gt;使用 &lt;code&gt;nmcli&lt;/code&gt;&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@raspberrypi:~ $ sudo nmcli dev wifi rescan
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@raspberrypi:~ $ sudo nmcli device wifi connect &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;xxx&amp;#34;&lt;/span&gt; password &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;yyyyyyyyyy&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;剛開始 scan 的時候，可能會看到&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;user@raspberrypi:~ $ sudo nmcli dev wifi rescan
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Error: Scanning not allowed &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; unavailable.
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;這是因為還沒有設定國家代碼，這時要先&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo raspi-config
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Ch07: Memory Management Internals - Essentials</title>
+      <link>http://localhost:1313/linux-kernel-programming/ch07/</link>
+      <pubDate>Mon, 04 May 2026 21:02:50 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/ch07/</guid>
+      <description>&lt;h1 id=&#34;understanding-the-vm-split&#34;&gt;Understanding the VM split&lt;/h1&gt;
+&lt;p&gt;Linux kernel 管理記憶體時有一下兩種方式&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;virtual memory-based (通常是使用這種方式)&lt;/li&gt;
+&lt;li&gt;直接以 physical memory 的觀點去處理&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;這個章節會先討論 virtual memory 的方式，接著再討論 physical memory 的方式&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 32-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 32 = 4GB&lt;/li&gt;
+&lt;li&gt;在 64-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 64 = 4EB&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;為了討論方便，這裡會先使用 32-bit 的方式&lt;/p&gt;
+&lt;h2 id=&#34;looking-under-the-hood--the-hello-world-c-program&#34;&gt;Looking under the hood – the Hello, world C program&lt;/h2&gt;
+&lt;p&gt;這裡在說明像是在這樣的 &lt;code&gt;helloworld.c&lt;/code&gt; 中，&lt;code&gt;printf()&lt;/code&gt; 是透過 loader 呼叫 system call &lt;code&gt;mmap()&lt;/code&gt;，讓 &lt;code&gt;printf()&lt;/code&gt; 可以被 map 到這個 process 的 VAS 中。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Quick Start</title>
+      <link>http://localhost:1313/linux-kernel-programming/quick-start/</link>
+      <pubDate>Fri, 01 May 2026 20:10:13 +0800</pubDate>
+      <guid>http://localhost:1313/linux-kernel-programming/quick-start/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;這篇文章的目的在於讓我自己快速的進入到開發環境中。&lt;/p&gt;&lt;/blockquote&gt;
+&lt;h2 id=&#34;進入到-vm-中&#34;&gt;進入到 vm 中&lt;/h2&gt;
+&lt;h3 id=&#34;結論使用以下指令&#34;&gt;結論：使用以下指令&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ub &lt;span style=&#34;color:#75715e&#34;&gt;# `ub` for ubuntu vm&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;環境建立過程&#34;&gt;環境建立過程&lt;/h3&gt;
+&lt;p&gt;這裡結合&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;power on the vm&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;VBoxManage startvm &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ubuntu&amp;#34;&lt;/span&gt; --type headless
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;ssh to the vm&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# ubuntu on virtualbox&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Host ubuntu
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    HostName 192.168.56.103
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    User user
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    PasswordAuthentication no
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    RequestTTY force
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ForwardX11 yes
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ssh ubuntu
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;最後在 &lt;code&gt;~/.config/fish/config.fish&lt;/code&gt; 做 alias 的設定&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;alias ub&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;VBoxManage startvm &amp;#34;ubuntu&amp;#34; --type headless; ssh ubuntu&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;logs&#34;&gt;Logs&lt;/h2&gt;
+&lt;p&gt;清除 log&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sudo dmesg -C
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -1,5 +1,13 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>xv6 學習紀錄 | Yama's Trail</title>
-<meta name=keywords content><meta name=description content="為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 6.1810: Operating System Engineering  做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>xv6 學習紀錄 | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 6.1810: Operating System Engineering  做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：
 
   
       
@@ -53,29 +61,372 @@
           學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver
       
   
-"><meta name=author content><link rel=canonical href=https://yamatrail.com/xv6/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate type=application/rss+xml href=https://yamatrail.com/xv6/index.xml><link rel=alternate hreflang=en href=https://yamatrail.com/xv6/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/xv6/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="xv6 學習紀錄"><meta property="og:description" content="為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 6.1810: Operating System Engineering 做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：
-Lab 名稱 學習重點與實作內容 Xv6 and Unix utilities 學習 xv6 的編譯與運行在 qemu 所模擬的 RISC-V 環境中 System calls 學習 system call 的概念原理、程式實作 Page tables 學習 RISC-V 的 3-level page table 架構、memory layout、追蹤及修改 virtual memory 程式碼 Traps 學習 Trap 的概念、使用 GDB 追蹤 trap 的過程 Xv6 lazy page allocation 使用 page fault 的技術，針對 sbrk() 的優化 Copy-on-write fork 使用 page fault 的技術，針對 fork() 的優化 Multithreading 學習 context switch 的流程與 scheduler 的原理 Locks 了解 lock 的運作原理及使用方式 File system 了解 file system 從 disk, bcache, log 一直到 file descriptor level，修改 inode 以支援更大的 file size Mmap 透過 page fault 與 process 中加入 virtual memory area 的資訊，把 virtual memory 映射到檔案內容 Network driver 學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver "><meta property="og:locale" content="zh-tw"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content="xv6 學習紀錄"><meta name=twitter:description content><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"xv6 學習紀錄","item":"https://yamatrail.com/xv6/"}]}</script></head><body class=list id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span class=active>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><header class=page-header><h1>xv6 學習紀錄</h1></header><div class=post-content><p>為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 <a href=https://pdos.csail.mit.edu/6.S081/2022/schedule.html>6.1810: Operating System Engineering</a> 做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：</p><table><thead><tr><th style=text-align:left>Lab 名稱</th><th style=text-align:left>學習重點與實作內容</th></tr></thead><tbody><tr><td style=text-align:left><strong>Xv6 and Unix utilities</strong></td><td style=text-align:left>學習 xv6 的編譯與運行在 qemu 所模擬的 RISC-V 環境中</td></tr><tr><td style=text-align:left><strong>System calls</strong></td><td style=text-align:left>學習 system call 的概念原理、程式實作</td></tr><tr><td style=text-align:left><strong>Page tables</strong></td><td style=text-align:left>學習 RISC-V 的 3-level page table 架構、memory layout、追蹤及修改 virtual memory 程式碼</td></tr><tr><td style=text-align:left><strong>Traps</strong></td><td style=text-align:left>學習 Trap 的概念、使用 GDB 追蹤 trap 的過程</td></tr><tr><td style=text-align:left><strong>Xv6 lazy page allocation</strong></td><td style=text-align:left>使用 page fault 的技術，針對 <code>sbrk()</code> 的優化</td></tr><tr><td style=text-align:left><strong>Copy-on-write fork</strong></td><td style=text-align:left>使用 page fault 的技術，針對 <code>fork()</code> 的優化</td></tr><tr><td style=text-align:left><strong>Multithreading</strong></td><td style=text-align:left>學習 context switch 的流程與 scheduler 的原理</td></tr><tr><td style=text-align:left><strong>Locks</strong></td><td style=text-align:left>了解 lock 的運作原理及使用方式</td></tr><tr><td style=text-align:left><strong>File system</strong></td><td style=text-align:left>了解 file system 從 disk, bcache, log 一直到 file descriptor level，修改 inode 以支援更大的 file size</td></tr><tr><td style=text-align:left><strong>Mmap</strong></td><td style=text-align:left>透過 page fault 與 process 中加入 virtual memory area 的資訊，把 virtual memory 映射到檔案內容</td></tr><tr><td style=text-align:left><strong>Network driver</strong></td><td style=text-align:left>學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver</td></tr></tbody></table></div><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6</h2></header><div class=entry-content><p>Lab 連結：Lab: Copy-on-Write Fork for xv6
+">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/xv6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/xv6/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span class="active">xv6 學習紀錄</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
+                    <span>Linux Kernel Programming</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    xv6 學習紀錄
+  </h1>
+</header>
+<div class="post-content"><p>為了了解作業系統的運作原理，挑選了 MIT 的作業系統開放式課程 <a href="https://pdos.csail.mit.edu/6.S081/2022/schedule.html">6.1810: Operating System Engineering</a>  做學習，課程中會針對一個教學用的作業系統 xv6-riscv 進行追蹤程式碼，最後我把學習的過程寫成系列文章 xv6 學習紀錄。紀錄課程的各個 lab 所學習到的東西：</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Lab 名稱</th>
+          <th style="text-align: left">學習重點與實作內容</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><strong>Xv6 and Unix utilities</strong></td>
+          <td style="text-align: left">學習 xv6 的編譯與運行在 qemu 所模擬的 RISC-V 環境中</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>System calls</strong></td>
+          <td style="text-align: left">學習 system call 的概念原理、程式實作</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Page tables</strong></td>
+          <td style="text-align: left">學習 RISC-V 的 3-level page table 架構、memory layout、追蹤及修改 virtual memory 程式碼</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Traps</strong></td>
+          <td style="text-align: left">學習 Trap 的概念、使用 GDB 追蹤 trap 的過程</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Xv6 lazy page allocation</strong></td>
+          <td style="text-align: left">使用 page fault 的技術，針對 <code>sbrk()</code> 的優化</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Copy-on-write fork</strong></td>
+          <td style="text-align: left">使用 page fault 的技術，針對 <code>fork()</code> 的優化</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Multithreading</strong></td>
+          <td style="text-align: left">學習 context switch 的流程與 scheduler 的原理</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Locks</strong></td>
+          <td style="text-align: left">了解 lock 的運作原理及使用方式</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>File system</strong></td>
+          <td style="text-align: left">了解 file system 從 disk, bcache, log 一直到 file descriptor level，修改 inode 以支援更大的 file size</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Mmap</strong></td>
+          <td style="text-align: left">透過 page fault 與 process 中加入 virtual memory area 的資訊，把 virtual memory 映射到檔案內容</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><strong>Network driver</strong></td>
+          <td style="text-align: left">學習網卡的運作原理、實做一個基於 E1000 網卡的 network driver</td>
+      </tr>
+  </tbody>
+</table>
+
+
+</div>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: Copy-on-Write Fork for xv6
 題目解析 The problem The fork() system call in xv6 copies all of the parent process’s user-space memory into the child. If the parent is large, copying can take a long time. Worse, the work is often largely wasted: fork() is commonly followed by exec() in the child, which discards the copied memory, usually without using most of it. On the other hand, if both parent and child use a copied page, and one or both writes it, the copy is truly needed.
-...</p></div><footer class=entry-footer><span title='2025-10-15 17:47:29 +0800 CST'>October 15, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6" href=https://yamatrail.com/xv6/lab6/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 07-1] Thread Switching</h2></header><div class=entry-content><p>課程影片連結：
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-15 17:47:29 +0800 CST'>October 15, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 06] Lab: Copy-on-Write Fork for xv6" href="http://localhost:1313/xv6/lab6/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 07-1] Thread Switching
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程影片連結：
 6.S081 Fall 2020 Lecture 11: Thread Switching thread 的目標與手段 我們希望 multi-threading，是因為希望可以有多個 thread 去分享同一個 CPU，在 xv6 中，是以「過了一段時間換人使用」作為 thread switching 的依據。在這個目標之下，我們可以來思考以下幾件事情：
 什麼是「(該換人 (thread) 使用 CPU) 的時間到了」 我們需要 save/restore 哪些關於 thread 的資訊 完整的流程該如何實做 1. 什麼是「(該換人 (thread) 使用 CPU) 的時間到了」? kernel/trap.c: usertrap(): void usertrap(void) { // [...] // give up the CPU if this is a timer interrupt. if(which_dev == 2) yield(); usertrapret(); } 在 usertrap() 中，如果是遇到 timer interrupt，則會進入到 yield()，進去之後會進入後續 thread switching 的處理
-...</p></div><footer class=entry-footer><span title='2025-10-21 19:35:28 +0800 CST'>October 21, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 07-1] Thread Switching" href=https://yamatrail.com/xv6/lab7.1/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 07] Lab thread: Multithreading</h2></header><div class=entry-content><p>Lab 連結：Lab: Multithreading
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-21 19:35:28 +0800 CST'>October 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 07-1] Thread Switching" href="http://localhost:1313/xv6/lab7.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 07] Lab thread: Multithreading
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: Multithreading
 Uthread: switching between threads (moderate) In this exercise you will design the context switch mechanism for a user-level threading system, and then implement it. To get you started, your xv6 has two files user/uthread.c and user/uthread_switch.S, and a rule in the Makefile to build a uthread program. uthread.c contains most of a user-level threading package, and code for three simple test threads. The threading package is missing some of the code to create a thread and to switch between threads.
-...</p></div><footer class=entry-footer><span title='2025-10-21 19:35:33 +0800 CST'>October 21, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 07] Lab thread: Multithreading" href=https://yamatrail.com/xv6/lab7/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks</h2></header><div class=entry-content><p>課程影片連結：
-6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks Deadlock acquire(&amp;l) acquire(&amp;l) release(&amp;l) Locks vs. Performance 越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳 Case study UART kernel/uart.c struct spinlock uart_tx_lock; void uartputc(int c) { acquire(&amp;uart_tx_lock); if(panicked){ for(;;) ; } while(uart_tx_w == uart_tx_r + UART_TX_BUF_SIZE){ // buffer is full. // wait for uartstart() to open up space in the buffer. sleep(&amp;uart_tx_r, &amp;uart_tx_lock); } uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c; uart_tx_w += 1; uartstart(); release(&amp;uart_tx_lock); } void uartintr(void) { // read and process incoming characters. while(1){ int c = uartgetc(); if(c == -1) break; consoleintr(c); } // send buffered characters. acquire(&amp;uart_tx_lock); uartstart(); release(&amp;uart_tx_lock); } Lock rules protect data structure Lock 的實做 broken lock void acquire(struct spinlock *lk) // does not work! { for(;;) { if(lk->locked == 0) { lk->locked = 1; break; } } } 這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l->locked == 0)
-...</p></div><footer class=entry-footer><span title='2025-10-25 13:13:07 +0800 CST'>October 25, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks" href=https://yamatrail.com/xv6/lab8.1/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 08-2] kalloc 相關程式碼解析</h2></header><div class=entry-content><p>kernel/kalloc.c data structure kmem 與 fun kmem 負責紀錄可使用的 pages，這些 pages 用一個 linked list 做紀錄 struct run { struct run *next; }; struct { struct spinlock lock; struct run *freelist; } kmem; 這個 Linked list run 是一個裡面就只有一個值，指向下一個可用的 page 的 address
-kalloc() 與 kfree() // Allocate one 4096-byte page of physical memory. // Returns a pointer that the kernel can use. // Returns 0 if the memory cannot be allocated. void * kalloc(void) { struct run *r; acquire(&amp;kmem.lock); r = kmem.freelist; if(r) kmem.freelist = r->next; release(&amp;kmem.lock); if(r) memset((char*)r, 5, PGSIZE); // fill with junk return (void*)r; } kalloc() 中，回傳 freelist 的 head，新的 head 變成 freelist->next Returns 0 if the memory cannot be allocated. 之所以這會成立，是因為在最一開始最一開始的時候，struct run *freelist; 被初始成 null (0)，kinit() 之前的這個唯一的 freelist 最後會變成 linked list 的結尾，這也是 kalloc() 之所以把記憶體用光之後會回傳 0 的原因 // Free the page of physical memory pointed at by pa, // which normally should have been returned by a // call to kalloc(). (The exception is when // initializing the allocator; see kinit above.) void kfree(void *pa) { struct run *r; if(((uint64)pa % PGSIZE) != 0 || (char*)pa &lt; end || (uint64)pa >= PHYSTOP) panic("kfree"); // Fill with junk to catch dangling refs. memset(pa, 1, PGSIZE); r = (struct run*)pa; acquire(&amp;kmem.lock); r->next = kmem.freelist; kmem.freelist = r; release(&amp;kmem.lock); } pa 必須是一個 page 的開頭 kfree() 把這個不要的 pa 放到 freelist 的開頭 freelist 的初始化過程 kernel/main.c void main() { if(cpuid() == 0){ consoleinit(); printfinit(); printf("\n"); printf("xv6 kernel is booting\n"); printf("\n"); kinit(); // physical page allocator &lt;- 這裡進入 kalloc.c kvminit(); // create kernel page table kvminithart(); // turn on paging procinit(); // process table trapinit(); // trap vectors trapinithart(); // install kernel trap vector plicinit(); // set up interrupt controller plicinithart(); // ask PLIC for device interrupts binit(); // buffer cache iinit(); // inode table fileinit(); // file table virtio_disk_init(); // emulated hard disk userinit(); // first user process __sync_synchronize(); started = 1; } else { while(started == 0) ; __sync_synchronize(); printf("hart %d starting\n", cpuid()); kvminithart(); // turn on paging trapinithart(); // install kernel trap vector plicinithart(); // ask PLIC for device interrupts } scheduler(); } kernel/kalloc.c: kinit() void kinit() { initlock(&amp;kmem.lock, "kmem"); freerange(end, (void*)PHYSTOP); } 初始 kmem.lock 使用 freerange() 把可用的 page 都放到 freelist 中 kernel/kalloc.c: freerange() void freerange(void *pa_start, void *pa_end) { char *p; p = (char*)PGROUNDUP((uint64)pa_start); for(; p + PGSIZE &lt;= (char*)pa_end; p += PGSIZE) kfree(p); } 這裡使用先前提到的 kfree() 一次一次的把可用 page 放到 freelist 的前方
-...</p></div><footer class=entry-footer><span title='2025-10-27 12:28:33 +0800 CST'>October 27, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 08-2] kalloc 相關程式碼解析" href=https://yamatrail.com/xv6/kalloc/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 08-3] bcache 相關程式碼解析</h2></header><div class=entry-content><p>這篇主要是為了 lab locks 中的 “Buffer cache” 這一題，要我們先了解 bcache 的一些原理與應用，主要的參考資料是 xv6 book 8.1 ~ 8.3 與 bcache 相關的程式碼
-kernel/main.c void main() { if(cpuid() == 0){ consoleinit(); printfinit(); printf("\n"); printf("xv6 kernel is booting\n"); printf("\n"); kinit(); // physical page allocator kvminit(); // create kernel page table kvminithart(); // turn on paging procinit(); // process table trapinit(); // trap vectors trapinithart(); // install kernel trap vector plicinit(); // set up interrupt controller plicinithart(); // ask PLIC for device interrupts binit(); // buffer cache &lt;- 這裡進入 bcache 的初始化過程 iinit(); // inode table fileinit(); // file table virtio_disk_init(); // emulated hard disk userinit(); // first user process __sync_synchronize(); started = 1; } else { while(started == 0) ; __sync_synchronize(); printf("hart %d starting\n", cpuid()); kvminithart(); // turn on paging trapinithart(); // install kernel trap vector plicinithart(); // ask PLIC for device interrupts } scheduler(); } kernel/bio.c: binit() struct { struct spinlock lock; struct buf buf[NBUF]; // Linked list of all buffers, through prev/next. // Sorted by how recently the buffer was used. // head.next is most recent, head.prev is least. struct buf head; } bcache; void binit(void) { struct buf *b; initlock(&amp;bcache.lock, "bcache"); // Create linked list of buffers bcache.head.prev = &amp;bcache.head; bcache.head.next = &amp;bcache.head; for(b = bcache.buf; b &lt; bcache.buf+NBUF; b++){ b->next = bcache.head.next; b->prev = &amp;bcache.head; initsleeplock(&amp;b->lock, "buffer"); bcache.head.next->prev = b; bcache.head.next = b; } } 在 binit() 之後，就不會直接使用 bcache.buf 這個 array，而是使用由 head 開頭的這個環狀 linked-list bread() 與 bwrite() // Return a locked buf with the contents of the indicated block. struct buf* bread(uint dev, uint blockno) { struct buf *b; b = bget(dev, blockno); if(!b->valid) { virtio_disk_rw(b, 0); b->valid = 1; } return b; } 如果 bget() 可以拿到 buf 就直接回傳，如果不行，則使用 virtio_disk_rw()
-...</p></div><footer class=entry-footer><span title='2025-10-28 14:02:59 +0800 CST'>October 28, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 08-3] bcache 相關程式碼解析" href=https://yamatrail.com/xv6/bcache/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 08] Lab: locks</h2></header><div class=entry-content><p>Lab 連結：Lab: locks
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-21 19:35:33 +0800 CST'>October 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 07] Lab thread: Multithreading" href="http://localhost:1313/xv6/lab7/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程影片連結：
+6.S081 Fall 2020 Lecture 10: Multiprocessors and Locks Deadlock acquire(&amp;l) acquire(&amp;l) release(&amp;l) Locks vs. Performance 越多 lock 雖然可能可以比較安全，但也會出現效能上的不佳 Case study UART kernel/uart.c struct spinlock uart_tx_lock; void uartputc(int c) { acquire(&amp;uart_tx_lock); if(panicked){ for(;;) ; } while(uart_tx_w == uart_tx_r &#43; UART_TX_BUF_SIZE){ // buffer is full. // wait for uartstart() to open up space in the buffer. sleep(&amp;uart_tx_r, &amp;uart_tx_lock); } uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c; uart_tx_w &#43;= 1; uartstart(); release(&amp;uart_tx_lock); } void uartintr(void) { // read and process incoming characters. while(1){ int c = uartgetc(); if(c == -1) break; consoleintr(c); } // send buffered characters. acquire(&amp;uart_tx_lock); uartstart(); release(&amp;uart_tx_lock); } Lock rules protect data structure Lock 的實做 broken lock void acquire(struct spinlock *lk) // does not work! { for(;;) { if(lk-&gt;locked == 0) { lk-&gt;locked = 1; break; } } } 這是一個錯誤的實做方法，因為可能有兩個 CPU 進入到 if (l-&gt;locked == 0)
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-25 13:13:07 +0800 CST'>October 25, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08-1] Lecture 10: Multiprocessors and Locks" href="http://localhost:1313/xv6/lab8.1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 08-2] kalloc 相關程式碼解析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>kernel/kalloc.c data structure kmem 與 fun kmem 負責紀錄可使用的 pages，這些 pages 用一個 linked list 做紀錄 struct run { struct run *next; }; struct { struct spinlock lock; struct run *freelist; } kmem; 這個 Linked list run 是一個裡面就只有一個值，指向下一個可用的 page 的 address
+kalloc() 與 kfree() // Allocate one 4096-byte page of physical memory. // Returns a pointer that the kernel can use. // Returns 0 if the memory cannot be allocated. void * kalloc(void) { struct run *r; acquire(&amp;kmem.lock); r = kmem.freelist; if(r) kmem.freelist = r-&gt;next; release(&amp;kmem.lock); if(r) memset((char*)r, 5, PGSIZE); // fill with junk return (void*)r; } kalloc() 中，回傳 freelist 的 head，新的 head 變成 freelist-&gt;next Returns 0 if the memory cannot be allocated. 之所以這會成立，是因為在最一開始最一開始的時候，struct run *freelist; 被初始成 null (0)，kinit() 之前的這個唯一的 freelist 最後會變成 linked list 的結尾，這也是 kalloc() 之所以把記憶體用光之後會回傳 0 的原因 // Free the page of physical memory pointed at by pa, // which normally should have been returned by a // call to kalloc(). (The exception is when // initializing the allocator; see kinit above.) void kfree(void *pa) { struct run *r; if(((uint64)pa % PGSIZE) != 0 || (char*)pa &lt; end || (uint64)pa &gt;= PHYSTOP) panic(&#34;kfree&#34;); // Fill with junk to catch dangling refs. memset(pa, 1, PGSIZE); r = (struct run*)pa; acquire(&amp;kmem.lock); r-&gt;next = kmem.freelist; kmem.freelist = r; release(&amp;kmem.lock); } pa 必須是一個 page 的開頭 kfree() 把這個不要的 pa 放到 freelist 的開頭 freelist 的初始化過程 kernel/main.c void main() { if(cpuid() == 0){ consoleinit(); printfinit(); printf(&#34;\n&#34;); printf(&#34;xv6 kernel is booting\n&#34;); printf(&#34;\n&#34;); kinit(); // physical page allocator &lt;- 這裡進入 kalloc.c kvminit(); // create kernel page table kvminithart(); // turn on paging procinit(); // process table trapinit(); // trap vectors trapinithart(); // install kernel trap vector plicinit(); // set up interrupt controller plicinithart(); // ask PLIC for device interrupts binit(); // buffer cache iinit(); // inode table fileinit(); // file table virtio_disk_init(); // emulated hard disk userinit(); // first user process __sync_synchronize(); started = 1; } else { while(started == 0) ; __sync_synchronize(); printf(&#34;hart %d starting\n&#34;, cpuid()); kvminithart(); // turn on paging trapinithart(); // install kernel trap vector plicinithart(); // ask PLIC for device interrupts } scheduler(); } kernel/kalloc.c: kinit() void kinit() { initlock(&amp;kmem.lock, &#34;kmem&#34;); freerange(end, (void*)PHYSTOP); } 初始 kmem.lock 使用 freerange() 把可用的 page 都放到 freelist 中 kernel/kalloc.c: freerange() void freerange(void *pa_start, void *pa_end) { char *p; p = (char*)PGROUNDUP((uint64)pa_start); for(; p &#43; PGSIZE &lt;= (char*)pa_end; p &#43;= PGSIZE) kfree(p); } 這裡使用先前提到的 kfree() 一次一次的把可用 page 放到 freelist 的前方
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-27 12:28:33 +0800 CST'>October 27, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08-2] kalloc 相關程式碼解析" href="http://localhost:1313/xv6/kalloc/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 08-3] bcache 相關程式碼解析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>這篇主要是為了 lab locks 中的 “Buffer cache” 這一題，要我們先了解 bcache 的一些原理與應用，主要的參考資料是 xv6 book 8.1 ~ 8.3 與 bcache 相關的程式碼
+kernel/main.c void main() { if(cpuid() == 0){ consoleinit(); printfinit(); printf(&#34;\n&#34;); printf(&#34;xv6 kernel is booting\n&#34;); printf(&#34;\n&#34;); kinit(); // physical page allocator kvminit(); // create kernel page table kvminithart(); // turn on paging procinit(); // process table trapinit(); // trap vectors trapinithart(); // install kernel trap vector plicinit(); // set up interrupt controller plicinithart(); // ask PLIC for device interrupts binit(); // buffer cache &lt;- 這裡進入 bcache 的初始化過程 iinit(); // inode table fileinit(); // file table virtio_disk_init(); // emulated hard disk userinit(); // first user process __sync_synchronize(); started = 1; } else { while(started == 0) ; __sync_synchronize(); printf(&#34;hart %d starting\n&#34;, cpuid()); kvminithart(); // turn on paging trapinithart(); // install kernel trap vector plicinithart(); // ask PLIC for device interrupts } scheduler(); } kernel/bio.c: binit() struct { struct spinlock lock; struct buf buf[NBUF]; // Linked list of all buffers, through prev/next. // Sorted by how recently the buffer was used. // head.next is most recent, head.prev is least. struct buf head; } bcache; void binit(void) { struct buf *b; initlock(&amp;bcache.lock, &#34;bcache&#34;); // Create linked list of buffers bcache.head.prev = &amp;bcache.head; bcache.head.next = &amp;bcache.head; for(b = bcache.buf; b &lt; bcache.buf&#43;NBUF; b&#43;&#43;){ b-&gt;next = bcache.head.next; b-&gt;prev = &amp;bcache.head; initsleeplock(&amp;b-&gt;lock, &#34;buffer&#34;); bcache.head.next-&gt;prev = b; bcache.head.next = b; } } 在 binit() 之後，就不會直接使用 bcache.buf 這個 array，而是使用由 head 開頭的這個環狀 linked-list bread() 與 bwrite() // Return a locked buf with the contents of the indicated block. struct buf* bread(uint dev, uint blockno) { struct buf *b; b = bget(dev, blockno); if(!b-&gt;valid) { virtio_disk_rw(b, 0); b-&gt;valid = 1; } return b; } 如果 bget() 可以拿到 buf 就直接回傳，如果不行，則使用 virtio_disk_rw()
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-28 14:02:59 +0800 CST'>October 28, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08-3] bcache 相關程式碼解析" href="http://localhost:1313/xv6/bcache/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 08] Lab: locks
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: locks
 Memory allocator (moderate) Your job is to implement per-CPU freelists, and stealing when a CPU’s free list is empty. You must give all of your locks names that start with “kmem”. That is, you should call initlock for each of your locks, and pass a name that starts with “kmem”. Run kalloctest to see if your implementation has reduced lock contention. To check that it can still allocate all of memory, run usertests sbrkmuch. Your output will look similar to that shown below, with much-reduced contention in total on kmem locks, although the specific numbers will differ. Make sure all tests in usertests -q pass. make grade should say that the kalloctests pass.
-...</p></div><footer class=entry-footer><span title='2025-10-23 14:41:29 +0800 CST'>October 23, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 08] Lab: locks" href=https://yamatrail.com/xv6/lab8/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 09-1] File System 相關程式碼解析</h2></header><div class=entry-content><p>// Init fs void fsinit(int dev) { readsb(dev, &amp;sb); if(sb.magic != FSMAGIC) panic("invalid file system"); initlog(dev, &amp;sb); } // Zero a block. static void bzero(int dev, int bno) { struct buf *bp; bp = bread(dev, bno); memset(bp->data, 0, BSIZE); log_write(bp); brelse(bp); } balloc() 與 bfree() // Blocks. // Allocate a zeroed disk block. // returns 0 if out of disk space. static uint balloc(uint dev) { int b, bi, m; struct buf *bp; bp = 0; // 掃過 super block for(b = 0; b &lt; sb.size; b += BPB){ bp = bread(dev, BBLOCK(b, sb)); for(bi = 0; bi &lt; BPB && b + bi &lt; sb.size; bi++){ m = 1 &lt;&lt; (bi % 8); if((bp->data[bi/8] & m) == 0){ // Is block free? bp->data[bi/8] |= m; // Mark block in use. log_write(bp); brelse(bp); bzero(dev, b + bi); return b + bi; } } brelse(bp); } printf("balloc: out of blocks\n"); return 0; } balloc() 是 block allocate 的意思
-...</p></div><footer class=entry-footer><span title='2025-10-31 17:28:19 +0800 CST'>October 31, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 09-1] File System 相關程式碼解析" href=https://yamatrail.com/xv6/filesystem/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 09-2] Lec14 File Systems</h2></header><div class=entry-content><p>課程連結：6.S081 Fall 2020 Lecture 14: File Systems 實際操作 在影片中 50:00 左右的地方開始有實際的操作
-make clean make 先修改 kernel/bio.c: bwrite() // Write b's contents to disk. Must be locked. void bwrite(struct buf *b) { if(!holdingsleep(&amp;b->lock)) panic("bwrite"); if (b->blockno >= 32) printf("write: %d\n", b->blockno); virtio_disk_rw(b, 1); }</p></div><footer class=entry-footer><span title='2025-11-04 12:49:14 +0800 CST'>November 4, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 09-2] Lec14 File Systems" href=https://yamatrail.com/xv6/lec14-fs/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 09] Lab: file system</h2></header><div class=entry-content><p>Lab 連結：Lab: file system
-Large files (moderate) Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You’ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you’re not allowed to change the size of an on-disk inode. The first 11 elements of ip->addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:
-...</p></div><footer class=entry-footer><span title='2025-11-01 11:48:29 +0800 CST'>November 1, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 09] Lab: file system" href=https://yamatrail.com/xv6/lab9/></a></article><footer class=page-footer><nav class=pagination><a class=prev href=https://yamatrail.com/xv6/>«&nbsp;Prev&nbsp;
-</a><a class=next href=https://yamatrail.com/xv6/page/3/>Next&nbsp;&nbsp;»</a></nav></footer></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-23 14:41:29 +0800 CST'>October 23, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 08] Lab: locks" href="http://localhost:1313/xv6/lab8/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 09-1] File System 相關程式碼解析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>// Init fs void fsinit(int dev) { readsb(dev, &amp;sb); if(sb.magic != FSMAGIC) panic(&#34;invalid file system&#34;); initlog(dev, &amp;sb); } // Zero a block. static void bzero(int dev, int bno) { struct buf *bp; bp = bread(dev, bno); memset(bp-&gt;data, 0, BSIZE); log_write(bp); brelse(bp); } balloc() 與 bfree() // Blocks. // Allocate a zeroed disk block. // returns 0 if out of disk space. static uint balloc(uint dev) { int b, bi, m; struct buf *bp; bp = 0; // 掃過 super block for(b = 0; b &lt; sb.size; b &#43;= BPB){ bp = bread(dev, BBLOCK(b, sb)); for(bi = 0; bi &lt; BPB &amp;&amp; b &#43; bi &lt; sb.size; bi&#43;&#43;){ m = 1 &lt;&lt; (bi % 8); if((bp-&gt;data[bi/8] &amp; m) == 0){ // Is block free? bp-&gt;data[bi/8] |= m; // Mark block in use. log_write(bp); brelse(bp); bzero(dev, b &#43; bi); return b &#43; bi; } } brelse(bp); } printf(&#34;balloc: out of blocks\n&#34;); return 0; } balloc() 是 block allocate 的意思
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-10-31 17:28:19 +0800 CST'>October 31, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-1] File System 相關程式碼解析" href="http://localhost:1313/xv6/filesystem/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 09-2] Lec14 File Systems
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>課程連結：6.S081 Fall 2020 Lecture 14: File Systems 實際操作 在影片中 50:00 左右的地方開始有實際的操作
+make clean make 先修改 kernel/bio.c: bwrite() // Write b&#39;s contents to disk. Must be locked. void bwrite(struct buf *b) { if(!holdingsleep(&amp;b-&gt;lock)) panic(&#34;bwrite&#34;); if (b-&gt;blockno &gt;= 32) printf(&#34;write: %d\n&#34;, b-&gt;blockno); virtio_disk_rw(b, 1); } </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-04 12:49:14 +0800 CST'>November 4, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09-2] Lec14 File Systems" href="http://localhost:1313/xv6/lec14-fs/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 09] Lab: file system
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結：Lab: file system
+Large files (moderate) Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You’ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you’re not allowed to change the size of an on-disk inode. The first 11 elements of ip-&gt;addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-11-01 11:48:29 +0800 CST'>November 1, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 09] Lab: file system" href="http://localhost:1313/xv6/lab9/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="prev" href="http://localhost:1313/xv6/">
+      «&nbsp;Prev&nbsp;
+    </a>
+    <a class="next" href="http://localhost:1313/xv6/page/3/">Next&nbsp;&nbsp;»
+    </a>
+  </nav>
+</footer>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

@@ -1,52 +1,443 @@
-<!doctype html><html lang=en dir=auto><head><meta name=generator content="Hugo 0.146.0"><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>Yama's Trail</title>
-<meta name=description content><meta name=author content><link rel=canonical href=https://yamatrail.com/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate type=application/rss+xml href=https://yamatrail.com/index.xml><link rel=alternate hreflang=en href=https://yamatrail.com/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="Yama's Trail"><meta property="og:description" content=" 曾喜煌 學歷： 國立臺中教育大學 資訊工程學系 學士畢業 (2019/09 ~ 2023/06) 國立臺中教育大學 資訊工程學系 碩士畢業 (2023/09 ~ 2025/07) 專長： C, C++, Linux, Shell, Makefile, gdb, Golang, Kubernetes, Docker, Dockerfile
-專業技能 Linux 從大一開始把筆電灌成 Linux，長期並持續使用的情況下，熟悉 Linux 的命令操作 曾經使用 Ubuntu, Debian, CentOS, Arch, 等等的 Linux 發行版 習慣且熟悉使用 tmux + vim 作為我的開發環境 我的 vim 環境設定 我的 tmux 環境設定 C Language and System Software 2021 iThome 鐵人賽以「C 語言筆記」作為主題並完賽 自學 MIT 的作業系統課程 6.1810: Operating System Engineering 並寫成系列文章 xv6 學習紀錄 會使用 gdb 做 debugging Hardware: 以 qemu 做模擬 Operating System: xv6-riscv [xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程 使用 C 語言寫的坦克射擊遊戲：tank-game Cloud Computing 大學專題與研究所的研究領域， 大學專題：「賽局理論應用於資源分配之實現——以 Apache Yunikorn 為例」 碩士論文：「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」 參與開源專案 Apache Yunikorn 並貢獻程式碼及文件撰寫 作品集與個人經歷 xv6 學習紀錄 系列文章連結：xv6 學習紀錄 "><meta property="og:locale" content="zh-tw"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content><meta name=twitter:description content><script type=application/ld+json>{"@context":"https://schema.org","@type":"Organization","name":"Yama's Trail","url":"https://yamatrail.com/","description":"","logo":"https://yamatrail.com/favicon_io/favicon.ico","sameAs":[]}</script></head><body class=list id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><div class=post-content><img src=profile.jpg alt=profile.jpg width=25% style=float:right;margin-left:0><h2 id=曾喜煌>曾喜煌<a hidden class=anchor aria-hidden=true href=#曾喜煌>#</a></h2><hr><h3 id=學歷>學歷：<a hidden class=anchor aria-hidden=true href=#學歷>#</a></h3><ul><li>國立臺中教育大學 資訊工程學系 學士畢業 (2019/09 ~ 2023/06)</li><li>國立臺中教育大學 資訊工程學系 碩士畢業 (2023/09 ~ 2025/07)</li></ul><h3 id=專長>專長：<a hidden class=anchor aria-hidden=true href=#專長>#</a></h3><p>C, C++, Linux, Shell, Makefile, gdb, Golang, Kubernetes, Docker, Dockerfile</p><div style=clear:both></div><h2 id=專業技能>專業技能<a hidden class=anchor aria-hidden=true href=#專業技能>#</a></h2><hr><h3 id=linux>Linux<a hidden class=anchor aria-hidden=true href=#linux>#</a></h3><ul><li>從大一開始把筆電灌成 Linux，長期並持續使用的情況下，熟悉 Linux 的命令操作</li><li>曾經使用 Ubuntu, Debian, CentOS, Arch, 等等的 Linux 發行版</li><li>習慣且熟悉使用 tmux + vim 作為我的開發環境<ul><li><a href=https://github.com/9501sam/.vim>我的 vim 環境設定</a></li><li><a href=https://github.com/9501sam/.tmux>我的 tmux 環境設定</a></li></ul></li></ul><h3 id=c-language-and-system-software>C Language and System Software<a hidden class=anchor aria-hidden=true href=#c-language-and-system-software>#</a></h3><ul><li>2021 iThome 鐵人賽以「<a href=https://ithelp.ithome.com.tw/users/20137780/ironman/4752>C 語言筆記</a>」作為主題並完賽</li><li>自學 MIT 的作業系統課程 <a href=https://pdos.csail.mit.edu/6.S081/2022/schedule.htm://pdos.csail.mit.edu/6.S081/2022/schedule.html>6.1810: Operating System Engineering</a> 並寫成系列文章 <a href=./xv6>xv6 學習紀錄</a></li><li>會使用 <code>gdb</code> 做 debugging<ul><li>Hardware: 以 <code>qemu</code> 做模擬</li><li>Operating System: <a href=https://github.com/mit-pdos/xv6-riscv>xv6-riscv</a></li><li><a href=xv6/gdb>[xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程</a></li></ul></li><li>使用 C 語言寫的坦克射擊遊戲：<a href=https://github.com/9501sam/tank-gam://github.com/9501sam/tank-game>tank-game</a></li></ul><h3 id=cloud-computing>Cloud Computing<a hidden class=anchor aria-hidden=true href=#cloud-computing>#</a></h3><ul><li>大學專題與研究所的研究領域，<ul><li>大學專題：<strong>「賽局理論應用於資源分配之實現——以 Apache Yunikorn 為例」</strong></li><li>碩士論文：<strong>「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」</strong></li></ul></li><li>參與開源專案 Apache Yunikorn 並貢獻程式碼及文件撰寫</li></ul><h2 id=作品集與個人經歷>作品集與個人經歷<a hidden class=anchor aria-hidden=true href=#作品集與個人經歷>#</a></h2><hr><h3 id=xv6-學習紀錄>xv6 學習紀錄<a hidden class=anchor aria-hidden=true href=#xv6-學習紀錄>#</a></h3><p>系列文章連結：<a href=./xv6>xv6 學習紀錄</a>
-<img src=xv6-demo.png alt=xv6-demo.png width=100%></p><h3 id=international-collegiate-programming-contest-icpc-程式競賽>International Collegiate Programming Contest (ICPC) 程式競賽<a hidden class=anchor aria-hidden=true href=#international-collegiate-programming-contest-icpc-程式競賽>#</a></h3><p>大學時期相當喜歡程式競賽這項活動，透過練習及參與程式競賽提昇程式實做能力</p><h4 id=the-2021-taiwan-online-programming-contest>The 2021 Taiwan Online Programming Contest<a hidden class=anchor aria-hidden=true href=#the-2021-taiwan-online-programming-contest>#</a></h4><p>比賽結果：Honorable Mention (為校內最佳）
-<img src=icpc-online.png alt=icpc-online.png width=70%></p><h4 id=the-2021-icpc-asia-taipei-regional-programming-contest>The 2021 ICPC Asia Taipei Regional Programming Contest<a hidden class=anchor aria-hidden=true href=#the-2021-icpc-asia-taipei-regional-programming-contest>#</a></h4><p>比賽結果：Bronze（銅牌獎，台灣區名次/隊伍數：46/103）
-<img src=icpc-taipei.png alt=icpc-taipei.png width=70%>
-<img src=icpc-taipei.jpg alt=icpc-taipei.jpg width=70%></p><ul><li><a href=https://cs.ntcu.edu.tw/announcement/143>恭賀！本系大學部曾喜煌、林家羽、顏岑宇同學榮獲第46屆國際大學程式設計競賽(ICPC)銅牌獎！</a></li></ul><h3 id=leetcode-解題>LeetCode 解題<a hidden class=anchor aria-hidden=true href=#leetcode-解題>#</a></h3><p>除了以實做出題目需求作為目的，也嘗試把解題過程中的思路記錄下來。</p><p>系列文章連結：<a href=./leetcode>LeetCode 解題</a></p><h3 id=2021-ithome-鐵人賽-主題-c-語言筆記>2021 iThome 鐵人賽 (主題: C 語言筆記)<a hidden class=anchor aria-hidden=true href=#2021-ithome-鐵人賽-主題-c-語言筆記>#</a></h3><p>系列文章連結：<a href=https://ithelp.ithome.com.tw/users/20137780/ironman/4752>C 語言筆記</a>
-<img src=ithelp.JPG alt=ithelp.JPG width=50%></p><h3 id=這個網站的誕生>這個網站的誕生<a hidden class=anchor aria-hidden=true href=#這個網站的誕生>#</a></h3><ul><li>系列文章連結：<a href=./dev-log>這個網站的誕生</a></li><li>Git Repository: <a href=https://github.com/9501sam/yamatrail-site>yamatrail-site</a></li><li>學習以下技能：<ul><li><strong>Google Cloud Platform</strong> 建立及管理虛擬機</li><li><strong>Cloudflare</strong> 註冊 Domain 及產生憑證</li><li><strong>Nginx</strong> 建立 HTTPS server</li><li><strong>Hugo</strong> 建立部落格網站</li></ul></li></ul><h3 id=apache-yunikorn-contributor>Apache Yunikorn contributor<a hidden class=anchor aria-hidden=true href=#apache-yunikorn-contributor>#</a></h3><p><a href=https://yunikorn.apache.org/>Apache Yunikorn</a> 是一個 Kubernetes 的 scheduler 的開源專案，在實驗室學長的帶領之下也進入開源社群進行貢獻，主要讓我學習到</p><ul><li>大型專案的 CI/CD 模式</li><li>學習大型專案的 trace code 能力</li></ul><p>下圖是我貢獻的 issue
-<img src=yunikorn-jira.png alt=yunikorn-jira.png width=100%></p><h3 id=大學專題賽局理論應用於資源分配之實現以-apache-yunikorn-為例>大學專題：<strong>「賽局理論應用於資源分配之實現——以 Apache Yunikorn 為例」</strong><a hidden class=anchor aria-hidden=true href=#大學專題賽局理論應用於資源分配之實現以-apache-yunikorn-為例>#</a></h3><img src=yunikorn-project1.jpg alt=yunikorn-project1.jpg width=48% style=float:left;margin-right:2%>
-<img src=yunikorn-project2.jpg alt=yunikorn-project2.jpg width=48% style=float:left><div style=clear:both></div><h3 id=碩士論文雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法>碩士論文：<strong>「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」</strong><a hidden class=anchor aria-hidden=true href=#碩士論文雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法>#</a></h3><p>研究所的研究領域為微服務架構的效能優化，碩士論文題目為「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」</p><ul><li>硬體環境為 Cloud-Edge computing 的異質性架構</li><li>軟體環境以 Google Cloud Platform 提供的 benchmark: Online-Boutique, 是一個以微服務架構實做的購物平台</li><li>演算法使用離散化粒子群最佳化演算法進行效能（Response time）優化
-<img src=experimental-environment.png alt=experimental-environment.png width=80%></li></ul><h2 id=contact-me>Contact Me<a hidden class=anchor aria-hidden=true href=#contact-me>#</a></h2><ul><li><strong>Email:</strong> <a href=mailto:yama.tseng@gmail.com>yama.tseng@gmail.com</a></li><li><strong>GitHub:</strong> <a href=https://github.com/9501sam>@9501sam</a></li><li><strong>IT 邦幫忙:</strong> <a href=https://ithelp.ithome.com.tw/users/20137780>https://ithelp.ithome.com.tw/users/20137780</a></li></ul></div><article class=first-entry><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義</h2></header><div class=entry-content><p>題目連結：17. Letter Combinations of a Phone Number
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head>
+	<meta name="generator" content="Hugo 0.146.0"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Yama&#39;s Trail</title>
+
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
+                    <span>Linux Kernel Programming</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<div class="post-content"><img src="profile.jpg" alt="profile.jpg" width="25%" style="float: right; margin-left: 0px;" />
+<h2 id="曾喜煌">曾喜煌<a hidden class="anchor" aria-hidden="true" href="#曾喜煌">#</a></h2>
+<hr>
+<h3 id="學歷">學歷：<a hidden class="anchor" aria-hidden="true" href="#學歷">#</a></h3>
+<ul>
+<li>國立臺中教育大學 資訊工程學系 學士畢業 (2019/09 ~ 2023/06)</li>
+<li>國立臺中教育大學 資訊工程學系 碩士畢業 (2023/09 ~ 2025/07)</li>
+</ul>
+<h3 id="專長">專長：<a hidden class="anchor" aria-hidden="true" href="#專長">#</a></h3>
+<p>C, C++, Linux, Shell, Makefile, gdb, Golang, Kubernetes, Docker, Dockerfile</p>
+<div style="clear: both;"></div>
+<h2 id="專業技能">專業技能<a hidden class="anchor" aria-hidden="true" href="#專業技能">#</a></h2>
+<hr>
+<h3 id="linux">Linux<a hidden class="anchor" aria-hidden="true" href="#linux">#</a></h3>
+<ul>
+<li>從大一開始把筆電灌成 Linux，長期並持續使用的情況下，熟悉 Linux 的命令操作</li>
+<li>曾經使用 Ubuntu, Debian, CentOS, Arch, 等等的 Linux 發行版</li>
+<li>習慣且熟悉使用 tmux + vim 作為我的開發環境
+<ul>
+<li><a href="https://github.com/9501sam/.vim">我的 vim 環境設定</a></li>
+<li><a href="https://github.com/9501sam/.tmux">我的 tmux 環境設定</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="c-language-and-system-software">C Language and System Software<a hidden class="anchor" aria-hidden="true" href="#c-language-and-system-software">#</a></h3>
+<ul>
+<li>2021 iThome 鐵人賽以「<a href="https://ithelp.ithome.com.tw/users/20137780/ironman/4752">C 語言筆記</a>」作為主題並完賽</li>
+<li>自學 MIT 的作業系統課程 <a href="https://pdos.csail.mit.edu/6.S081/2022/schedule.htm://pdos.csail.mit.edu/6.S081/2022/schedule.html">6.1810: Operating System Engineering</a> 並寫成系列文章 <a href="./xv6">xv6 學習紀錄</a></li>
+<li>會使用 <code>gdb</code> 做 debugging
+<ul>
+<li>Hardware: 以 <code>qemu</code> 做模擬</li>
+<li>Operating System: <a href="https://github.com/mit-pdos/xv6-riscv">xv6-riscv</a></li>
+<li><a href="xv6/gdb">[xv6 學習紀錄 04-2] 如何使用 gdb 追蹤 xv6 的 system call 過程</a></li>
+</ul>
+</li>
+<li>使用 C 語言寫的坦克射擊遊戲：<a href="https://github.com/9501sam/tank-gam://github.com/9501sam/tank-game">tank-game</a></li>
+</ul>
+<h3 id="cloud-computing">Cloud Computing<a hidden class="anchor" aria-hidden="true" href="#cloud-computing">#</a></h3>
+<ul>
+<li>大學專題與研究所的研究領域，
+<ul>
+<li>大學專題：<strong>「賽局理論應用於資源分配之實現——以 Apache Yunikorn 為例」</strong></li>
+<li>碩士論文：<strong>「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」</strong></li>
+</ul>
+</li>
+<li>參與開源專案 Apache Yunikorn 並貢獻程式碼及文件撰寫</li>
+</ul>
+<h2 id="作品集與個人經歷">作品集與個人經歷<a hidden class="anchor" aria-hidden="true" href="#作品集與個人經歷">#</a></h2>
+<hr>
+<h3 id="xv6-學習紀錄">xv6 學習紀錄<a hidden class="anchor" aria-hidden="true" href="#xv6-學習紀錄">#</a></h3>
+<p>系列文章連結：<a href="./xv6">xv6 學習紀錄</a>
+<img src="xv6-demo.png" alt="xv6-demo.png" width="100%" /></p>
+<h3 id="international-collegiate-programming-contest-icpc-程式競賽">International Collegiate Programming Contest (ICPC) 程式競賽<a hidden class="anchor" aria-hidden="true" href="#international-collegiate-programming-contest-icpc-程式競賽">#</a></h3>
+<p>大學時期相當喜歡程式競賽這項活動，透過練習及參與程式競賽提昇程式實做能力</p>
+<h4 id="the-2021-taiwan-online-programming-contest">The 2021 Taiwan Online Programming Contest<a hidden class="anchor" aria-hidden="true" href="#the-2021-taiwan-online-programming-contest">#</a></h4>
+<p>比賽結果：Honorable Mention (為校內最佳）
+<img src="icpc-online.png" alt="icpc-online.png" width="70%" /></p>
+<h4 id="the-2021-icpc-asia-taipei-regional-programming-contest">The 2021 ICPC Asia Taipei Regional Programming Contest<a hidden class="anchor" aria-hidden="true" href="#the-2021-icpc-asia-taipei-regional-programming-contest">#</a></h4>
+<p>比賽結果：Bronze（銅牌獎，台灣區名次/隊伍數：46/103）
+<img src="icpc-taipei.png" alt="icpc-taipei.png" width="70%" />
+<img src="icpc-taipei.jpg" alt="icpc-taipei.jpg" width="70%" /></p>
+<ul>
+<li><a href="https://cs.ntcu.edu.tw/announcement/143">恭賀！本系大學部曾喜煌、林家羽、顏岑宇同學榮獲第46屆國際大學程式設計競賽(ICPC)銅牌獎！</a></li>
+</ul>
+<h3 id="leetcode-解題">LeetCode 解題<a hidden class="anchor" aria-hidden="true" href="#leetcode-解題">#</a></h3>
+<p>除了以實做出題目需求作為目的，也嘗試把解題過程中的思路記錄下來。</p>
+<p>系列文章連結：<a href="./leetcode">LeetCode 解題</a></p>
+<h3 id="2021-ithome-鐵人賽-主題-c-語言筆記">2021 iThome 鐵人賽 (主題: C 語言筆記)<a hidden class="anchor" aria-hidden="true" href="#2021-ithome-鐵人賽-主題-c-語言筆記">#</a></h3>
+<p>系列文章連結：<a href="https://ithelp.ithome.com.tw/users/20137780/ironman/4752">C 語言筆記</a>
+<img src="ithelp.JPG" alt="ithelp.JPG" width="50%" /></p>
+<h3 id="這個網站的誕生">這個網站的誕生<a hidden class="anchor" aria-hidden="true" href="#這個網站的誕生">#</a></h3>
+<ul>
+<li>系列文章連結：<a href="./dev-log">這個網站的誕生</a></li>
+<li>Git Repository: <a href="https://github.com/9501sam/yamatrail-site">yamatrail-site</a></li>
+<li>學習以下技能：
+<ul>
+<li><strong>Google Cloud Platform</strong> 建立及管理虛擬機</li>
+<li><strong>Cloudflare</strong> 註冊 Domain 及產生憑證</li>
+<li><strong>Nginx</strong> 建立 HTTPS server</li>
+<li><strong>Hugo</strong> 建立部落格網站</li>
+</ul>
+</li>
+</ul>
+<h3 id="apache-yunikorn-contributor">Apache Yunikorn contributor<a hidden class="anchor" aria-hidden="true" href="#apache-yunikorn-contributor">#</a></h3>
+<p><a href="https://yunikorn.apache.org/">Apache Yunikorn</a> 是一個 Kubernetes 的 scheduler 的開源專案，在實驗室學長的帶領之下也進入開源社群進行貢獻，主要讓我學習到</p>
+<ul>
+<li>大型專案的 CI/CD 模式</li>
+<li>學習大型專案的 trace code 能力</li>
+</ul>
+<p>下圖是我貢獻的 issue
+<img src="yunikorn-jira.png" alt="yunikorn-jira.png" width="100%" /></p>
+<h3 id="大學專題賽局理論應用於資源分配之實現以-apache-yunikorn-為例">大學專題：<strong>「賽局理論應用於資源分配之實現——以 Apache Yunikorn 為例」</strong><a hidden class="anchor" aria-hidden="true" href="#大學專題賽局理論應用於資源分配之實現以-apache-yunikorn-為例">#</a></h3>
+<img src="yunikorn-project1.jpg" alt="yunikorn-project1.jpg" width="48%" style="float: left; margin-right: 2%;" />
+<img src="yunikorn-project2.jpg" alt="yunikorn-project2.jpg" width="48%" style="float: left;" />
+<div style="clear: both;"></div>
+<h3 id="碩士論文雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法">碩士論文：<strong>「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」</strong><a hidden class="anchor" aria-hidden="true" href="#碩士論文雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法">#</a></h3>
+<p>研究所的研究領域為微服務架構的效能優化，碩士論文題目為「雲端邊緣運算中微服務部署之離散化粒子群最佳化演算法」</p>
+<ul>
+<li>硬體環境為 Cloud-Edge computing 的異質性架構</li>
+<li>軟體環境以 Google Cloud Platform 提供的 benchmark: Online-Boutique, 是一個以微服務架構實做的購物平台</li>
+<li>演算法使用離散化粒子群最佳化演算法進行效能（Response time）優化
+<img src="experimental-environment.png" alt="experimental-environment.png" width="80%" /></li>
+</ul>
+<h2 id="contact-me">Contact Me<a hidden class="anchor" aria-hidden="true" href="#contact-me">#</a></h2>
+<ul>
+<li><strong>Email:</strong> <a href="mailto:yama.tseng@gmail.com">yama.tseng@gmail.com</a></li>
+<li><strong>GitHub:</strong> <a href="https://github.com/9501sam">@9501sam</a></li>
+<li><strong>IT 邦幫忙:</strong> <a href="https://ithelp.ithome.com.tw/users/20137780">https://ithelp.ithome.com.tw/users/20137780</a></li>
+</ul>
+
+
+</div>
+
+<article class="first-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：17. Letter Combinations of a Phone Number
 我覺得這種 backtracking 或是 dfs 的題目都需要想清處 depth 的定義是什麼，想清楚就會好寫許多。
-程式實做 class Solution { public: vector&lt;string> letterCombinations(string digits) { if (digits.size() == 0) return {}; vector&lt;string> phoneNumber = { "", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz" }; vector&lt;string> combs; string current; backtracking(0, digits, current, phoneNumber, combs); return combs; } void backtracking(int index, string digits, string current, vector&lt;string> phoneNumber, vector&lt;string> &amp;combs) { if (index >= digits.size()) { combs.push_back(current); return; } int i = digits[index] - '0'; for (char c : phoneNumber[i]) { current.push_back(c); backtracking(index + 1, digits, current, phoneNumber, combs); current.pop_back(); } } };</p></div><footer class=entry-footer><span title='2025-09-27 00:37:29 +0800 CST'>September 27, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義" href=https://yamatrail.com/leetcode/17-letter-combinations-of-a-phone-number/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities</h2></header><div class=entry-content><p>Lab 連結: Lab: Xv6 and Unix utilities
+程式實做 class Solution { public: vector&lt;string&gt; letterCombinations(string digits) { if (digits.size() == 0) return {}; vector&lt;string&gt; phoneNumber = { &#34;&#34;, &#34;&#34;, &#34;abc&#34;, &#34;def&#34;, &#34;ghi&#34;, &#34;jkl&#34;, &#34;mno&#34;, &#34;pqrs&#34;, &#34;tuv&#34;, &#34;wxyz&#34; }; vector&lt;string&gt; combs; string current; backtracking(0, digits, current, phoneNumber, combs); return combs; } void backtracking(int index, string digits, string current, vector&lt;string&gt; phoneNumber, vector&lt;string&gt; &amp;combs) { if (index &gt;= digits.size()) { combs.push_back(current); return; } int i = digits[index] - &#39;0&#39;; for (char c : phoneNumber[i]) { current.push_back(c); backtracking(index &#43; 1, digits, current, phoneNumber, combs); current.pop_back(); } } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-27 00:37:29 +0800 CST'>September 27, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 17. Letter Combinations of a Phone Number | 想清楚 depth 的意義" href="http://localhost:1313/leetcode/17-letter-combinations-of-a-phone-number/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 01] Lab: Xv6 and Unix utilities
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: Lab: Xv6 and Unix utilities
 Boot xv6(Easy) 題目敘述： 這部份的詳細內容都寫在 lab util 中，會需要一個 linux 系統（windows使用者可以用虛擬機），Xv6 會跑在 linux 所架設的虛擬機上。
 下載原始碼 git clone git://g.csail.mit.edu/xv6-labs-2022 cd xv6-labs-2022 安裝架設虛擬機的套件 我自己是用 Debian，如果你用的是 ubuntu 的話下載步驟應該也是一樣的，至於是其他系統的使用者，可以看這裡 sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu compile程式碼並且讓他跑在虛擬機上 $ make qemu ... (一大串訊息) ... xv6 kernel is booting hart 2 starting hart 1 starting init: starting sh $ 到這裡，Xv6已經成功開機了！
 嘗試打個指令 $ ls . 1 1 1024 .. 1 1 1024 README 2 2 2059 xargstest.sh 2 3 93 cat 2 4 24120 echo 2 5 22944 forktest 2 6 13184 grep 2 7 27424 init 2 8 23680 kill 2 9 22904 ln 2 10 22744 ls 2 11 26312 mkdir 2 12 23040 rm 2 13 23032 sh 2 14 41856 stressfs 2 15 23904 usertests 2 16 148312 grind 2 17 38008 wc 2 18 25232 zombie 2 19 22280 console 3 20 0 沒意外的話，會出現以上的畫面
-...</p></div><footer class=entry-footer><span title='2025-09-24 16:13:25 +0800 CST'>September 24, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 01] Lab: Xv6 and Unix utilities" href=https://yamatrail.com/xv6/lab1/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C++)</h2></header><div class=entry-content><p>題目連結：206. Reverse Linked List
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-24 16:13:25 +0800 CST'>September 24, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 01] Lab: Xv6 and Unix utilities" href="http://localhost:1313/xv6/lab1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C&#43;&#43;)
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>題目連結：206. Reverse Linked List
 解題思路 這題還蠻直接的，把 Linked List 給掃過一遍，並且一個一個的把指標顛倒過來。
 剛開始的時候我用了這個寫法：
-class Solution { public: ListNode* reverseList(ListNode* head) { if (!head) return head; ListNode *slow = head; ListNode *fast = head->next; while (fast != nullptr) { ListNode *nextNode = fast->next; fast->next = slow; slow = fast; fast = nextNode; } slow->next = nullptr; return slow; } }; 但這個寫法是錯誤的，因為 slow 從 head 開始的話，最一開始的 head 沒有指向 nullptr，所以需要把 slow 從 nullptr 開始會比較好。
+class Solution { public: ListNode* reverseList(ListNode* head) { if (!head) return head; ListNode *slow = head; ListNode *fast = head-&gt;next; while (fast != nullptr) { ListNode *nextNode = fast-&gt;next; fast-&gt;next = slow; slow = fast; fast = nextNode; } slow-&gt;next = nullptr; return slow; } }; 但這個寫法是錯誤的，因為 slow 從 head 開始的話，最一開始的 head 沒有指向 nullptr，所以需要把 slow 從 nullptr 開始會比較好。
 我學到的是面對到 Edge Case 時，要特別小心注意才行。
-程式碼 /** * Definition for singly-linked list. * struct ListNode { * int val; * ListNode *next; * ListNode() : val(0), next(nullptr) {} * ListNode(int x) : val(x), next(nullptr) {} * ListNode(int x, ListNode *next) : val(x), next(next) {} * }; */ class Solution { public: ListNode* reverseList(ListNode* head) { ListNode *slow = nullptr; ListNode *fast = head; while (fast != nullptr) { ListNode *nextNode = fast->next; fast->next = slow; slow = fast; fast = nextNode; } return slow; } };</p></div><footer class=entry-footer><span title='2025-09-23 20:31:28 +0800 CST'>September 23, 2025</span></footer><a class=entry-link aria-label="post link to [LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C++)" href=https://yamatrail.com/leetcode/206-reverse-linked-list/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[這個網站的誕生: 01] 建立一個免費的 vm</h2></header><div class=entry-content><p>如何建立一個免費的 vm 根據 google cloud 的說明
+程式碼 /** * Definition for singly-linked list. * struct ListNode { * int val; * ListNode *next; * ListNode() : val(0), next(nullptr) {} * ListNode(int x) : val(x), next(nullptr) {} * ListNode(int x, ListNode *next) : val(x), next(next) {} * }; */ class Solution { public: ListNode* reverseList(ListNode* head) { ListNode *slow = nullptr; ListNode *fast = head; while (fast != nullptr) { ListNode *nextNode = fast-&gt;next; fast-&gt;next = slow; slow = fast; fast = nextNode; } return slow; } }; </p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-23 20:31:28 +0800 CST'>September 23, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [LeetCode 解題] 206. Reverse Linked List | 注意 Edge Case (C&#43;&#43;)" href="http://localhost:1313/leetcode/206-reverse-linked-list/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[這個網站的誕生: 01] 建立一個免費的 vm
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>如何建立一個免費的 vm 根據 google cloud 的說明
 https://cloud.google.com/free?hl=en
 滿足以下條件的 vm 是可以不用收錢的
 1 non-preemptible e2-micro VM instance per month in one of the following US regions: Oregon: us-west1 Iowa: us-central1 South Carolina: us-east1 30 GB-months standard persistent disk 1 GB of outbound data transfer from North America to all region destinations (excluding China and Australia) per month 因此等等在建立 vm 時，按照上面的條件建立，並且要注意的是建立兩個以上的 vm 還是要收錢的，免費的只有第一個
 建立 vm 步驟 首先你會先需要建立一個 google cloud 帳號
 在 compute engin 中，點選上方的 “Create Instance”
-...</p></div><footer class=entry-footer><span title='2025-09-21 12:33:40 +0800 CST'>September 21, 2025</span></footer><a class=entry-link aria-label="post link to [這個網站的誕生: 01] 建立一個免費的 vm" href=https://yamatrail.com/dev-log/vm-creation/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>Ch02: Building the 5.x Linux Kernel from Source - Part 1</h2></header><div class=entry-content><p>Step 1 – obtaining a Linux kernel source tree wget --https-only -O ~/Downloads/linux-5.4.1.tar.xz https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.1.tar.xz Step 2 – extracting the kernel source tree cd ~/Downloads ; ls -lh linux-5.4.1.tar.xz tar xf ~/Downloads/linux-5.4.1.tar.xz mkdir -p ~/kernels tar xf ~/Downloads/linux-5.4.1.tar.xz --directory=${HOME}/kernels/ 設定環境變數是一個 good practice，可加入 ~/.bashrc 中:
-export LLKD_KSRC=${HOME}/kernels/linux-5.4 現在已經不像以前一定會把 source code 放到 usr/src 了 A brief tour of the kernel source tree user@ubuntu:~/kernels/linux-5.4$ ls COPYING Kconfig README crypto init mm security virt CREDITS LICENSES arch drivers ipc net sound Documentation MAINTAINERS block fs kernel samples tools Kbuild Makefile certs include lib scripts usr 使用 du -m . 可以看到檔案大小為 1011M 幾乎是 1 GB 了 user@ubuntu:~/kernels/linux-5.4$ head Makefile # SPDX-License-Identifier: GPL-2.0 VERSION = 5 PATCHLEVEL = 4 SUBLEVEL = 1 EXTRAVERSION = NAME = Kleptomaniac Octopus # *DOCUMENTATION* # To see a list of typical targets execute "make help" # More info can be located in ./README 這裡可以知道目前的 source code 版本為 5.4.1 最上層的檔案與資料夾 README: 告知 documents 的所在位置 COPYING: licence 的所在位置 MAINTAINERS Major subsystem directories Makefile: 這是 top-level 的 Makefile 使用 kbuild 與 kernel modules 使用這個 Makefile (至少在初始化階段) kernel: Core kernel subsystem process/thread life cycle CPU scheduling locking cgroups, timers interrupts signaling modules tracing mm: memory management fs: virtual file system block: block I/O, file system 的更底層 net: network ipc: inter-processes communication sound: Advanced Linux Sound Architecture (ALSA) virt: virtualization code like KVM Infrastructure/misc arch: architecture 相關，像是 x86-64, risc-v, arm 等等 crypto: 加密相關 include: arch-independent kernel headers, 但也有例外，像是 arch/&lt;cpu>/include/... init: 初始化的過程 init/main.c:start_kernel(), start_kernel() lib: 注意 kernel 並不支援 shared library scripts: 一些有用的 scripts security: Linux Security Module (LSM) tools: mostly userspace applications user@ubuntu:~/kernels/linux-5.4$ cd ${LLKD_KSRC} ; ls arch/ Kconfig arm csky ia64 mips openrisc riscv sparc x86 alpha arm64 h8300 m68k nds32 parisc s390 um xtensa arc c6x hexagon microblaze nios2 powerpc sh unicore32 kernel 所支援的 ISA
-...</p></div><footer class=entry-footer><span title='2025-12-03 20:16:29 +0800 CST'>December 3, 2025</span></footer><a class=entry-link aria-label="post link to Ch02: Building the 5.x Linux Kernel from Source - Part 1" href=https://yamatrail.com/linux-kernel-programming/ch02/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[xv6 學習紀錄 02] Lab: system calls</h2></header><div class=entry-content><p>Lab 連結: Lab: system calls
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-21 12:33:40 +0800 CST'>September 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [這個網站的誕生: 01] 建立一個免費的 vm" href="http://localhost:1313/dev-log/vm-creation/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch02: Building the 5.x Linux Kernel from Source - Part 1
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Step 1 – obtaining a Linux kernel source tree wget --https-only -O ~/Downloads/linux-5.4.1.tar.xz https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.1.tar.xz Step 2 – extracting the kernel source tree cd ~/Downloads ; ls -lh linux-5.4.1.tar.xz tar xf ~/Downloads/linux-5.4.1.tar.xz mkdir -p ~/kernels tar xf ~/Downloads/linux-5.4.1.tar.xz --directory=${HOME}/kernels/ 設定環境變數是一個 good practice，可加入 ~/.bashrc 中:
+export LLKD_KSRC=${HOME}/kernels/linux-5.4 現在已經不像以前一定會把 source code 放到 usr/src 了 A brief tour of the kernel source tree user@ubuntu:~/kernels/linux-5.4$ ls COPYING Kconfig README crypto init mm security virt CREDITS LICENSES arch drivers ipc net sound Documentation MAINTAINERS block fs kernel samples tools Kbuild Makefile certs include lib scripts usr 使用 du -m . 可以看到檔案大小為 1011M 幾乎是 1 GB 了 user@ubuntu:~/kernels/linux-5.4$ head Makefile # SPDX-License-Identifier: GPL-2.0 VERSION = 5 PATCHLEVEL = 4 SUBLEVEL = 1 EXTRAVERSION = NAME = Kleptomaniac Octopus # *DOCUMENTATION* # To see a list of typical targets execute &#34;make help&#34; # More info can be located in ./README 這裡可以知道目前的 source code 版本為 5.4.1 最上層的檔案與資料夾 README: 告知 documents 的所在位置 COPYING: licence 的所在位置 MAINTAINERS Major subsystem directories Makefile: 這是 top-level 的 Makefile 使用 kbuild 與 kernel modules 使用這個 Makefile (至少在初始化階段) kernel: Core kernel subsystem process/thread life cycle CPU scheduling locking cgroups, timers interrupts signaling modules tracing mm: memory management fs: virtual file system block: block I/O, file system 的更底層 net: network ipc: inter-processes communication sound: Advanced Linux Sound Architecture (ALSA) virt: virtualization code like KVM Infrastructure/misc arch: architecture 相關，像是 x86-64, risc-v, arm 等等 crypto: 加密相關 include: arch-independent kernel headers, 但也有例外，像是 arch/&lt;cpu&gt;/include/... init: 初始化的過程 init/main.c:start_kernel(), start_kernel() lib: 注意 kernel 並不支援 shared library scripts: 一些有用的 scripts security: Linux Security Module (LSM) tools: mostly userspace applications user@ubuntu:~/kernels/linux-5.4$ cd ${LLKD_KSRC} ; ls arch/ Kconfig arm csky ia64 mips openrisc riscv sparc x86 alpha arm64 h8300 m68k nds32 parisc s390 um xtensa arc c6x hexagon microblaze nios2 powerpc sh unicore32 kernel 所支援的 ISA
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-03 20:16:29 +0800 CST'>December 3, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch02: Building the 5.x Linux Kernel from Source - Part 1" href="http://localhost:1313/linux-kernel-programming/ch02/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[xv6 學習紀錄 02] Lab: system calls
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Lab 連結: Lab: system calls
 大綱 xv6 有哪些 system call，以及他們的作用為何 ? 以程式碼的觀點來理解 xv6 的 system call 流程 Using gdb System call tracing 1. xv6 有哪些 system call，以及他們的作用為何 ? 0. kernel/syscall.h 定義 syste mcall 的編號 // System call numbers #define SYS_fork 1 #define SYS_exit 2 #define SYS_wait 3 #define SYS_pipe 4 #define SYS_read 5 #define SYS_kill 6 #define SYS_exec 7 #define SYS_fstat 8 #define SYS_chdir 9 #define SYS_dup 10 #define SYS_getpid 11 #define SYS_sbrk 12 #define SYS_sleep 13 #define SYS_uptime 14 #define SYS_open 15 #define SYS_write 16 #define SYS_mknod 17 #define SYS_unlink 18 #define SYS_link 19 #define SYS_mkdir 20 #define SYS_close 21 2. 以程式碼的觀點來理解 xv6 的 system call 流程 以下使用 user/cat.c 為例，來探討 xv6 的 system call 流程，流程中有 3 大步驟
-...</p></div><footer class=entry-footer><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer><a class=entry-link aria-label="post link to [xv6 學習紀錄 02] Lab: system calls" href=https://yamatrail.com/xv6/lab2/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[這個網站的誕生: 02] 在 vm 上建立 nginx server</h2></header><div class=entry-content><p>取得 domain 架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，
-註冊好一個 domain 之後，在 DNS > Records 的地方新增一個 Record
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-24 13:07:09 +0800 CST'>September 24, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [xv6 學習紀錄 02] Lab: system calls" href="http://localhost:1313/xv6/lab2/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[這個網站的誕生: 02] 在 vm 上建立 nginx server
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>取得 domain 架設網站需要先註冊一個 domain, 這裡我使用的是 Cloudflare，
+註冊好一個 domain 之後，在 DNS &gt; Records 的地方新增一個 Record
 Type: A name: yamatrail.com IPv4 Address: 填入 vm 的 IP (在 google cloud 上取得) 這會告訴他當其他人在瀏覽器中輸入 yamatrail.com 時，會導到我們先前在 google cloud 上所建立的 vm
 在 Cloudflare 產生憑證 登入您的 Cloudflare 儀表板，選擇 yamatrail.com。 點擊左側選單的 SSL/TLS，然後選擇 Origin Server (源伺服器) 子分頁。 點擊「Create Certificate」按鈕。 保持預設選項（私鑰類型 RSA，憑證有效期 15 年），直接點擊最下方的「Create」。 這是最關鍵的一步：Cloudflare 會顯示兩個大框框的文字，分別是 Origin Certificate 和 Private Key。 請立刻將這兩段文字完整複製出來，並分別儲存到您本地筆電的兩個純文字檔案中： 將 Origin Certificate 的內容存為 yamatrail.com.pem。 將 Private Key 的內容存為 yamatrail.com.key。 注意：Private Key 只會顯示這一次，關閉頁面後就再也看不到了！ 之後就可以在 vm 上安裝並設定 nginx 了，在這之前可以先檢查 vm 的設定是否有允許 HTTP 及 HTTPS 連線
-...</p></div><footer class=entry-footer><span title='2025-09-21 13:03:12 +0800 CST'>September 21, 2025</span></footer><a class=entry-link aria-label="post link to [這個網站的誕生: 02] 在 vm 上建立 nginx server" href=https://yamatrail.com/dev-log/nginx-on-vm/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>Ch03: Building the 5.x Linux Kernel from Source - Part 2</h2></header><div class=entry-content><p>Step 4 – building the kernel image and modules 從使用者的角度而言，這非常的簡單，只需要 make 就行了
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-21 13:03:12 +0800 CST'>September 21, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [這個網站的誕生: 02] 在 vm 上建立 nginx server" href="http://localhost:1313/dev-log/nginx-on-vm/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch03: Building the 5.x Linux Kernel from Source - Part 2
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Step 4 – building the kernel image and modules 從使用者的角度而言，這非常的簡單，只需要 make 就行了
 make help 可以看到 help，這裡可以先觀察 target all
 $ make help [...] Other generic targets: all - Build all targets marked with [*] * vmlinux - Build the bare kernel * modules - Build all modules [...] Architecture specific targets (x86): * bzImage - Compressed kernel image (arch/x86/boot/bzImage) [...] 從這裡可以得知，make all 的時候會有 vmlinux, modules, bzImage 這三個 target 被觸發
 vmlinux: 未壓縮的 kernel image modules: 在 config 中被標記為 M 的會變成 kernel modules (.ko files) bzImage: 壓縮過後的 kernel image (x86) 實際在開機時，會用壓縮過後的 bzImage，vmlinux 是作為 debug 用，（不在這本書的範圍）
-...</p></div><footer class=entry-footer><span title='2025-12-06 15:00:38 +0800 CST'>December 6, 2025</span></footer><a class=entry-link aria-label="post link to Ch03: Building the 5.x Linux Kernel from Source - Part 2" href=https://yamatrail.com/linux-kernel-programming/ch03/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>[這個網站的誕生: 03] 使用 Hugo 產生網站</h2></header><div class=entry-content><p>當我們設定好 vm 之後，先回到我們工作用的電腦，以我自己來說，這會是我的筆電。 我們的網站編輯與開發都會在這台筆電上，下一篇文章才會說明如何把網站內容部署到 vm 中，
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-06 15:00:38 +0800 CST'>December 6, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch03: Building the 5.x Linux Kernel from Source - Part 2" href="http://localhost:1313/linux-kernel-programming/ch03/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">[這個網站的誕生: 03] 使用 Hugo 產生網站
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>當我們設定好 vm 之後，先回到我們工作用的電腦，以我自己來說，這會是我的筆電。 我們的網站編輯與開發都會在這台筆電上，下一篇文章才會說明如何把網站內容部署到 vm 中，
 總之，這篇文章的內容都在個人的筆電（或 PC）上操作。
-安裝套件 sudo apt update && sudo apt upgrade -y sudo apt install nginx git -y wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb sudo dpkg -i hugo_extended_0.146.0_linux-amd64.deb hugo version 在筆電上先使用 hugo 建立一個 repo 出來，並且使用 git 做版控，然後推到自己的 github 上
-hugo new site yamatrail-site cd yamatrail-site git init git add . git commit -m "Init commit" 使用這個指令可以新增一篇文章:
+安裝套件 sudo apt update &amp;&amp; sudo apt upgrade -y sudo apt install nginx git -y wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb sudo dpkg -i hugo_extended_0.146.0_linux-amd64.deb hugo version 在筆電上先使用 hugo 建立一個 repo 出來，並且使用 git 做版控，然後推到自己的 github 上
+hugo new site yamatrail-site cd yamatrail-site git init git add . git commit -m &#34;Init commit&#34; 使用這個指令可以新增一篇文章:
 hugo new content posts/hello-world.md vim content/posts/hello-world.md 設定 theme 這裡可先在 Hugo Themes 看看，再決定自己要用的主題，我自己用的是 PaperMod
-...</p></div><footer class=entry-footer><span title='2025-09-23 19:35:47 +0800 CST'>September 23, 2025</span></footer><a class=entry-link aria-label="post link to [這個網站的誕生: 03] 使用 Hugo 產生網站" href=https://yamatrail.com/dev-log/how-to-use-hugo/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>Ch04: Writing Your First Kernel Module - LKMs Part 1</h2></header><div class=entry-content><p>Understanding kernel architecture – part 1 Exploring LKMs The LKM framework Kernel modules within the kernel source tree kernel modules 存放於 /lib/modules/$(uname -r)/ 以我的例子來說，正在運行 95 個 modules，可以發現跟書上的範例 5359 差很多，我的推測是我使用的是 server 版，書上使用的是 desktop 版。 其中一個大量使用 modules 這種方式的是 device driver，例如可以看 kernel/drivers/net/ethernet
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-23 19:35:47 +0800 CST'>September 23, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to [這個網站的誕生: 03] 使用 Hugo 產生網站" href="http://localhost:1313/dev-log/how-to-use-hugo/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Ch04: Writing Your First Kernel Module - LKMs Part 1
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Understanding kernel architecture – part 1 Exploring LKMs The LKM framework Kernel modules within the kernel source tree kernel modules 存放於 /lib/modules/$(uname -r)/ 以我的例子來說，正在運行 95 個 modules，可以發現跟書上的範例 5359 差很多，我的推測是我使用的是 server 版，書上使用的是 desktop 版。 其中一個大量使用 modules 這種方式的是 device driver，例如可以看 kernel/drivers/net/ethernet
 原先 Ubuntu 18.04 的 netword drivers: 我自己編譯的 5.4.1-llkd01 的 device drivers: 明顯少了許多，這是因為當初在 build 時，是使用 lsmod 抓取正在運行中的 module，並不像 ubuntu 需要考慮各種可能的情境
 其中的個有名的 driver 是 Intel 1GbE Network Interface Card (NIC)
-lsmod | grep e1000 ...</p></div><footer class=entry-footer><span title='2025-12-08 08:39:49 +0800 CST'>December 8, 2025</span></footer><a class=entry-link aria-label="post link to Ch04: Writing Your First Kernel Module - LKMs Part 1" href=https://yamatrail.com/linux-kernel-programming/ch04/></a></article><footer class=page-footer><nav class=pagination><a class=next href=https://yamatrail.com/page/2/>Next&nbsp;&nbsp;»</a></nav></footer></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>
+lsmod | grep e1000 ...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-12-08 08:39:49 +0800 CST'>December 8, 2025</span></footer>
+  <a class="entry-link" aria-label="post link to Ch04: Writing Your First Kernel Module - LKMs Part 1" href="http://localhost:1313/linux-kernel-programming/ch04/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="http://localhost:1313/page/2/">Next&nbsp;&nbsp;»
+    </a>
+  </nav>
+</footer>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

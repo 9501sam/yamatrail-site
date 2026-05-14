@@ -1,482 +1,878 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>[xv6 學習紀錄 09] Lab: file system | Yama's Trail</title>
-<meta name=keywords content><meta name=description content="Lab 連結：Lab: file system
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>[xv6 學習紀錄 09] Lab: file system | Yama&#39;s Trail</title>
+<meta name="keywords" content="">
+<meta name="description" content="Lab 連結：Lab: file system
 Large files (moderate)
 
-Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You&rsquo;ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you&rsquo;re not allowed to change the size of an on-disk inode. The first 11 elements of ip->addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:"><meta name=author content><link rel=canonical href=https://yamatrail.com/xv6/lab9/><link crossorigin=anonymous href=/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css integrity="sha256-4fXEyuRFmWVff/lRlf+JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as=style><link rel=icon href=https://yamatrail.com/favicon_io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://yamatrail.com/favicon_io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://yamatrail.com/favicon_io/favicon-32x32.png><link rel=apple-touch-icon href=https://yamatrail.com/favicon_io/apple-touch-icon.png><link rel=mask-icon href=https://yamatrail.com/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://yamatrail.com/xv6/lab9/><noscript><style>#theme-toggle,.top-link{display:none}</style></noscript><meta property="og:url" content="https://yamatrail.com/xv6/lab9/"><meta property="og:site_name" content="Yama's Trail"><meta property="og:title" content="[xv6 學習紀錄 09] Lab: file system"><meta property="og:description" content="Lab 連結：Lab: file system
-Large files (moderate) Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You’ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you’re not allowed to change the size of an on-disk inode. The first 11 elements of ip->addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:"><meta property="og:locale" content="zh-tw"><meta property="og:type" content="article"><meta property="article:section" content="xv6"><meta property="article:published_time" content="2025-11-01T11:48:29+08:00"><meta property="article:modified_time" content="2025-11-01T11:48:29+08:00"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab1/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab2/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab3.1/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab3/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab4.1/"><meta property="og:see_also" content="https://yamatrail.com/xv6/gdb/"><meta property="og:see_also" content="https://yamatrail.com/xv6/lab4/"><meta name=twitter:card content="summary"><meta name=twitter:title content="[xv6 學習紀錄 09] Lab: file system"><meta name=twitter:description content="Lab 連結：Lab: file system
-Large files (moderate)
+Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You&rsquo;ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you&rsquo;re not allowed to change the size of an on-disk inode. The first 11 elements of ip-&gt;addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/xv6/lab9/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.e1f5c4cae44599655f7ff95195ff89c8cb3adbda94f2b1581a434ab2b4d4e6cf.css" integrity="sha256-4fXEyuRFmWVff/lRlf&#43;JyMs629qU8rFYGkNKsrTU5s8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon_io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/favicon_io/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/xv6/lab9/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
 
-Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You&rsquo;ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you&rsquo;re not allowed to change the size of an on-disk inode. The first 11 elements of ip->addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"xv6 學習紀錄","item":"https://yamatrail.com/xv6/"},{"@type":"ListItem","position":2,"name":"[xv6 學習紀錄 09] Lab: file system","item":"https://yamatrail.com/xv6/lab9/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"[xv6 學習紀錄 09] Lab: file system","name":"[xv6 學習紀錄 09] Lab: file system","description":"Lab 連結：Lab: file system\nLarge files (moderate) Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You\u0026rsquo;ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you\u0026rsquo;re not allowed to change the size of an on-disk inode. The first 11 elements of ip-\u0026gt;addrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:\n","keywords":[],"articleBody":"Lab 連結：Lab: file system\nLarge files (moderate) Modify bmap() so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You’ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you’re not allowed to change the size of an on-disk inode. The first 11 elements of ip-\u003eaddrs[] should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when bigfile writes 65803 blocks and usertests runs successfully:\n這題的策略會是實做出一個 doubly-indirect block\n不可以更改 on-disk inode dinode 的大小，所以這裡要犧牲一個 direct block 來作為 doubly-indirect block 的用途 ip-\u003eaddrs[0] ~ ip-\u003eaddr[10] 做為原本的 direct block 的用途 第 12 個的 ip-\u003eaddr[11] 做為原本的 singly-indirect block (原本的 ip-\u003eaddr[12]) 的用途 第 13 個的 ip-\u003eaddr[12] 是新增的，這是 doubly-indirect block Make sure you understand bmap(). Write out a diagram of the relationships between ip-\u003eaddrs[], the indirect block, the doubly-indirect block and the singly-indirect blocks it points to, and data blocks. Make sure you understand why adding a doubly-indirect block increases the maximum file size by 256*256 blocks (really -1, since you have to decrease the number of direct blocks by one). 這個 hint 要我們先理解原版的 bmap()\n這在 File System 相關程式碼解析 有分析過了\nkernel/fs.c: bmap() // Inode content // // The content (data) associated with each inode is stored // in blocks on the disk. The first NDIRECT block numbers // are listed in ip-\u003eaddrs[]. The next NINDIRECT blocks are // listed in block ip-\u003eaddrs[NDIRECT]. // Return the disk block address of the nth block in inode ip. // If there is no such block, bmap allocates one. // returns 0 if out of disk space. static uint bmap(struct inode *ip, uint bn) { uint addr, *a; struct buf *bp; // direct 的情形 if(bn \u003c NDIRECT){ // 直接拿第 bn 個 address // 例如 bn == 0 就拿 ip-\u003eaddrs[0] // 一直到第 12 個的 bn == 11 就拿取 ip-\u003eaddrs[11] // 現在 addr 拿到了 block address if((addr = ip-\u003eaddrs[bn]) == 0){ // 如果 addr 不存在 (addr == 0) balloc 一個新的 block 給 ip-\u003eaddrs[bn] addr = balloc(ip-\u003edev); if(addr == 0) return 0; // 原本沒有內容的 ip-\u003eaddrs[bn] 現在有了一個新的 block ip-\u003eaddrs[bn] = addr; } // 拿到了 addr 之後就回傳，這也是 bmap() 最重要的任務 // 得知一個 inode 中的第 bn 個 block 的 block address return addr; } // 如果不是 direct mapping，例如想知道第 bn == 12 個 block // 實際上這是 indirect mapping 中的第 (12 - NDIRECT) == 0 個 block bn -= NDIRECT; // bn 照理來說不應該超過 256 if(bn \u003c NINDIRECT){ // Load indirect block, allocating if necessary. // 先取得圖片中 \"indirect\" 的那一個 address // 如果為 0 則一樣 balloc() 一個新的 block 給他 if((addr = ip-\u003eaddrs[NDIRECT]) == 0){ addr = balloc(ip-\u003edev); if(addr == 0) return 0; ip-\u003eaddrs[NDIRECT] = addr; } // 往下尋找 bmap() 需要回傳的 address // 要從 addr = ip-\u003eaddrs[NDIRECT] 的這個 block 中尋找 // 使用 bread() 讀取這個 block 的資料 bp = bread(ip-\u003edev, addr); a = (uint*)bp-\u003edata; // 還是一樣的套路，沒有資料則 balloc 一個新的 block // 現在的 addr 就會是 bmap() 要回傳的 address 了 if((addr = a[bn]) == 0){ addr = balloc(ip-\u003edev); if(addr){ a[bn] = addr; log_write(bp); } } brelse(bp); return addr; } // 如果不是 direct or indirect, panic() panic(\"bmap: out of range\"); } Think about how you’ll index the doubly-indirect block, and the indirect blocks it points to, with the logical block number. If you change the definition of NDIRECT, you’ll probably have to change the declaration of addrs[] in struct inode in file.h. Make sure that struct inode and struct dinode have the same number of elements in their addrs[] arrays. If you change the definition of NDIRECT, make sure to create a new fs.img, since mkfs uses NDIRECT to build the file system. 更改完 NDIRECT 之後要重新 make 一次\nIf your file system gets into a bad state, perhaps by crashing, delete fs.img (do this from Unix, not xv6). make will build a new clean file system image for you. 如果系統 crash 掉，先 delete fs.img 再重新 make 出一個新的\nDon’t forget to brelse() each block that you bread(). 實做 bmap() 要注意的點\nYou should allocate indirect blocks and doubly-indirect blocks only as needed, like the original bmap(). 有需要的時候再使用 balloc() 出新的 block，這個套路在原版的 bmap() 就已經看過了\nMake sure itrunc frees all blocks of a file, including double-indirect blocks. 這在 File System 相關程式碼解析 有分析過原版的，等一下再加入 doubly-indirect 的部份\n// Truncate inode (discard contents). // Caller must hold ip-\u003elock. void itrunc(struct inode *ip) { int i, j; struct buf *bp; uint *a; // 刪除 12 個 direct for(i = 0; i \u003c NDIRECT; i++){ if(ip-\u003eaddrs[i]){ bfree(ip-\u003edev, ip-\u003eaddrs[i]); ip-\u003eaddrs[i] = 0; } } // 刪除 indirect 的部份 if(ip-\u003eaddrs[NDIRECT]){ bp = bread(ip-\u003edev, ip-\u003eaddrs[NDIRECT]); a = (uint*)bp-\u003edata; // 刪除 indirect block 中 0 ~ 511 的 data block for(j = 0; j \u003c NINDIRECT; j++){ if(a[j]) bfree(ip-\u003edev, a[j]); } brelse(bp); bfree(ip-\u003edev, ip-\u003eaddrs[NDIRECT]); ip-\u003eaddrs[NDIRECT] = 0; } ip-\u003esize = 0; iupdate(ip); } usertests takes longer to run than in previous labs because for this lab FSSIZE is larger and big files are larger. 先前的 usertests 就已經蠻慢的了，這個 big file 的 lab 又會更慢一點，畢竟 FSSIZE 又更大\n程式實做 data structure kernel/fs.h #define BSIZE 1024 // block size #define NDIRECT 12 #define NINDIRECT (BSIZE / sizeof(uint)) // 512 #define MAXFILE (NDIRECT + NINDIRECT) 現在 NDIRECT 改為 11，把多出來的做為 doubly-indirect 用\nkernel/fs.h #define BSIZE 1024 // block size #define NDIRECT 11 #define NINDIRECT (BSIZE / sizeof(uint)) // 512 #define MAXFILE (NDIRECT + NINDIRECT + NINDIRECT * NINDIRECT) 連帶 struct inode 與 struct dinode 要做更動\nkernel/file.h // in-memory copy of an inode struct inode { uint dev; // Device number uint inum; // Inode number int ref; // Reference count struct sleeplock lock; // protects everything below here int valid; // inode has been read from disk? short type; // copy of disk inode short major; short minor; short nlink; uint size; uint addrs[NDIRECT+2]; }; kernel/fs.h // On-disk inode structure struct dinode { short type; // File type short major; // Major device number (T_DEVICE only) short minor; // Minor device number (T_DEVICE only) short nlink; // Number of links to inode in file system uint size; // Size of file (bytes) uint addrs[NDIRECT+2]; // Data block addresses }; bmap() static uint bmap(struct inode *ip, uint bn) { uint addr, *a; struct buf *bp; if(bn \u003c NDIRECT){ if((addr = ip-\u003eaddrs[bn]) == 0){ addr = balloc(ip-\u003edev); if(addr == 0) return 0; ip-\u003eaddrs[bn] = addr; } return addr; } bn -= NDIRECT; if(bn \u003c NINDIRECT){ // Load indirect block, allocating if necessary. if((addr = ip-\u003eaddrs[NDIRECT]) == 0){ addr = balloc(ip-\u003edev); if(addr == 0) return 0; ip-\u003eaddrs[NDIRECT] = addr; } bp = bread(ip-\u003edev, addr); a = (uint*)bp-\u003edata; if((addr = a[bn]) == 0){ addr = balloc(ip-\u003edev); if(addr){ a[bn] = addr; log_write(bp); } } brelse(bp); return addr; } // 現在 bn 代表的是 doubly-indirect 中的第 bn 個 bn -= NINDIRECT; // 在這時候先釐清一下 // 在 ip-\u003eaddrs[] 的層級中，要拿的是 ip-\u003eaddrs[NDIRECT + 1] // 在這一個 doubly-indirect block 中總共有 512 個 address // 這 512 個 address 指向 512 個 indirect block // 第 0 個 address 指向的第 0 個 indirect block 負責 bn == 0 ~ 511 // 第 1 個 address 指向的第 1 個 indirect block 負責 bn == 512 ~ (512 * 2 - 1) // 第 n 個 address 指向的第 n 個 indirect block 負責 ((n - 1) * NINDIRECT) \u003c= bn \u0026\u0026 bn \u003c n * NINDIRECT // doubly-indirect 中的第 bn 個 block // 是由 doubly-indirect block 中 // 第 (bn / NINDIRECT) 個 address 指向的第 (bn / NINDIRECT) 個 indirect block 負責 // 在這個 indrect block 中， // 又是其中的第 (bn % NINDIRECT) 個 address // 總之 // 1. ip-\u003eaddrs[NDIRECT + 1] 得知 doubly-indirect block // 2. doubly-indirect block 中的第 (bn / NINDIRECT) 個 address 可得知 indirect block // 3. indirect block 中的第 (bn % NINDIRECT) 個 address 是 bmap() 要回傳的 address if (bn \u003c NINDIRECT * NINDIRECT) { if ((addr = ip-\u003eaddrs[NDIRECT + 1]) == 0) { addr = balloc(ip-\u003edev); if(addr == 0) return 0; ip-\u003eaddrs[NDIRECT + 1] = addr; } // 此時 addr 拿到的是 doubly-indirect block bp = bread(ip-\u003edev, addr); a = (uint*)bp-\u003edata; // 現在要拿第 (bn / NINDIRECT) 個 address， // 可得知 indirect block 的 address if((addr = a[bn / NINDIRECT]) == 0){ addr = balloc(ip-\u003edev); if(addr){ a[bn / NINDIRECT] = addr; log_write(bp); } } brelse(bp); // 現在這個 addr 是 indirect block 的 address // 要拿取第 (bn % NINDIRECT) 個 address bp = bread(ip-\u003edev, addr); a = (uint*)bp-\u003edata; if ((addr = a[bn % NINDIRECT]) == 0) { addr = balloc(ip-\u003edev); if(addr){ a[bn % NINDIRECT] = addr; log_write(bp); } } brelse(bp); return addr; } panic(\"bmap: out of range\"); } itrunc() // Truncate inode (discard contents). // Caller must hold ip-\u003elock. void itrunc(struct inode *ip) { int i, j, k; struct buf *bp; uint *a; // for doubly-indirect block struct buf *bp0, *bp1; uint *a0, *a1; for(i = 0; i \u003c NDIRECT; i++){ if(ip-\u003eaddrs[i]){ bfree(ip-\u003edev, ip-\u003eaddrs[i]); ip-\u003eaddrs[i] = 0; } } if(ip-\u003eaddrs[NDIRECT]){ bp = bread(ip-\u003edev, ip-\u003eaddrs[NDIRECT]); a = (uint*)bp-\u003edata; for(j = 0; j \u003c NINDIRECT; j++){ if(a[j]) bfree(ip-\u003edev, a[j]); } brelse(bp); bfree(ip-\u003edev, ip-\u003eaddrs[NDIRECT]); ip-\u003eaddrs[NDIRECT] = 0; } // 處理 doubly-indirect block 的部份 if (ip-\u003eaddrs[NDIRECT + 1]) { bp1 = bread(ip-\u003edev, ip-\u003eaddrs[NDIRECT + 1]); a1 = (uint*)bp1-\u003edata; // 分別檢查這之中的 512 個 indirect block for(j = 0; j \u003c NINDIRECT; j++){ if(a1[j]) { bp0 = bread(ip-\u003edev, a1[j]); a0 = (uint *) bp0-\u003edata; for (k = 0; k \u003c NINDIRECT; k++) { if (a0[k]) bfree(ip-\u003edev, a0[k]); } brelse(bp0); bfree(ip-\u003edev, a1[j]); a1[j] = 0; } } brelse(bp1); bfree(ip-\u003edev, ip-\u003eaddrs[NDIRECT + 1]); ip-\u003eaddrs[NDIRECT + 1] = 0; } ip-\u003esize = 0; iupdate(ip); } Symbolic links (moderate) In this exercise you will add symbolic links to xv6. Symbolic links (or soft links) refer to a linked file by pathname; when a symbolic link is opened, the kernel follows the link to the referred file. Symbolic links resembles hard links, but hard links are restricted to pointing to file on the same disk, while symbolic links can cross disk devices. Although xv6 doesn’t support multiple devices, implementing this system call is a good exercise to understand how pathname lookup works.\nhard link 只限縮在同一個 disk，symbolic link (soft link) 則可以跨 disk，這一題要做的是 soft link，雖然 xv6 並沒有支援多個 devices，不過實做這個 system call 可以很好的了解 pathname 的尋找過程\nYou will implement the symlink(char *target, char *path) system call, which creates a new symbolic link at path that refers to file named by target. For further information, see the man page symlink. To test, add symlinktest to the Makefile and run it. Your solution is complete when the tests produce the following output (including usertests succeeding).\n例如原本有一個檔案 target，在 symlink(char *target, char *path) 之後，path 就會也指向 target 這個檔案\n現在的策略是把這個 target (或是 target 的 inum) 存放於這個 type 為 T_SYMLINK 的檔案，在拿到 target 之後，再用原先的方式把檔案開啟，所以這裡需要先了解有了 target (or inum) 之後，原本的檔案開啟流程為何？ First, create a new system call number for symlink, add an entry to user/usys.pl, user/user.h, and implement an empty sys_symlink in kernel/sysfile.c. user/usys.pl entry(\"symlink\"); user/user.h int symlink(char *target, char *path); kernel/syscall.h #define SYS_symlink 22 kernel/syscall.c extern uint64 sys_symlink(void); static uint64 (*syscalls[])(void) = { // ... [SYS_symlink] sys_symlink, }; kernel/sysfile.c uint64 sys_symlink(void) { // TODO return 0; } Add a new file type (T_SYMLINK) to kernel/stat.h to represent a symbolic link. #define T_DIR 1 // Directory #define T_FILE 2 // File #define T_DEVICE 3 // Device #define T_SYMLINK 4 // Symbolic link struct stat { int dev; // File system's disk device uint ino; // Inode number short type; // Type of file short nlink; // Number of links to file uint64 size; // Size of file in bytes }; Add a new flag to kernel/fcntl.h, (O_NOFOLLOW), that can be used with the open system call. Note that flags passed to open are combined using a bitwise OR operator, so your new flag should not overlap with any existing flags. This will let you compile user/symlinktest.c once you add it to the Makefile. 例如這個使用情形\nuser/symlinktest.c // stat a symbolic link using O_NOFOLLOW static int stat_slink(char *pn, struct stat *st) { int fd = open(pn, O_RDONLY | O_NOFOLLOW); if(fd \u003c 0) return -1; if(fstat(fd, st) != 0) return -1; return 0; } 使用 flag O_NOFOLLOW，代表的意義為，如果打開了一個 symlink，不要跟著 follow 下去打開這個 link\nImplement the symlink(target, path) system call to create a new symbolic link at path that refers to target. Note that target does not need to exist for the system call to succeed. You will need to choose somewhere to store the target path of a symbolic link, for example, in the inode’s data blocks. symlink should return an integer representing success (0) or failure (-1) similar to link and unlink. 需要找個地方存放 the target path of a symbolic link，會像是 inode 中的 data blocks return 0 代表 success; return -1 代表 failure，這跟 link and unlink 一樣 就算 target 不存在，這個 system call 也算是成功 我想失敗應該會失敗在接下去的 open or 就真的是失敗？ Modify the open system call to handle the case where the path refers to a symbolic link. If the file does not exist, open must fail. When a process specifies O_NOFOLLOW in the flags to open, open should open the symlink (and not follow the symbolic link). O_NOFOLLOW 的用意在於還是要有一個方法可以打開這個 symlink 本身 If the linked file is also a symbolic link, you must recursively follow it until a non-link file is reached. If the links form a cycle, you must return an error code. You may approximate this by returning an error code if the depth of links reaches some threshold (e.g., 10). symbolic link 也可以指向一個 symbolic link，需要 recursive 的方式解析\n可以設定一個 threshold，畢竟也有可能發生 circular 的事情發生 Other system calls (e.g., link and unlink) must not follow symbolic links; these system calls operate on the symbolic link itself. why?\nYou do not have to handle symbolic links to directories for this lab. 這個 lab 不需要處理 directories 的 symbolic link 程式實做 kernel/stat.h #define T_DIR 1 // Directory #define T_FILE 2 // File #define T_DEVICE 3 // Device #define T_SYMLINK 4 // Symbolic link struct stat { int dev; // File system's disk device uint ino; // Inode number short type; // Type of file short nlink; // Number of links to file uint64 size; // Size of file in bytes }; kernle/fcntl.h: 新增 O_NOFOLLOW #define O_RDONLY 0x000 #define O_WRONLY 0x001 #define O_RDWR 0x002 #define O_CREATE 0x200 #define O_TRUNC 0x400 #define O_NOFOLLOW 0x800 kernel/sysfile.c: sys_symlink() 這裡的目的在於把 target 存放於此 T_SYMLINK 的 file 中 uint64 sys_symlink(void) { char path[MAXPATH], target[MAXPATH]; struct inode *ip; int n; if(argstr(0, target, MAXPATH) \u003c 0 || argstr(1, path, MAXPATH) \u003c 0) return -1; begin_op(); if ((ip = create(path, T_SYMLINK, 0, 0)) == 0) { end_op(); return -1; } n = writei(ip, 0, (uint64) target, 0, strlen(target)); if (n \u003c strlen(target)) { ip-\u003enlink = 0; iupdate(ip); iunlockput(ip); end_op(); return -1; } iunlockput(ip); end_op(); return 0; } kernel/sysfile.c: sys_open() uint64 sys_open(void) { char path[MAXPATH]; char current_path[MAXPATH]; char next_path[MAXPATH]; int fd, omode; struct file *f; struct inode *ip; int n; int depth; argint(1, \u0026omode); if((n = argstr(0, path, MAXPATH)) \u003c 0) return -1; begin_op(); if(omode \u0026 O_CREATE){ ip = create(path, T_FILE, 0, 0); if(ip == 0){ end_op(); return -1; } } else { strncpy(current_path, path, MAXPATH); depth = 0; while (1) { if((ip = namei(current_path)) == 0){ end_op(); return -1; } ilock(ip); if (ip-\u003etype != T_SYMLINK) break; if (omode \u0026 O_NOFOLLOW) break; if (++depth \u003e 10) { iunlockput(ip); end_op(); return -1; } // read the `target` memset(next_path, 0, MAXPATH); n = readi(ip, 0, (uint64) next_path, 0, sizeof(next_path) - 1); iunlockput(ip); end_op(); if (n \u003c= 0) return -1; strncpy(current_path, next_path, MAXPATH); begin_op(); } if(ip-\u003etype == T_DIR \u0026\u0026 omode != O_RDONLY){ iunlockput(ip); end_op(); return -1; } } if(ip-\u003etype == T_DEVICE \u0026\u0026 (ip-\u003emajor \u003c 0 || ip-\u003emajor \u003e= NDEV)){ iunlockput(ip); end_op(); return -1; } if((f = filealloc()) == 0 || (fd = fdalloc(f)) \u003c 0){ if(f) fileclose(f); iunlockput(ip); end_op(); return -1; } if(ip-\u003etype == T_DEVICE){ f-\u003etype = FD_DEVICE; f-\u003emajor = ip-\u003emajor; } else { f-\u003etype = FD_INODE; f-\u003eoff = 0; } f-\u003eip = ip; f-\u003ereadable = !(omode \u0026 O_WRONLY); f-\u003ewritable = (omode \u0026 O_WRONLY) || (omode \u0026 O_RDWR); if((omode \u0026 O_TRUNC) \u0026\u0026 ip-\u003etype == T_FILE){ itrunc(ip); } iunlock(ip); end_op(); return fd; } 心得 這個 lab 對我來說的課題是抓重點程式碼，其實不必了解到所有到底層的流程，更多的時候了解各個主要功能 function 之間的互動會更重要一些\n","wordCount":"2605","inLanguage":"en","datePublished":"2025-11-01T11:48:29+08:00","dateModified":"2025-11-01T11:48:29+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://yamatrail.com/xv6/lab9/"},"publisher":{"@type":"Organization","name":"Yama's Trail","logo":{"@type":"ImageObject","url":"https://yamatrail.com/favicon_io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://yamatrail.com/ accesskey=h title="Yama's Trail (Alt + H)">Yama's Trail</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme"><svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://yamatrail.com/dev-log/ title=這個網站的誕生><span>這個網站的誕生</span></a></li><li><a href=https://yamatrail.com/leetcode/ title="LeetCode 解題"><span>LeetCode 解題</span></a></li><li><a href=https://yamatrail.com/xv6/ title="xv6 學習紀錄"><span>xv6 學習紀錄</span></a></li><li><a href=https://yamatrail.com/linux-kernel-programming/ title="Linux Kernel Programming"><span>Linux Kernel Programming</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">[xv6 學習紀錄 09] Lab: file system</h1><div class=post-meta><span title='2025-11-01 11:48:29 +0800 CST'>November 1, 2025</span></div></header><div class=post-content><p>Lab 連結：<a href=https://pdos.csail.mit.edu/6.S081/2022/labs/fs.html>Lab: file system</a></p><h2 id=large-files-moderate>Large files (moderate)<a hidden class=anchor aria-hidden=true href=#large-files-moderate>#</a></h2><blockquote><p>Modify <code>bmap()</code> so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You&rsquo;ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you&rsquo;re not allowed to change the size of an on-disk inode. The first 11 elements of <code>ip->addrs[]</code> should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when <code>bigfile</code> writes 65803 blocks and usertests runs successfully:</p></blockquote><p>這題的策略會是實做出一個 doubly-indirect block</p><ul><li>不可以更改 on-disk inode <code>dinode</code> 的大小，所以這裡要犧牲一個 direct block 來作為 doubly-indirect block 的用途</li><li><code>ip->addrs[0] ~ ip->addr[10]</code> 做為原本的 direct block 的用途</li><li>第 12 個的 <code>ip->addr[11]</code> 做為原本的 singly-indirect block (原本的 <code>ip->addr[12]</code>) 的用途</li><li>第 13 個的 <code>ip->addr[12]</code> 是新增的，這是 doubly-indirect block</li></ul><blockquote><ul><li>Make sure you understand <code>bmap()</code>. Write out a diagram of the relationships between <code>ip->addrs[]</code>, the indirect block, the doubly-indirect block and the singly-indirect blocks it points to, and data blocks. Make sure you understand why adding a doubly-indirect block increases the maximum file size by <code>256*256</code> blocks (really -1, since you have to decrease the number of direct blocks by one).</li></ul></blockquote><p>這個 hint 要我們先理解原版的 <code>bmap()</code></p><p>這在 <a href=../filesystem/>File System 相關程式碼解析</a> 有分析過了</p><ul><li><code>kernel/fs.c: bmap()</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// Inode content
-</span></span></span><span style=display:flex><span><span style=color:#75715e>//
-</span></span></span><span style=display:flex><span><span style=color:#75715e>// The content (data) associated with each inode is stored
-</span></span></span><span style=display:flex><span><span style=color:#75715e>// in blocks on the disk. The first NDIRECT block numbers
-</span></span></span><span style=display:flex><span><span style=color:#75715e>// are listed in ip-&gt;addrs[].  The next NINDIRECT blocks are
-</span></span></span><span style=display:flex><span><span style=color:#75715e>// listed in block ip-&gt;addrs[NDIRECT].
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// Return the disk block address of the nth block in inode ip.
-</span></span></span><span style=display:flex><span><span style=color:#75715e>// If there is no such block, bmap allocates one.
-</span></span></span><span style=display:flex><span><span style=color:#75715e>// returns 0 if out of disk space.
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>static</span> uint
-</span></span><span style=display:flex><span><span style=color:#a6e22e>bmap</span>(<span style=color:#66d9ef>struct</span> inode <span style=color:#f92672>*</span>ip, uint bn)
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  uint addr, <span style=color:#f92672>*</span>a;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> buf <span style=color:#f92672>*</span>bp;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// direct 的情形
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span>(bn <span style=color:#f92672>&lt;</span> NDIRECT){
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 直接拿第 bn 個 address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 例如 bn == 0 就拿 ip-&gt;addrs[0]
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 一直到第 12 個的 bn == 11 就拿取 ip-&gt;addrs[11]
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 現在 addr 拿到了 block address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>((addr <span style=color:#f92672>=</span> ip<span style=color:#f92672>-&gt;</span>addrs[bn]) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>      <span style=color:#75715e>// 如果 addr 不存在 (addr == 0) balloc 一個新的 block 給 ip-&gt;addrs[bn]
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      addr <span style=color:#f92672>=</span> <span style=color:#a6e22e>balloc</span>(ip<span style=color:#f92672>-&gt;</span>dev);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(addr <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>      <span style=color:#75715e>// 原本沒有內容的 ip-&gt;addrs[bn] 現在有了一個新的 block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      ip<span style=color:#f92672>-&gt;</span>addrs[bn] <span style=color:#f92672>=</span> addr;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 拿到了 addr 之後就回傳，這也是 bmap() 最重要的任務
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 得知一個 inode 中的第 bn 個 block 的 block address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> addr;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// 如果不是 direct mapping，例如想知道第 bn == 12 個 block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 實際上這是 indirect mapping 中的第 (12 - NDIRECT) == 0 個 block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  bn <span style=color:#f92672>-=</span> NDIRECT;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// bn 照理來說不應該超過 256
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span>(bn <span style=color:#f92672>&lt;</span> NINDIRECT){
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// Load indirect block, allocating if necessary.
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 先取得圖片中 &#34;indirect&#34; 的那一個 address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 如果為 0 則一樣 balloc() 一個新的 block 給他
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>((addr <span style=color:#f92672>=</span> ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT]) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>      addr <span style=color:#f92672>=</span> <span style=color:#a6e22e>balloc</span>(ip<span style=color:#f92672>-&gt;</span>dev);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(addr <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>      ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT] <span style=color:#f92672>=</span> addr;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 往下尋找 bmap() 需要回傳的 address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 要從 addr = ip-&gt;addrs[NDIRECT] 的這個 block 中尋找
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 使用 bread() 讀取這個 block 的資料
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    bp <span style=color:#f92672>=</span> <span style=color:#a6e22e>bread</span>(ip<span style=color:#f92672>-&gt;</span>dev, addr);
-</span></span><span style=display:flex><span>    a <span style=color:#f92672>=</span> (uint<span style=color:#f92672>*</span>)bp<span style=color:#f92672>-&gt;</span>data;
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 還是一樣的套路，沒有資料則 balloc 一個新的 block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 現在的 addr 就會是 bmap() 要回傳的 address 了
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>((addr <span style=color:#f92672>=</span> a[bn]) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>      addr <span style=color:#f92672>=</span> <span style=color:#a6e22e>balloc</span>(ip<span style=color:#f92672>-&gt;</span>dev);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(addr){
-</span></span><span style=display:flex><span>        a[bn] <span style=color:#f92672>=</span> addr;
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>log_write</span>(bp);
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>brelse</span>(bp);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> addr;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// 如果不是 direct or indirect, panic()
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;bmap: out of range&#34;</span>);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><blockquote><ul><li>Think about how you&rsquo;ll index the doubly-indirect block, and the indirect blocks it points to, with the logical block number.</li></ul></blockquote><blockquote><ul><li>If you change the definition of <code>NDIRECT</code>, you&rsquo;ll probably have to change the declaration of <code>addrs[]</code> in <code>struct inode</code> in <code>file.h</code>. Make sure that <code>struct inode</code> and <code>struct dinode</code> have the same number of elements in their <code>addrs[]</code> arrays.</li></ul></blockquote><blockquote><ul><li>If you change the definition of <code>NDIRECT</code>, make sure to create a new <code>fs.img</code>, since <code>mkfs</code> uses <code>NDIRECT</code> to build the file system.</li></ul></blockquote><p>更改完 <code>NDIRECT</code> 之後要重新 <code>make</code> 一次</p><blockquote><ul><li>If your file system gets into a bad state, perhaps by crashing, delete <code>fs.img</code> (do this from Unix, not xv6). make will build a new clean file system image for you.</li></ul></blockquote><p>如果系統 crash 掉，先 delete <code>fs.img</code> 再重新 make 出一個新的</p><blockquote><ul><li>Don&rsquo;t forget to <code>brelse()</code> each block that you <code>bread()</code>.</li></ul></blockquote><p>實做 <code>bmap()</code> 要注意的點</p><blockquote><ul><li>You should allocate indirect blocks and doubly-indirect blocks only as needed, like the original <code>bmap()</code>.</li></ul></blockquote><p>有需要的時候再使用 <code>balloc()</code> 出新的 block，這個套路在原版的 <code>bmap()</code> 就已經看過了</p><blockquote><ul><li>Make sure <code>itrunc</code> frees all blocks of a file, including double-indirect blocks.</li></ul></blockquote><p>這在 <a href=../filesystem/>File System 相關程式碼解析</a> 有分析過原版的，等一下再加入 doubly-indirect 的部份</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// Truncate inode (discard contents).
-</span></span></span><span style=display:flex><span><span style=color:#75715e>// Caller must hold ip-&gt;lock.
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>itrunc</span>(<span style=color:#66d9ef>struct</span> inode <span style=color:#f92672>*</span>ip)
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> i, j;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> buf <span style=color:#f92672>*</span>bp;
-</span></span><span style=display:flex><span>  uint <span style=color:#f92672>*</span>a;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// 刪除 12 個 direct
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>for</span>(i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> NDIRECT; i<span style=color:#f92672>++</span>){
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(ip<span style=color:#f92672>-&gt;</span>addrs[i]){
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>bfree</span>(ip<span style=color:#f92672>-&gt;</span>dev, ip<span style=color:#f92672>-&gt;</span>addrs[i]);
-</span></span><span style=display:flex><span>      ip<span style=color:#f92672>-&gt;</span>addrs[i] <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// 刪除 indirect 的部份
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span>(ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT]){
-</span></span><span style=display:flex><span>    bp <span style=color:#f92672>=</span> <span style=color:#a6e22e>bread</span>(ip<span style=color:#f92672>-&gt;</span>dev, ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT]);
-</span></span><span style=display:flex><span>    a <span style=color:#f92672>=</span> (uint<span style=color:#f92672>*</span>)bp<span style=color:#f92672>-&gt;</span>data;
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 刪除 indirect block 中 0 ~ 511 的 data block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>for</span>(j <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; j <span style=color:#f92672>&lt;</span> NINDIRECT; j<span style=color:#f92672>++</span>){
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(a[j])
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>bfree</span>(ip<span style=color:#f92672>-&gt;</span>dev, a[j]);
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>brelse</span>(bp);
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>bfree</span>(ip<span style=color:#f92672>-&gt;</span>dev, ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT]);
-</span></span><span style=display:flex><span>    ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT] <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  ip<span style=color:#f92672>-&gt;</span>size <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>iupdate</span>(ip);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><blockquote><ul><li><code>usertests</code> takes longer to run than in previous labs because for this lab <code>FSSIZE</code> is larger and big files are larger.</li></ul></blockquote><p>先前的 <code>usertests</code> 就已經蠻慢的了，這個 big file 的 lab 又會更慢一點，畢竟 <code>FSSIZE</code> 又更大</p><h3 id=程式實做>程式實做<a hidden class=anchor aria-hidden=true href=#程式實做>#</a></h3><h4 id=data-structure>data structure<a hidden class=anchor aria-hidden=true href=#data-structure>#</a></h4><ul><li><code>kernel/fs.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#define BSIZE 1024  </span><span style=color:#75715e>// block size
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span><span style=color:#75715e>#define NDIRECT 12
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#define NINDIRECT (BSIZE / sizeof(uint)) </span><span style=color:#75715e>// 512
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define MAXFILE (NDIRECT + NINDIRECT)
-</span></span></span></code></pre></div><p>現在 <code>NDIRECT</code> 改為 11，把多出來的做為 doubly-indirect 用</p><ul><li><code>kernel/fs.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#define BSIZE 1024  </span><span style=color:#75715e>// block size
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span><span style=color:#75715e>#define NDIRECT 11
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#define NINDIRECT (BSIZE / sizeof(uint)) </span><span style=color:#75715e>// 512
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define MAXFILE (NDIRECT + NINDIRECT + NINDIRECT * NINDIRECT)
-</span></span></span></code></pre></div><p>連帶 <code>struct inode</code> 與 <code>struct dinode</code> 要做更動</p><ul><li><code>kernel/file.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// in-memory copy of an inode
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>struct</span> inode {
-</span></span><span style=display:flex><span>  uint dev;           <span style=color:#75715e>// Device number
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint inum;          <span style=color:#75715e>// Inode number
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>int</span> ref;            <span style=color:#75715e>// Reference count
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>struct</span> sleeplock lock; <span style=color:#75715e>// protects everything below here
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>int</span> valid;          <span style=color:#75715e>// inode has been read from disk?
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>short</span> type;         <span style=color:#75715e>// copy of disk inode
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>short</span> major;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>short</span> minor;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>short</span> nlink;
-</span></span><span style=display:flex><span>  uint size;
-</span></span><span style=display:flex><span>  uint addrs[NDIRECT<span style=color:#f92672>+</span><span style=color:#ae81ff>2</span>];
-</span></span><span style=display:flex><span>};
-</span></span></code></pre></div><ul><li><code>kernel/fs.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// On-disk inode structure
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>struct</span> dinode {
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>short</span> type;           <span style=color:#75715e>// File type
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>short</span> major;          <span style=color:#75715e>// Major device number (T_DEVICE only)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>short</span> minor;          <span style=color:#75715e>// Minor device number (T_DEVICE only)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>short</span> nlink;          <span style=color:#75715e>// Number of links to inode in file system
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint size;            <span style=color:#75715e>// Size of file (bytes)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint addrs[NDIRECT<span style=color:#f92672>+</span><span style=color:#ae81ff>2</span>];   <span style=color:#75715e>// Data block addresses
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>};
-</span></span></code></pre></div><h4 id=bmap><code>bmap()</code><a hidden class=anchor aria-hidden=true href=#bmap>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>static</span> uint
-</span></span><span style=display:flex><span><span style=color:#a6e22e>bmap</span>(<span style=color:#66d9ef>struct</span> inode <span style=color:#f92672>*</span>ip, uint bn)
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  uint addr, <span style=color:#f92672>*</span>a;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> buf <span style=color:#f92672>*</span>bp;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(bn <span style=color:#f92672>&lt;</span> NDIRECT){
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((addr <span style=color:#f92672>=</span> ip<span style=color:#f92672>-&gt;</span>addrs[bn]) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>      addr <span style=color:#f92672>=</span> <span style=color:#a6e22e>balloc</span>(ip<span style=color:#f92672>-&gt;</span>dev);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(addr <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>      ip<span style=color:#f92672>-&gt;</span>addrs[bn] <span style=color:#f92672>=</span> addr;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> addr;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>  bn <span style=color:#f92672>-=</span> NDIRECT;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(bn <span style=color:#f92672>&lt;</span> NINDIRECT){
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// Load indirect block, allocating if necessary.
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>((addr <span style=color:#f92672>=</span> ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT]) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>      addr <span style=color:#f92672>=</span> <span style=color:#a6e22e>balloc</span>(ip<span style=color:#f92672>-&gt;</span>dev);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(addr <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>      ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT] <span style=color:#f92672>=</span> addr;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    bp <span style=color:#f92672>=</span> <span style=color:#a6e22e>bread</span>(ip<span style=color:#f92672>-&gt;</span>dev, addr);
-</span></span><span style=display:flex><span>    a <span style=color:#f92672>=</span> (uint<span style=color:#f92672>*</span>)bp<span style=color:#f92672>-&gt;</span>data;
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>((addr <span style=color:#f92672>=</span> a[bn]) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>      addr <span style=color:#f92672>=</span> <span style=color:#a6e22e>balloc</span>(ip<span style=color:#f92672>-&gt;</span>dev);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(addr){
-</span></span><span style=display:flex><span>        a[bn] <span style=color:#f92672>=</span> addr;
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>log_write</span>(bp);
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>brelse</span>(bp);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> addr;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// 現在 bn 代表的是 doubly-indirect 中的第 bn 個
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  bn <span style=color:#f92672>-=</span> NINDIRECT;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// 在這時候先釐清一下
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 在 ip-&gt;addrs[] 的層級中，要拿的是 ip-&gt;addrs[NDIRECT + 1]
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 在這一個 doubly-indirect block 中總共有 512 個 address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 這 512 個 address 指向 512 個 indirect block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 第 0 個 address 指向的第 0 個 indirect block 負責 bn == 0 ~ 511
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 第 1 個 address 指向的第 1 個 indirect block 負責 bn == 512 ~ (512 * 2 - 1)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 第 n 個 address 指向的第 n 個 indirect block 負責 ((n - 1) * NINDIRECT) &lt;= bn &amp;&amp; bn &lt; n * NINDIRECT
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// doubly-indirect 中的第 bn 個 block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 是由 doubly-indirect block 中
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 第 (bn / NINDIRECT) 個 address 指向的第 (bn / NINDIRECT) 個 indirect block 負責
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 在這個 indrect block 中，
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 又是其中的第 (bn % NINDIRECT) 個 address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// 總之
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 1. ip-&gt;addrs[NDIRECT + 1] 得知 doubly-indirect block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 2. doubly-indirect block 中的第 (bn / NINDIRECT) 個 address 可得知 indirect block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#75715e>// 3. indirect block 中的第 (bn % NINDIRECT) 個 address 是 bmap() 要回傳的 address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> (bn <span style=color:#f92672>&lt;</span> NINDIRECT <span style=color:#f92672>*</span> NINDIRECT) {
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> ((addr <span style=color:#f92672>=</span> ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>]) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) {
-</span></span><span style=display:flex><span>      addr <span style=color:#f92672>=</span> <span style=color:#a6e22e>balloc</span>(ip<span style=color:#f92672>-&gt;</span>dev);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(addr <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>      ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>] <span style=color:#f92672>=</span> addr;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 此時 addr 拿到的是 doubly-indirect block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    bp <span style=color:#f92672>=</span> <span style=color:#a6e22e>bread</span>(ip<span style=color:#f92672>-&gt;</span>dev, addr);
-</span></span><span style=display:flex><span>    a <span style=color:#f92672>=</span> (uint<span style=color:#f92672>*</span>)bp<span style=color:#f92672>-&gt;</span>data;
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 現在要拿第 (bn / NINDIRECT) 個 address，
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 可得知 indirect block 的 address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>((addr <span style=color:#f92672>=</span> a[bn <span style=color:#f92672>/</span> NINDIRECT]) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>      addr <span style=color:#f92672>=</span> <span style=color:#a6e22e>balloc</span>(ip<span style=color:#f92672>-&gt;</span>dev);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(addr){
-</span></span><span style=display:flex><span>        a[bn <span style=color:#f92672>/</span> NINDIRECT] <span style=color:#f92672>=</span> addr;
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>log_write</span>(bp);
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>brelse</span>(bp);
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 現在這個 addr 是 indirect block 的 address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 要拿取第 (bn % NINDIRECT) 個 address
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    bp <span style=color:#f92672>=</span> <span style=color:#a6e22e>bread</span>(ip<span style=color:#f92672>-&gt;</span>dev, addr);
-</span></span><span style=display:flex><span>    a <span style=color:#f92672>=</span> (uint<span style=color:#f92672>*</span>)bp<span style=color:#f92672>-&gt;</span>data;
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> ((addr <span style=color:#f92672>=</span> a[bn <span style=color:#f92672>%</span> NINDIRECT]) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) {
-</span></span><span style=display:flex><span>      addr <span style=color:#f92672>=</span> <span style=color:#a6e22e>balloc</span>(ip<span style=color:#f92672>-&gt;</span>dev);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(addr){
-</span></span><span style=display:flex><span>        a[bn <span style=color:#f92672>%</span> NINDIRECT] <span style=color:#f92672>=</span> addr;
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>log_write</span>(bp);
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>brelse</span>(bp);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> addr;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>panic</span>(<span style=color:#e6db74>&#34;bmap: out of range&#34;</span>);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h4 id=itrunc><code>itrunc()</code><a hidden class=anchor aria-hidden=true href=#itrunc>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// Truncate inode (discard contents).
-</span></span></span><span style=display:flex><span><span style=color:#75715e>// Caller must hold ip-&gt;lock.
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>itrunc</span>(<span style=color:#66d9ef>struct</span> inode <span style=color:#f92672>*</span>ip)
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> i, j, k;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> buf <span style=color:#f92672>*</span>bp;
-</span></span><span style=display:flex><span>  uint <span style=color:#f92672>*</span>a;
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// for doubly-indirect block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>struct</span> buf <span style=color:#f92672>*</span>bp0, <span style=color:#f92672>*</span>bp1;
-</span></span><span style=display:flex><span>  uint <span style=color:#f92672>*</span>a0, <span style=color:#f92672>*</span>a1;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span>(i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> NDIRECT; i<span style=color:#f92672>++</span>){
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(ip<span style=color:#f92672>-&gt;</span>addrs[i]){
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>bfree</span>(ip<span style=color:#f92672>-&gt;</span>dev, ip<span style=color:#f92672>-&gt;</span>addrs[i]);
-</span></span><span style=display:flex><span>      ip<span style=color:#f92672>-&gt;</span>addrs[i] <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT]){
-</span></span><span style=display:flex><span>    bp <span style=color:#f92672>=</span> <span style=color:#a6e22e>bread</span>(ip<span style=color:#f92672>-&gt;</span>dev, ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT]);
-</span></span><span style=display:flex><span>    a <span style=color:#f92672>=</span> (uint<span style=color:#f92672>*</span>)bp<span style=color:#f92672>-&gt;</span>data;
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span>(j <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; j <span style=color:#f92672>&lt;</span> NINDIRECT; j<span style=color:#f92672>++</span>){
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(a[j])
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>bfree</span>(ip<span style=color:#f92672>-&gt;</span>dev, a[j]);
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>brelse</span>(bp);
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>bfree</span>(ip<span style=color:#f92672>-&gt;</span>dev, ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT]);
-</span></span><span style=display:flex><span>    ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT] <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// 處理 doubly-indirect block 的部份
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>if</span> (ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>]) {
-</span></span><span style=display:flex><span>    bp1 <span style=color:#f92672>=</span> <span style=color:#a6e22e>bread</span>(ip<span style=color:#f92672>-&gt;</span>dev, ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>]);
-</span></span><span style=display:flex><span>    a1 <span style=color:#f92672>=</span> (uint<span style=color:#f92672>*</span>)bp1<span style=color:#f92672>-&gt;</span>data;
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 分別檢查這之中的 512 個 indirect block
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>for</span>(j <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; j <span style=color:#f92672>&lt;</span> NINDIRECT; j<span style=color:#f92672>++</span>){
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>(a1[j]) {
-</span></span><span style=display:flex><span>        bp0 <span style=color:#f92672>=</span> <span style=color:#a6e22e>bread</span>(ip<span style=color:#f92672>-&gt;</span>dev, a1[j]);
-</span></span><span style=display:flex><span>        a0 <span style=color:#f92672>=</span> (uint <span style=color:#f92672>*</span>) bp0<span style=color:#f92672>-&gt;</span>data;
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> (k <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; k <span style=color:#f92672>&lt;</span> NINDIRECT; k<span style=color:#f92672>++</span>) {
-</span></span><span style=display:flex><span>          <span style=color:#66d9ef>if</span> (a0[k])
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>bfree</span>(ip<span style=color:#f92672>-&gt;</span>dev, a0[k]);
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>brelse</span>(bp0);
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>bfree</span>(ip<span style=color:#f92672>-&gt;</span>dev, a1[j]);
-</span></span><span style=display:flex><span>        a1[j] <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>brelse</span>(bp1);
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>bfree</span>(ip<span style=color:#f92672>-&gt;</span>dev, ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>]);
-</span></span><span style=display:flex><span>    ip<span style=color:#f92672>-&gt;</span>addrs[NDIRECT <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>] <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  ip<span style=color:#f92672>-&gt;</span>size <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>iupdate</span>(ip);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><h2 id=symbolic-links-moderate>Symbolic links (moderate)<a hidden class=anchor aria-hidden=true href=#symbolic-links-moderate>#</a></h2><blockquote><p>In this exercise you will add symbolic links to xv6. Symbolic links (or soft links) refer to a linked file by pathname; when a symbolic link is opened, the kernel follows the link to the referred file. Symbolic links resembles hard links, but hard links are restricted to pointing to file on the same disk, while symbolic links can cross disk devices. Although xv6 doesn&rsquo;t support multiple devices, implementing this system call is a good exercise to understand how pathname lookup works.</p></blockquote><p>hard link 只限縮在同一個 disk，symbolic link (soft link) 則可以跨 disk，這一題要做的是 soft link，雖然 xv6 並沒有支援多個 devices，不過實做這個 system call 可以很好的了解 pathname 的尋找過程</p><blockquote><p>You will implement the <code>symlink(char *target, char *path)</code> system call, which creates a new symbolic link at <code>path</code> that refers to file named by <code>target</code>. For further information, see the <code>man</code> page <code>symlink</code>. To test, add <code>symlinktest</code> to the <code>Makefile</code> and run it. Your solution is complete when the tests produce the following output (including <code>usertests</code> succeeding).</p></blockquote><p>例如原本有一個檔案 <code>target</code>，在 <code>symlink(char *target, char *path)</code> 之後，<code>path</code> 就會也指向 <code>target</code> 這個檔案</p><ul><li>現在的策略是把這個 <code>target</code> (或是 <code>target</code> 的 <code>inum</code>) 存放於這個 type 為 <code>T_SYMLINK</code> 的檔案，在拿到 <code>target</code> 之後，再用原先的方式把檔案開啟，所以這裡需要先了解有了 <code>target</code> (or <code>inum</code>) 之後，原本的檔案開啟流程為何？</li></ul><blockquote><ul><li>First, create a new system call number for <code>symlink</code>, add an entry to <code>user/usys.pl</code>, <code>user/user.h</code>, and implement an empty <code>sys_symlink</code> in <code>kernel/sysfile.c</code>.</li></ul></blockquote><ul><li><code>user/usys.pl</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-perl data-lang=perl><span style=display:flex><span>entry(<span style=color:#e6db74>&#34;symlink&#34;</span>);
-</span></span></code></pre></div><ul><li><code>user/user.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>symlink</span>(<span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>target, <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>path);
-</span></span></code></pre></div><ul><li><code>kernel/syscall.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#define SYS_symlink 22
-</span></span></span></code></pre></div><ul><li><code>kernel/syscall.c</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>extern</span> uint64 <span style=color:#a6e22e>sys_symlink</span>(<span style=color:#66d9ef>void</span>);
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>static</span> <span style=color:#a6e22e>uint64</span> (<span style=color:#f92672>*</span>syscalls[])(<span style=color:#66d9ef>void</span>) <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span><span style=color:#75715e>// ...
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>[SYS_symlink] sys_symlink,
-</span></span><span style=display:flex><span>};
-</span></span></code></pre></div><ul><li><code>kernel/sysfile.c</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>uint64
-</span></span><span style=display:flex><span><span style=color:#a6e22e>sys_symlink</span>(<span style=color:#66d9ef>void</span>)
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#75715e>// TODO
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><blockquote><ul><li>Add a new file type (<code>T_SYMLINK</code>) to <code>kernel/stat.h</code> to represent a symbolic link.</li></ul></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#define T_DIR     1   </span><span style=color:#75715e>// Directory
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define T_FILE    2   </span><span style=color:#75715e>// File
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define T_DEVICE  3   </span><span style=color:#75715e>// Device
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define T_SYMLINK 4   </span><span style=color:#75715e>// Symbolic link
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> stat {
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> dev;     <span style=color:#75715e>// File system&#39;s disk device
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint ino;    <span style=color:#75715e>// Inode number
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>short</span> type;  <span style=color:#75715e>// Type of file
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>short</span> nlink; <span style=color:#75715e>// Number of links to file
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint64 size; <span style=color:#75715e>// Size of file in bytes
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>};
-</span></span></code></pre></div><blockquote><ul><li>Add a new flag to <code>kernel/fcntl.h</code>, (<code>O_NOFOLLOW</code>), that can be used with the open system call. Note that flags passed to open are combined using a bitwise OR operator, so your new flag should not overlap with any existing flags. This will let you compile <code>user/symlinktest.c</code> once you add it to the <code>Makefile</code>.</li></ul></blockquote><p>例如這個使用情形</p><ul><li><code>user/symlinktest.c</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// stat a symbolic link using O_NOFOLLOW
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>static</span> <span style=color:#66d9ef>int</span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>stat_slink</span>(<span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>pn, <span style=color:#66d9ef>struct</span> stat <span style=color:#f92672>*</span>st)
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> fd <span style=color:#f92672>=</span> <span style=color:#a6e22e>open</span>(pn, O_RDONLY <span style=color:#f92672>|</span> O_NOFOLLOW);
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(fd <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(<span style=color:#a6e22e>fstat</span>(fd, st) <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>使用 flag <code>O_NOFOLLOW</code>，代表的意義為，如果打開了一個 <code>symlink</code>，不要跟著 follow 下去打開這個 link</p><blockquote><ul><li>Implement the <code>symlink(target, path)</code> system call to create a new symbolic link at <code>path</code> that refers to <code>target</code>. Note that <code>target</code> does not need to exist for the system call to succeed. You will need to choose somewhere to store the <code>target</code> path of a symbolic link, for example, in the inode&rsquo;s data blocks. <code>symlink</code> should <code>return</code> an integer representing success (0) or failure (-1) similar to <code>link</code> and <code>unlink</code>.</li></ul></blockquote><ul><li>需要找個地方存放 the <code>target</code> path of a symbolic link，會像是 inode 中的 data blocks</li><li><code>return 0</code> 代表 success; <code>return -1</code> 代表 failure，這跟 <code>link</code> and <code>unlink</code> 一樣</li><li>就算 <code>target</code> 不存在，這個 system call 也算是成功<ul><li>我想失敗應該會失敗在接下去的 open or 就真的是失敗？</li></ul></li></ul><blockquote><ul><li>Modify the open system call to handle the case where the <code>path</code> refers to a symbolic link. If the file does not exist, <code>open</code> must fail. When a process specifies <code>O_NOFOLLOW</code> in the flags to open, open should open the <code>symlink</code> (and not follow the symbolic link).</li></ul></blockquote><ul><li><code>O_NOFOLLOW</code> 的用意在於還是要有一個方法可以打開這個 <code>symlink</code> 本身</li></ul><blockquote><ul><li>If the linked file is also a symbolic link, you must recursively follow it until a non-link file is reached. If the links form a cycle, you must return an error code. You may approximate this by returning an error code if the depth of links reaches some threshold (e.g., 10).</li></ul></blockquote><p>symbolic link 也可以指向一個 symbolic link，需要 recursive 的方式解析</p><ul><li>可以設定一個 threshold，畢竟也有可能發生 circular 的事情發生</li></ul><blockquote><ul><li>Other system calls (e.g., <code>link</code> and <code>unlink</code>) must not follow symbolic links; these system calls operate on the symbolic link itself.</li></ul></blockquote><p>why?</p><blockquote><ul><li>You do not have to handle symbolic links to directories for this lab.</li></ul></blockquote><ul><li>這個 lab 不需要處理 directories 的 symbolic link</li></ul><h3 id=程式實做-1>程式實做<a hidden class=anchor aria-hidden=true href=#程式實做-1>#</a></h3><ul><li><code>kernel/stat.h</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#define T_DIR     1   </span><span style=color:#75715e>// Directory
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define T_FILE    2   </span><span style=color:#75715e>// File
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define T_DEVICE  3   </span><span style=color:#75715e>// Device
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#define T_SYMLINK 4   </span><span style=color:#75715e>// Symbolic link
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> stat {
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> dev;     <span style=color:#75715e>// File system&#39;s disk device
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint ino;    <span style=color:#75715e>// Inode number
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>short</span> type;  <span style=color:#75715e>// Type of file
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  <span style=color:#66d9ef>short</span> nlink; <span style=color:#75715e>// Number of links to file
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>  uint64 size; <span style=color:#75715e>// Size of file in bytes
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>};
-</span></span></code></pre></div><ul><li><code>kernle/fcntl.h</code>: 新增 <code>O_NOFOLLOW</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#define O_RDONLY   0x000
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#define O_WRONLY   0x001
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#define O_RDWR     0x002
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#define O_CREATE   0x200
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#define O_TRUNC    0x400
-</span></span></span><span style=display:flex><span><span style=color:#75715e>#define O_NOFOLLOW 0x800
-</span></span></span></code></pre></div><ul><li><code>kernel/sysfile.c: sys_symlink()</code>
-這裡的目的在於把 <code>target</code> 存放於此 <code>T_SYMLINK</code> 的 file 中</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>uint64
-</span></span><span style=display:flex><span><span style=color:#a6e22e>sys_symlink</span>(<span style=color:#66d9ef>void</span>)
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span> path[MAXPATH], target[MAXPATH];
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> inode <span style=color:#f92672>*</span>ip;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> n;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(<span style=color:#a6e22e>argstr</span>(<span style=color:#ae81ff>0</span>, target, MAXPATH) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>argstr</span>(<span style=color:#ae81ff>1</span>, path, MAXPATH) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>begin_op</span>();
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> ((ip <span style=color:#f92672>=</span> <span style=color:#a6e22e>create</span>(path, T_SYMLINK, <span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>0</span>)) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>  n <span style=color:#f92672>=</span> <span style=color:#a6e22e>writei</span>(ip, <span style=color:#ae81ff>0</span>, (uint64) target, <span style=color:#ae81ff>0</span>, <span style=color:#a6e22e>strlen</span>(target));
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (n <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>strlen</span>(target)) {
-</span></span><span style=display:flex><span>    ip<span style=color:#f92672>-&gt;</span>nlink <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>iupdate</span>(ip);
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>iunlockput</span>(ip);
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>iunlockput</span>(ip);
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><ul><li><code>kernel/sysfile.c: sys_open()</code></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>uint64
-</span></span><span style=display:flex><span><span style=color:#a6e22e>sys_open</span>(<span style=color:#66d9ef>void</span>)
-</span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span> path[MAXPATH];
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span> current_path[MAXPATH];
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span> next_path[MAXPATH];
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> fd, omode;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> file <span style=color:#f92672>*</span>f;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> inode <span style=color:#f92672>*</span>ip;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> n;
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> depth;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>argint</span>(<span style=color:#ae81ff>1</span>, <span style=color:#f92672>&amp;</span>omode);
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>((n <span style=color:#f92672>=</span> <span style=color:#a6e22e>argstr</span>(<span style=color:#ae81ff>0</span>, path, MAXPATH)) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>begin_op</span>();
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(omode <span style=color:#f92672>&amp;</span> O_CREATE){
-</span></span><span style=display:flex><span>    ip <span style=color:#f92672>=</span> <span style=color:#a6e22e>create</span>(path, T_FILE, <span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>0</span>);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(ip <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>else</span> {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>strncpy</span>(current_path, path, MAXPATH);
-</span></span><span style=display:flex><span>    depth <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> (<span style=color:#ae81ff>1</span>) {
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span>((ip <span style=color:#f92672>=</span> <span style=color:#a6e22e>namei</span>(current_path)) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>ilock</span>(ip);
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (ip<span style=color:#f92672>-&gt;</span>type <span style=color:#f92672>!=</span> T_SYMLINK)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (omode <span style=color:#f92672>&amp;</span> O_NOFOLLOW)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>;
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (<span style=color:#f92672>++</span>depth <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>10</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>iunlockput</span>(ip);
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>      }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      <span style=color:#75715e>// read the `target`
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      <span style=color:#a6e22e>memset</span>(next_path, <span style=color:#ae81ff>0</span>, MAXPATH);
-</span></span><span style=display:flex><span>      n <span style=color:#f92672>=</span> <span style=color:#a6e22e>readi</span>(ip, <span style=color:#ae81ff>0</span>, (uint64) next_path, <span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>sizeof</span>(next_path) <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>);
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>iunlockput</span>(ip);
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (n <span style=color:#f92672>&lt;=</span> <span style=color:#ae81ff>0</span>)
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>strncpy</span>(current_path, next_path, MAXPATH);
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>begin_op</span>();
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(ip<span style=color:#f92672>-&gt;</span>type <span style=color:#f92672>==</span> T_DIR <span style=color:#f92672>&amp;&amp;</span> omode <span style=color:#f92672>!=</span> O_RDONLY){
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>iunlockput</span>(ip);
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>      <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(ip<span style=color:#f92672>-&gt;</span>type <span style=color:#f92672>==</span> T_DEVICE <span style=color:#f92672>&amp;&amp;</span> (ip<span style=color:#f92672>-&gt;</span>major <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>||</span> ip<span style=color:#f92672>-&gt;</span>major <span style=color:#f92672>&gt;=</span> NDEV)){
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>iunlockput</span>(ip);
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>((f <span style=color:#f92672>=</span> <span style=color:#a6e22e>filealloc</span>()) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>||</span> (fd <span style=color:#f92672>=</span> <span style=color:#a6e22e>fdalloc</span>(f)) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>){
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(f)
-</span></span><span style=display:flex><span>      <span style=color:#a6e22e>fileclose</span>(f);
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>iunlockput</span>(ip);
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>(ip<span style=color:#f92672>-&gt;</span>type <span style=color:#f92672>==</span> T_DEVICE){
-</span></span><span style=display:flex><span>    f<span style=color:#f92672>-&gt;</span>type <span style=color:#f92672>=</span> FD_DEVICE;
-</span></span><span style=display:flex><span>    f<span style=color:#f92672>-&gt;</span>major <span style=color:#f92672>=</span> ip<span style=color:#f92672>-&gt;</span>major;
-</span></span><span style=display:flex><span>  } <span style=color:#66d9ef>else</span> {
-</span></span><span style=display:flex><span>    f<span style=color:#f92672>-&gt;</span>type <span style=color:#f92672>=</span> FD_INODE;
-</span></span><span style=display:flex><span>    f<span style=color:#f92672>-&gt;</span>off <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>  f<span style=color:#f92672>-&gt;</span>ip <span style=color:#f92672>=</span> ip;
-</span></span><span style=display:flex><span>  f<span style=color:#f92672>-&gt;</span>readable <span style=color:#f92672>=</span> <span style=color:#f92672>!</span>(omode <span style=color:#f92672>&amp;</span> O_WRONLY);
-</span></span><span style=display:flex><span>  f<span style=color:#f92672>-&gt;</span>writable <span style=color:#f92672>=</span> (omode <span style=color:#f92672>&amp;</span> O_WRONLY) <span style=color:#f92672>||</span> (omode <span style=color:#f92672>&amp;</span> O_RDWR);
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span>((omode <span style=color:#f92672>&amp;</span> O_TRUNC) <span style=color:#f92672>&amp;&amp;</span> ip<span style=color:#f92672>-&gt;</span>type <span style=color:#f92672>==</span> T_FILE){
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>itrunc</span>(ip);
-</span></span><span style=display:flex><span>  }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>iunlock</span>(ip);
-</span></span><span style=display:flex><span>  <span style=color:#a6e22e>end_op</span>();
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> fd;
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p><img alt=ac.png loading=lazy src=/xv6/lab9/ac.png></p><h2 id=心得>心得<a hidden class=anchor aria-hidden=true href=#心得>#</a></h2><p>這個 lab 對我來說的課題是抓重點程式碼，其實不必了解到所有到底層的流程，更多的時候了解各個主要功能 function 之間的互動會更重要一些</p></div><footer class=post-footer><ul class=post-tags></ul><nav class=paginav><a class=prev href=https://yamatrail.com/xv6/lec14-fs/><span class=title>« Prev</span><br><span>[xv6 學習紀錄 09-2] Lec14 File Systems</span>
-</a><a class=next href=https://yamatrail.com/xv6/lec17-vm-for-app/><span class=title>Next »</span><br><span>Lec17 vm for app</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://yamatrail.com/>Yama's Trail</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-        <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentcolor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Yama&#39;s Trail (Alt + H)">Yama&#39;s Trail</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/dev-log/" title="這個網站的誕生">
+                    <span>這個網站的誕生</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/leetcode/" title="LeetCode 解題">
+                    <span>LeetCode 解題</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/xv6/" title="xv6 學習紀錄">
+                    <span>xv6 學習紀錄</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/linux-kernel-programming/" title="Linux Kernel Programming">
+                    <span>Linux Kernel Programming</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      [xv6 學習紀錄 09] Lab: file system
+    </h1>
+    <div class="post-meta"><span title='2025-11-01 11:48:29 +0800 CST'>November 1, 2025</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>Lab 連結：<a href="https://pdos.csail.mit.edu/6.S081/2022/labs/fs.html">Lab: file system</a></p>
+<h2 id="large-files-moderate">Large files (moderate)<a hidden class="anchor" aria-hidden="true" href="#large-files-moderate">#</a></h2>
+<blockquote>
+<p>Modify <code>bmap()</code> so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You&rsquo;ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you&rsquo;re not allowed to change the size of an on-disk inode. The first 11 elements of <code>ip-&gt;addrs[]</code> should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when <code>bigfile</code> writes 65803 blocks and usertests runs successfully:</p></blockquote>
+<p>這題的策略會是實做出一個 doubly-indirect block</p>
+<ul>
+<li>不可以更改 on-disk inode <code>dinode</code> 的大小，所以這裡要犧牲一個 direct block 來作為 doubly-indirect block 的用途</li>
+<li><code>ip-&gt;addrs[0] ~ ip-&gt;addr[10]</code> 做為原本的 direct block 的用途</li>
+<li>第 12 個的 <code>ip-&gt;addr[11]</code> 做為原本的 singly-indirect block (原本的 <code>ip-&gt;addr[12]</code>) 的用途</li>
+<li>第 13 個的 <code>ip-&gt;addr[12]</code> 是新增的，這是 doubly-indirect block</li>
+</ul>
+<blockquote>
+<ul>
+<li>Make sure you understand <code>bmap()</code>. Write out a diagram of the relationships between <code>ip-&gt;addrs[]</code>, the indirect block, the doubly-indirect block and the singly-indirect blocks it points to, and data blocks. Make sure you understand why adding a doubly-indirect block increases the maximum file size by <code>256*256</code> blocks (really -1, since you have to decrease the number of direct blocks by one).</li>
+</ul></blockquote>
+<p>這個 hint 要我們先理解原版的 <code>bmap()</code></p>
+<p>這在 <a href="../filesystem/">File System 相關程式碼解析</a> 有分析過了</p>
+<ul>
+<li><code>kernel/fs.c: bmap()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Inode content
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// The content (data) associated with each inode is stored
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// in blocks on the disk. The first NDIRECT block numbers
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// are listed in ip-&gt;addrs[].  The next NINDIRECT blocks are
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// listed in block ip-&gt;addrs[NDIRECT].
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Return the disk block address of the nth block in inode ip.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// If there is no such block, bmap allocates one.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// returns 0 if out of disk space.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> uint
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">bmap</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>ip, uint bn)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  uint addr, <span style="color:#f92672">*</span>a;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// direct 的情形
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NDIRECT){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 直接拿第 bn 個 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 例如 bn == 0 就拿 ip-&gt;addrs[0]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 一直到第 12 個的 bn == 11 就拿取 ip-&gt;addrs[11]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 現在 addr 拿到了 block address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 如果 addr 不存在 (addr == 0) balloc 一個新的 block 給 ip-&gt;addrs[bn]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 原本沒有內容的 ip-&gt;addrs[bn] 現在有了一個新的 block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      ip<span style="color:#f92672">-&gt;</span>addrs[bn] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 拿到了 addr 之後就回傳，這也是 bmap() 最重要的任務
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 得知一個 inode 中的第 bn 個 block 的 block address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 如果不是 direct mapping，例如想知道第 bn == 12 個 block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 實際上這是 indirect mapping 中的第 (12 - NDIRECT) == 0 個 block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  bn <span style="color:#f92672">-=</span> NDIRECT;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// bn 照理來說不應該超過 256
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NINDIRECT){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Load indirect block, allocating if necessary.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 先取得圖片中 &#34;indirect&#34; 的那一個 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 如果為 0 則一樣 balloc() 一個新的 block 給他
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 往下尋找 bmap() 需要回傳的 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 要從 addr = ip-&gt;addrs[NDIRECT] 的這個 block 中尋找
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 使用 bread() 讀取這個 block 的資料
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, addr);
+</span></span><span style="display:flex;"><span>    a <span style="color:#f92672">=</span> (uint<span style="color:#f92672">*</span>)bp<span style="color:#f92672">-&gt;</span>data;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 還是一樣的套路，沒有資料則 balloc 一個新的 block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 現在的 addr 就會是 bmap() 要回傳的 address 了
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> a[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr){
+</span></span><span style="display:flex;"><span>        a[bn] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log_write</span>(bp);
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 如果不是 direct or indirect, panic()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;bmap: out of range&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><blockquote>
+<ul>
+<li>Think about how you&rsquo;ll index the doubly-indirect block, and the indirect blocks it points to, with the logical block number.</li>
+</ul></blockquote>
+<blockquote>
+<ul>
+<li>If you change the definition of <code>NDIRECT</code>, you&rsquo;ll probably have to change the declaration of <code>addrs[]</code> in <code>struct inode</code> in <code>file.h</code>. Make sure that <code>struct inode</code> and <code>struct dinode</code> have the same number of elements in their <code>addrs[]</code> arrays.</li>
+</ul></blockquote>
+<blockquote>
+<ul>
+<li>If you change the definition of <code>NDIRECT</code>, make sure to create a new <code>fs.img</code>, since <code>mkfs</code> uses <code>NDIRECT</code> to build the file system.</li>
+</ul></blockquote>
+<p>更改完 <code>NDIRECT</code> 之後要重新 <code>make</code> 一次</p>
+<blockquote>
+<ul>
+<li>If your file system gets into a bad state, perhaps by crashing, delete <code>fs.img</code> (do this from Unix, not xv6). make will build a new clean file system image for you.</li>
+</ul></blockquote>
+<p>如果系統 crash 掉，先 delete <code>fs.img</code> 再重新 make 出一個新的</p>
+<blockquote>
+<ul>
+<li>Don&rsquo;t forget to <code>brelse()</code> each block that you <code>bread()</code>.</li>
+</ul></blockquote>
+<p>實做 <code>bmap()</code> 要注意的點</p>
+<blockquote>
+<ul>
+<li>You should allocate indirect blocks and doubly-indirect blocks only as needed, like the original <code>bmap()</code>.</li>
+</ul></blockquote>
+<p>有需要的時候再使用 <code>balloc()</code> 出新的 block，這個套路在原版的 <code>bmap()</code> 就已經看過了</p>
+<blockquote>
+<ul>
+<li>Make sure <code>itrunc</code> frees all blocks of a file, including double-indirect blocks.</li>
+</ul></blockquote>
+<p>這在 <a href="../filesystem/">File System 相關程式碼解析</a> 有分析過原版的，等一下再加入 doubly-indirect 的部份</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Truncate inode (discard contents).
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Caller must hold ip-&gt;lock.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">itrunc</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>ip)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> i, j;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp;
+</span></span><span style="display:flex;"><span>  uint <span style="color:#f92672">*</span>a;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 刪除 12 個 direct
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> NDIRECT; i<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(ip<span style="color:#f92672">-&gt;</span>addrs[i]){
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[i]);
+</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[i] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 刪除 indirect 的部份
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]){
+</span></span><span style="display:flex;"><span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]);
+</span></span><span style="display:flex;"><span>    a <span style="color:#f92672">=</span> (uint<span style="color:#f92672">*</span>)bp<span style="color:#f92672">-&gt;</span>data;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 刪除 indirect block 中 0 ~ 511 的 data block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span>(j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; j <span style="color:#f92672">&lt;</span> NINDIRECT; j<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(a[j])
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, a[j]);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]);
+</span></span><span style="display:flex;"><span>    ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  ip<span style="color:#f92672">-&gt;</span>size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">iupdate</span>(ip);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><blockquote>
+<ul>
+<li><code>usertests</code> takes longer to run than in previous labs because for this lab <code>FSSIZE</code> is larger and big files are larger.</li>
+</ul></blockquote>
+<p>先前的 <code>usertests</code> 就已經蠻慢的了，這個 big file 的 lab 又會更慢一點，畢竟 <code>FSSIZE</code> 又更大</p>
+<h3 id="程式實做">程式實做<a hidden class="anchor" aria-hidden="true" href="#程式實做">#</a></h3>
+<h4 id="data-structure">data structure<a hidden class="anchor" aria-hidden="true" href="#data-structure">#</a></h4>
+<ul>
+<li><code>kernel/fs.h</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define BSIZE 1024  </span><span style="color:#75715e">// block size
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define NDIRECT 12
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define NINDIRECT (BSIZE / sizeof(uint)) </span><span style="color:#75715e">// 512
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define MAXFILE (NDIRECT + NINDIRECT)
+</span></span></span></code></pre></div><p>現在 <code>NDIRECT</code> 改為 11，把多出來的做為 doubly-indirect 用</p>
+<ul>
+<li><code>kernel/fs.h</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define BSIZE 1024  </span><span style="color:#75715e">// block size
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#define NDIRECT 11
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define NINDIRECT (BSIZE / sizeof(uint)) </span><span style="color:#75715e">// 512
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define MAXFILE (NDIRECT + NINDIRECT + NINDIRECT * NINDIRECT)
+</span></span></span></code></pre></div><p>連帶 <code>struct inode</code> 與 <code>struct dinode</code> 要做更動</p>
+<ul>
+<li><code>kernel/file.h</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// in-memory copy of an inode
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> inode {
+</span></span><span style="display:flex;"><span>  uint dev;           <span style="color:#75715e">// Device number
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint inum;          <span style="color:#75715e">// Inode number
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> ref;            <span style="color:#75715e">// Reference count
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> sleeplock lock; <span style="color:#75715e">// protects everything below here
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> valid;          <span style="color:#75715e">// inode has been read from disk?
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">short</span> type;         <span style="color:#75715e">// copy of disk inode
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">short</span> major;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">short</span> minor;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">short</span> nlink;
+</span></span><span style="display:flex;"><span>  uint size;
+</span></span><span style="display:flex;"><span>  uint addrs[NDIRECT<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>];
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><ul>
+<li><code>kernel/fs.h</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// On-disk inode structure
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> dinode {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">short</span> type;           <span style="color:#75715e">// File type
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">short</span> major;          <span style="color:#75715e">// Major device number (T_DEVICE only)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">short</span> minor;          <span style="color:#75715e">// Minor device number (T_DEVICE only)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">short</span> nlink;          <span style="color:#75715e">// Number of links to inode in file system
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint size;            <span style="color:#75715e">// Size of file (bytes)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint addrs[NDIRECT<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>];   <span style="color:#75715e">// Data block addresses
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><h4 id="bmap"><code>bmap()</code><a hidden class="anchor" aria-hidden="true" href="#bmap">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> uint
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">bmap</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>ip, uint bn)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  uint addr, <span style="color:#f92672">*</span>a;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NDIRECT){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[bn] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  bn <span style="color:#f92672">-=</span> NDIRECT;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(bn <span style="color:#f92672">&lt;</span> NINDIRECT){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Load indirect block, allocating if necessary.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, addr);
+</span></span><span style="display:flex;"><span>    a <span style="color:#f92672">=</span> (uint<span style="color:#f92672">*</span>)bp<span style="color:#f92672">-&gt;</span>data;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> a[bn]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr){
+</span></span><span style="display:flex;"><span>        a[bn] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log_write</span>(bp);
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 現在 bn 代表的是 doubly-indirect 中的第 bn 個
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  bn <span style="color:#f92672">-=</span> NINDIRECT;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 在這時候先釐清一下
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 在 ip-&gt;addrs[] 的層級中，要拿的是 ip-&gt;addrs[NDIRECT + 1]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 在這一個 doubly-indirect block 中總共有 512 個 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 這 512 個 address 指向 512 個 indirect block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 第 0 個 address 指向的第 0 個 indirect block 負責 bn == 0 ~ 511
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 第 1 個 address 指向的第 1 個 indirect block 負責 bn == 512 ~ (512 * 2 - 1)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 第 n 個 address 指向的第 n 個 indirect block 負責 ((n - 1) * NINDIRECT) &lt;= bn &amp;&amp; bn &lt; n * NINDIRECT
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// doubly-indirect 中的第 bn 個 block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 是由 doubly-indirect block 中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 第 (bn / NINDIRECT) 個 address 指向的第 (bn / NINDIRECT) 個 indirect block 負責
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 在這個 indrect block 中，
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 又是其中的第 (bn % NINDIRECT) 個 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 總之
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 1. ip-&gt;addrs[NDIRECT + 1] 得知 doubly-indirect block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 2. doubly-indirect block 中的第 (bn / NINDIRECT) 個 address 可得知 indirect block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 3. indirect block 中的第 (bn % NINDIRECT) 個 address 是 bmap() 要回傳的 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> (bn <span style="color:#f92672">&lt;</span> NINDIRECT <span style="color:#f92672">*</span> NINDIRECT) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> ((addr <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 此時 addr 拿到的是 doubly-indirect block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, addr);
+</span></span><span style="display:flex;"><span>    a <span style="color:#f92672">=</span> (uint<span style="color:#f92672">*</span>)bp<span style="color:#f92672">-&gt;</span>data;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 現在要拿第 (bn / NINDIRECT) 個 address，
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 可得知 indirect block 的 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((addr <span style="color:#f92672">=</span> a[bn <span style="color:#f92672">/</span> NINDIRECT]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr){
+</span></span><span style="display:flex;"><span>        a[bn <span style="color:#f92672">/</span> NINDIRECT] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log_write</span>(bp);
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 現在這個 addr 是 indirect block 的 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 要拿取第 (bn % NINDIRECT) 個 address
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, addr);
+</span></span><span style="display:flex;"><span>    a <span style="color:#f92672">=</span> (uint<span style="color:#f92672">*</span>)bp<span style="color:#f92672">-&gt;</span>data;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> ((addr <span style="color:#f92672">=</span> a[bn <span style="color:#f92672">%</span> NINDIRECT]) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>      addr <span style="color:#f92672">=</span> <span style="color:#a6e22e">balloc</span>(ip<span style="color:#f92672">-&gt;</span>dev);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(addr){
+</span></span><span style="display:flex;"><span>        a[bn <span style="color:#f92672">%</span> NINDIRECT] <span style="color:#f92672">=</span> addr;
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log_write</span>(bp);
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> addr;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;bmap: out of range&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="itrunc"><code>itrunc()</code><a hidden class="anchor" aria-hidden="true" href="#itrunc">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Truncate inode (discard contents).
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Caller must hold ip-&gt;lock.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">itrunc</span>(<span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>ip)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> i, j, k;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp;
+</span></span><span style="display:flex;"><span>  uint <span style="color:#f92672">*</span>a;
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// for doubly-indirect block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>bp0, <span style="color:#f92672">*</span>bp1;
+</span></span><span style="display:flex;"><span>  uint <span style="color:#f92672">*</span>a0, <span style="color:#f92672">*</span>a1;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> NDIRECT; i<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(ip<span style="color:#f92672">-&gt;</span>addrs[i]){
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[i]);
+</span></span><span style="display:flex;"><span>      ip<span style="color:#f92672">-&gt;</span>addrs[i] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]){
+</span></span><span style="display:flex;"><span>    bp <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]);
+</span></span><span style="display:flex;"><span>    a <span style="color:#f92672">=</span> (uint<span style="color:#f92672">*</span>)bp<span style="color:#f92672">-&gt;</span>data;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span>(j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; j <span style="color:#f92672">&lt;</span> NINDIRECT; j<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(a[j])
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, a[j]);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">brelse</span>(bp);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT]);
+</span></span><span style="display:flex;"><span>    ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 處理 doubly-indirect block 的部份
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> (ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>]) {
+</span></span><span style="display:flex;"><span>    bp1 <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>]);
+</span></span><span style="display:flex;"><span>    a1 <span style="color:#f92672">=</span> (uint<span style="color:#f92672">*</span>)bp1<span style="color:#f92672">-&gt;</span>data;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 分別檢查這之中的 512 個 indirect block
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span>(j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; j <span style="color:#f92672">&lt;</span> NINDIRECT; j<span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>(a1[j]) {
+</span></span><span style="display:flex;"><span>        bp0 <span style="color:#f92672">=</span> <span style="color:#a6e22e">bread</span>(ip<span style="color:#f92672">-&gt;</span>dev, a1[j]);
+</span></span><span style="display:flex;"><span>        a0 <span style="color:#f92672">=</span> (uint <span style="color:#f92672">*</span>) bp0<span style="color:#f92672">-&gt;</span>data;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (k <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; k <span style="color:#f92672">&lt;</span> NINDIRECT; k<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>          <span style="color:#66d9ef">if</span> (a0[k])
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, a0[k]);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">brelse</span>(bp0);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, a1[j]);
+</span></span><span style="display:flex;"><span>        a1[j] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">brelse</span>(bp1);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bfree</span>(ip<span style="color:#f92672">-&gt;</span>dev, ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>]);
+</span></span><span style="display:flex;"><span>    ip<span style="color:#f92672">-&gt;</span>addrs[NDIRECT <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  ip<span style="color:#f92672">-&gt;</span>size <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">iupdate</span>(ip);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="symbolic-links-moderate">Symbolic links (moderate)<a hidden class="anchor" aria-hidden="true" href="#symbolic-links-moderate">#</a></h2>
+<blockquote>
+<p>In this exercise you will add symbolic links to xv6. Symbolic links (or soft links) refer to a linked file by pathname; when a symbolic link is opened, the kernel follows the link to the referred file. Symbolic links resembles hard links, but hard links are restricted to pointing to file on the same disk, while symbolic links can cross disk devices. Although xv6 doesn&rsquo;t support multiple devices, implementing this system call is a good exercise to understand how pathname lookup works.</p></blockquote>
+<p>hard link 只限縮在同一個 disk，symbolic link (soft link) 則可以跨 disk，這一題要做的是 soft link，雖然 xv6 並沒有支援多個 devices，不過實做這個 system call 可以很好的了解 pathname 的尋找過程</p>
+<blockquote>
+<p>You will implement the <code>symlink(char *target, char *path)</code> system call, which creates a new symbolic link at <code>path</code> that refers to file named by <code>target</code>. For further information, see the <code>man</code> page <code>symlink</code>. To test, add <code>symlinktest</code> to the <code>Makefile</code> and run it. Your solution is complete when the tests produce the following output (including <code>usertests</code> succeeding).</p></blockquote>
+<p>例如原本有一個檔案 <code>target</code>，在 <code>symlink(char *target, char *path)</code> 之後，<code>path</code> 就會也指向 <code>target</code> 這個檔案</p>
+<ul>
+<li>現在的策略是把這個 <code>target</code> (或是 <code>target</code> 的 <code>inum</code>) 存放於這個 type 為 <code>T_SYMLINK</code> 的檔案，在拿到 <code>target</code> 之後，再用原先的方式把檔案開啟，所以這裡需要先了解有了 <code>target</code> (or <code>inum</code>) 之後，原本的檔案開啟流程為何？</li>
+</ul>
+<blockquote>
+<ul>
+<li>First, create a new system call number for <code>symlink</code>, add an entry to <code>user/usys.pl</code>, <code>user/user.h</code>, and implement an empty <code>sys_symlink</code> in <code>kernel/sysfile.c</code>.</li>
+</ul></blockquote>
+<ul>
+<li><code>user/usys.pl</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-perl" data-lang="perl"><span style="display:flex;"><span>entry(<span style="color:#e6db74">&#34;symlink&#34;</span>);
+</span></span></code></pre></div><ul>
+<li><code>user/user.h</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">symlink</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>target, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path);
+</span></span></code></pre></div><ul>
+<li><code>kernel/syscall.h</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SYS_symlink 22
+</span></span></span></code></pre></div><ul>
+<li><code>kernel/syscall.c</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_symlink</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#a6e22e">uint64</span> (<span style="color:#f92672">*</span>syscalls[])(<span style="color:#66d9ef">void</span>) <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>[SYS_symlink] sys_symlink,
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><ul>
+<li><code>kernel/sysfile.c</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_symlink</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// TODO
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><blockquote>
+<ul>
+<li>Add a new file type (<code>T_SYMLINK</code>) to <code>kernel/stat.h</code> to represent a symbolic link.</li>
+</ul></blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define T_DIR     1   </span><span style="color:#75715e">// Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define T_FILE    2   </span><span style="color:#75715e">// File
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define T_DEVICE  3   </span><span style="color:#75715e">// Device
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define T_SYMLINK 4   </span><span style="color:#75715e">// Symbolic link
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> stat {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> dev;     <span style="color:#75715e">// File system&#39;s disk device
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint ino;    <span style="color:#75715e">// Inode number
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">short</span> type;  <span style="color:#75715e">// Type of file
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">short</span> nlink; <span style="color:#75715e">// Number of links to file
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 size; <span style="color:#75715e">// Size of file in bytes
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><blockquote>
+<ul>
+<li>Add a new flag to <code>kernel/fcntl.h</code>, (<code>O_NOFOLLOW</code>), that can be used with the open system call. Note that flags passed to open are combined using a bitwise OR operator, so your new flag should not overlap with any existing flags. This will let you compile <code>user/symlinktest.c</code> once you add it to the <code>Makefile</code>.</li>
+</ul></blockquote>
+<p>例如這個使用情形</p>
+<ul>
+<li><code>user/symlinktest.c</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// stat a symbolic link using O_NOFOLLOW
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">stat_slink</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pn, <span style="color:#66d9ef">struct</span> stat <span style="color:#f92672">*</span>st)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> fd <span style="color:#f92672">=</span> <span style="color:#a6e22e">open</span>(pn, O_RDONLY <span style="color:#f92672">|</span> O_NOFOLLOW);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(fd <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">fstat</span>(fd, st) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>使用 flag <code>O_NOFOLLOW</code>，代表的意義為，如果打開了一個 <code>symlink</code>，不要跟著 follow 下去打開這個 link</p>
+<blockquote>
+<ul>
+<li>Implement the <code>symlink(target, path)</code> system call to create a new symbolic link at <code>path</code> that refers to <code>target</code>. Note that <code>target</code> does not need to exist for the system call to succeed. You will need to choose somewhere to store the <code>target</code> path of a symbolic link, for example, in the inode&rsquo;s data blocks. <code>symlink</code> should <code>return</code> an integer representing success (0) or failure (-1) similar to <code>link</code> and <code>unlink</code>.</li>
+</ul></blockquote>
+<ul>
+<li>需要找個地方存放 the <code>target</code> path of a symbolic link，會像是 inode 中的 data blocks</li>
+<li><code>return 0</code> 代表 success; <code>return -1</code> 代表 failure，這跟 <code>link</code> and <code>unlink</code> 一樣</li>
+<li>就算 <code>target</code> 不存在，這個 system call 也算是成功
+<ul>
+<li>我想失敗應該會失敗在接下去的 open or 就真的是失敗？</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<ul>
+<li>Modify the open system call to handle the case where the <code>path</code> refers to a symbolic link. If the file does not exist, <code>open</code> must fail. When a process specifies <code>O_NOFOLLOW</code> in the flags to open, open should open the <code>symlink</code> (and not follow the symbolic link).</li>
+</ul></blockquote>
+<ul>
+<li><code>O_NOFOLLOW</code> 的用意在於還是要有一個方法可以打開這個 <code>symlink</code> 本身</li>
+</ul>
+<blockquote>
+<ul>
+<li>If the linked file is also a symbolic link, you must recursively follow it until a non-link file is reached. If the links form a cycle, you must return an error code. You may approximate this by returning an error code if the depth of links reaches some threshold (e.g., 10).</li>
+</ul></blockquote>
+<p>symbolic link 也可以指向一個 symbolic link，需要 recursive 的方式解析</p>
+<ul>
+<li>可以設定一個 threshold，畢竟也有可能發生 circular 的事情發生</li>
+</ul>
+<blockquote>
+<ul>
+<li>Other system calls (e.g., <code>link</code> and <code>unlink</code>) must not follow symbolic links; these system calls operate on the symbolic link itself.</li>
+</ul></blockquote>
+<p>why?</p>
+<blockquote>
+<ul>
+<li>You do not have to handle symbolic links to directories for this lab.</li>
+</ul></blockquote>
+<ul>
+<li>這個 lab 不需要處理 directories 的 symbolic link</li>
+</ul>
+<h3 id="程式實做-1">程式實做<a hidden class="anchor" aria-hidden="true" href="#程式實做-1">#</a></h3>
+<ul>
+<li><code>kernel/stat.h</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define T_DIR     1   </span><span style="color:#75715e">// Directory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define T_FILE    2   </span><span style="color:#75715e">// File
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define T_DEVICE  3   </span><span style="color:#75715e">// Device
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#define T_SYMLINK 4   </span><span style="color:#75715e">// Symbolic link
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> stat {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> dev;     <span style="color:#75715e">// File system&#39;s disk device
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint ino;    <span style="color:#75715e">// Inode number
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">short</span> type;  <span style="color:#75715e">// Type of file
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">short</span> nlink; <span style="color:#75715e">// Number of links to file
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 size; <span style="color:#75715e">// Size of file in bytes
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><ul>
+<li><code>kernle/fcntl.h</code>: 新增 <code>O_NOFOLLOW</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define O_RDONLY   0x000
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define O_WRONLY   0x001
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define O_RDWR     0x002
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define O_CREATE   0x200
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define O_TRUNC    0x400
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define O_NOFOLLOW 0x800
+</span></span></span></code></pre></div><ul>
+<li><code>kernel/sysfile.c: sys_symlink()</code>
+這裡的目的在於把 <code>target</code> 存放於此 <code>T_SYMLINK</code> 的 file 中</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_symlink</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> path[MAXPATH], target[MAXPATH];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>ip;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">argstr</span>(<span style="color:#ae81ff">0</span>, target, MAXPATH) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">argstr</span>(<span style="color:#ae81ff">1</span>, path, MAXPATH) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">begin_op</span>();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((ip <span style="color:#f92672">=</span> <span style="color:#a6e22e">create</span>(path, T_SYMLINK, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  n <span style="color:#f92672">=</span> <span style="color:#a6e22e">writei</span>(ip, <span style="color:#ae81ff">0</span>, (uint64) target, <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">strlen</span>(target));
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (n <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">strlen</span>(target)) {
+</span></span><span style="display:flex;"><span>    ip<span style="color:#f92672">-&gt;</span>nlink <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">iupdate</span>(ip);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">iunlockput</span>(ip);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">iunlockput</span>(ip);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li><code>kernel/sysfile.c: sys_open()</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_open</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> path[MAXPATH];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> current_path[MAXPATH];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> next_path[MAXPATH];
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> fd, omode;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> file <span style="color:#f92672">*</span>f;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>ip;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> depth;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">1</span>, <span style="color:#f92672">&amp;</span>omode);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>((n <span style="color:#f92672">=</span> <span style="color:#a6e22e">argstr</span>(<span style="color:#ae81ff">0</span>, path, MAXPATH)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">begin_op</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(omode <span style="color:#f92672">&amp;</span> O_CREATE){
+</span></span><span style="display:flex;"><span>    ip <span style="color:#f92672">=</span> <span style="color:#a6e22e">create</span>(path, T_FILE, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(ip <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">strncpy</span>(current_path, path, MAXPATH);
+</span></span><span style="display:flex;"><span>    depth <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span>((ip <span style="color:#f92672">=</span> <span style="color:#a6e22e">namei</span>(current_path)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">ilock</span>(ip);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (ip<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">!=</span> T_SYMLINK)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (omode <span style="color:#f92672">&amp;</span> O_NOFOLLOW)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (<span style="color:#f92672">++</span>depth <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">10</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">iunlockput</span>(ip);
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>      }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// read the `target`
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#a6e22e">memset</span>(next_path, <span style="color:#ae81ff">0</span>, MAXPATH);
+</span></span><span style="display:flex;"><span>      n <span style="color:#f92672">=</span> <span style="color:#a6e22e">readi</span>(ip, <span style="color:#ae81ff">0</span>, (uint64) next_path, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(next_path) <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">iunlockput</span>(ip);
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (n <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">strncpy</span>(current_path, next_path, MAXPATH);
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">begin_op</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(ip<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">==</span> T_DIR <span style="color:#f92672">&amp;&amp;</span> omode <span style="color:#f92672">!=</span> O_RDONLY){
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">iunlockput</span>(ip);
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(ip<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">==</span> T_DEVICE <span style="color:#f92672">&amp;&amp;</span> (ip<span style="color:#f92672">-&gt;</span>major <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> ip<span style="color:#f92672">-&gt;</span>major <span style="color:#f92672">&gt;=</span> NDEV)){
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">iunlockput</span>(ip);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>((f <span style="color:#f92672">=</span> <span style="color:#a6e22e">filealloc</span>()) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> (fd <span style="color:#f92672">=</span> <span style="color:#a6e22e">fdalloc</span>(f)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(f)
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">fileclose</span>(f);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">iunlockput</span>(ip);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(ip<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">==</span> T_DEVICE){
+</span></span><span style="display:flex;"><span>    f<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">=</span> FD_DEVICE;
+</span></span><span style="display:flex;"><span>    f<span style="color:#f92672">-&gt;</span>major <span style="color:#f92672">=</span> ip<span style="color:#f92672">-&gt;</span>major;
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    f<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">=</span> FD_INODE;
+</span></span><span style="display:flex;"><span>    f<span style="color:#f92672">-&gt;</span>off <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  f<span style="color:#f92672">-&gt;</span>ip <span style="color:#f92672">=</span> ip;
+</span></span><span style="display:flex;"><span>  f<span style="color:#f92672">-&gt;</span>readable <span style="color:#f92672">=</span> <span style="color:#f92672">!</span>(omode <span style="color:#f92672">&amp;</span> O_WRONLY);
+</span></span><span style="display:flex;"><span>  f<span style="color:#f92672">-&gt;</span>writable <span style="color:#f92672">=</span> (omode <span style="color:#f92672">&amp;</span> O_WRONLY) <span style="color:#f92672">||</span> (omode <span style="color:#f92672">&amp;</span> O_RDWR);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>((omode <span style="color:#f92672">&amp;</span> O_TRUNC) <span style="color:#f92672">&amp;&amp;</span> ip<span style="color:#f92672">-&gt;</span>type <span style="color:#f92672">==</span> T_FILE){
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">itrunc</span>(ip);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">iunlock</span>(ip);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">end_op</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> fd;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><img alt="ac.png" loading="lazy" src="/xv6/lab9/ac.png"></p>
+<h2 id="心得">心得<a hidden class="anchor" aria-hidden="true" href="#心得">#</a></h2>
+<p>這個 lab 對我來說的課題是抓重點程式碼，其實不必了解到所有到底層的流程，更多的時候了解各個主要功能 function 之間的互動會更重要一些</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Yama&#39;s Trail</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

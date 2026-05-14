@@ -36,7 +36,6 @@ theme = 'PaperMod'
   defaultTheme = "light"
   mainSections = ["posts", "k8s", "dev-log", "leetcode", "xv6", "linux-kernel-programming"]
   ShowCodeCopyButtons = true
-  ShowPostNavLinks = true
   [params.assets]
     favicon = "/favicon_io/favicon.ico"
     favicon16x16 = "/favicon_io/favicon-16x16.png"
