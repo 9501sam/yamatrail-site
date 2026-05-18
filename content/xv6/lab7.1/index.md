@@ -327,7 +327,6 @@ p $ra
 
 * why not save all the registers?
   call `swtch` 的 function 要自己 save caller saved registers
-  也就是 (TODO:)
 
 ```gdb
 p $sp
@@ -388,10 +387,3 @@ tbreak proc.c:474 # c->proc = p;
 ```
 
 這時候的 `ra` 是要 point to `schcd()` 這就好像是另一個 process 睡了一陣子之後，又從 `sched()` 醒過來的樣子
-
-* process 會在 `sched()` 睡下去
-* scheduler thread 在 `scheduler()` 醒過來
-
-* : sleep 會使用 swtch??
-
-* memory 的內容不會受到影響

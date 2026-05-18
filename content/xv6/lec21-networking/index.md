@@ -1,6 +1,6 @@
 +++
 date = '2025-11-06T12:45:24+08:00'
-draft = false
+draft = true
 title = '[xv6 學習紀錄 11-1] Networking'
 series = ["xv6 學習紀錄"]
 weight = 111

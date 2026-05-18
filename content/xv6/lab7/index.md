@@ -307,7 +307,6 @@ thread_a(void)
 
 一般情況下在同一個 process 的範圍內，只需要單純的往下長就好，這裡則需要特別設定`sp` 指向特定在 `struct thread` 中專屬的 `stack`
 
-(TODO: 這裡沒有用 `fp`，跟 lab trap 中的 backtrace 不一樣，這方面可以再詳述)
 這裡的 `s0` 就是 `fp` 的意思
 
 總結一下我們要如何回答「如何
@@ -494,7 +493,6 @@ void put(int key, int value)
   pthread_mutex_unlock(&table_locks[i]); // unlock!!!
 }
 ```
-(TODO: 分析與解釋)
 ## Barrier(moderate)
 Barrier 的用意在於希望多個 thread 可以到達某個 點之後，大家再一起繼續執行下去
 
@@ -536,6 +534,5 @@ barrier()
   pthread_mutex_unlock(&bstate.barrier_mutex);
 }
 ```
-(TODO: 分析與解釋)
 
 ![ac.png](ac.png)

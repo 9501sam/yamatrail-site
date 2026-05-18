@@ -291,7 +291,7 @@ filewrite(struct file *f, uint64 addr, int n)
 }
 ```
 
-* `kernel/console.c: consolewrite()`: (來到這裡的機制？)
+* `kernel/console.c: consolewrite()`: 
 ```c
 //
 // user write()s to the console go here.
@@ -398,13 +398,11 @@ uartstart()
 ### in `usertrap()`
 * `kernel/trap.c: usertrap()`: `which_dev = devintr()`
     `kernel/plic.c: plicinit()`
-    `kernel/uart.c: uartgetc()`: 這不知道怎麼過來的
+    `kernel/uart.c: uartgetc()`
 
 * `uartintr()`
     * `uartstart()`
 * `consoleintr()`
-
-? keyboard/console -> uart
 
 ### Interrupts and concurrency
 ### Producer/consumer

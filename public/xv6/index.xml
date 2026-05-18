@@ -335,48 +335,7 @@
 &lt;h2 id="risc-v-assembly-easy">RISC-V assembly (easy)&lt;/h2>
 &lt;blockquote>
 &lt;p>It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file &lt;code>user/call.c&lt;/code> in your xv6 repo. &lt;code>make fs.img&lt;/code> compiles it and also produces a readable assembly version of the program in &lt;code>user/call.asm&lt;/code>.
-Read the code in &lt;code>call.asm&lt;/code> for the functions &lt;code>g&lt;/code>, &lt;code>f&lt;/code>, and &lt;code>main&lt;/code>. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file &lt;code>answers-traps.txt&lt;/code>):&lt;/p></description></item><item><title>[xv6 學習紀錄 05-1] Page Fault</title><link>https://yamatrail.com/xv6/lab5.1/</link><pubDate>Sat, 11 Oct 2025 11:20:50 +0800</pubDate><guid>https://yamatrail.com/xv6/lab5.1/</guid><description>&lt;p>課程影片連結：&lt;/p>
-&lt;ul>
-&lt;li>&lt;a href="https://www.youtube.com/watch?v=KSYO-gTZo0A">6.S081 Fall 2020 Lecture 8: Page Faults&lt;/a>
-&lt;div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-&lt;iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/KSYO-gTZo0A?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video">&lt;/iframe>
-&lt;/div>
-&lt;/li>
-&lt;/ul>
-&lt;h2 id="page-fault">Page Fault&lt;/h2>
-&lt;p>回顧 virtual memory 的特性&lt;/p>
-&lt;ul>
-&lt;li>isolation&lt;/li>
-&lt;li>level of indirection
-在原先 xv6 的設計中 pagetable 的設計是 static
-現在在 page fault 的時候做一些動作，可以設計為 dynamic 的 mapping&lt;/li>
-&lt;/ul>
-&lt;h3 id="information-neede">Information neede&lt;/h3>
-&lt;ol>
-&lt;li>造成 page fault 的 virtual memory
-&lt;ul>
-&lt;li>&lt;code>stval&lt;/code> register&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>The type of page fault
-&lt;ul>
-&lt;li>&lt;code>scause&lt;/code>: R/W/Instruction&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>Virtual address of instruction that cause page fault
-&lt;ul>
-&lt;li>這是為了在處理完 page fault 之後，可以回到原本的地方繼續執行&lt;/li>
-&lt;li>&lt;code>trampframe-&amp;gt;epc&lt;/code>&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ol>
-&lt;h3 id="allocation-sbrk">Allocation: &lt;code>sbrk()&lt;/code>&lt;/h3>
-&lt;ul>
-&lt;li>原先的方式：eager allocatoin&lt;/li>
-&lt;li>可變更為：Lazy Allocation&lt;/li>
-&lt;/ul>
-&lt;h2 id="1-lazy-allocation">1. Lazy Allocation&lt;/h2>
-&lt;p>先把 &lt;code>sys_sbrk()&lt;/code> 變更為：&lt;/p></description></item><item><title>[xv6 學習紀錄 05] Lab: xv6 lazy page allocation</title><link>https://yamatrail.com/xv6/lab5/</link><pubDate>Sat, 11 Oct 2025 11:28:40 +0800</pubDate><guid>https://yamatrail.com/xv6/lab5/</guid><description>&lt;ul>
+Read the code in &lt;code>call.asm&lt;/code> for the functions &lt;code>g&lt;/code>, &lt;code>f&lt;/code>, and &lt;code>main&lt;/code>. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file &lt;code>answers-traps.txt&lt;/code>):&lt;/p></description></item><item><title>[xv6 學習紀錄 05] Lab: xv6 lazy page allocation</title><link>https://yamatrail.com/xv6/lab5/</link><pubDate>Sat, 11 Oct 2025 11:28:40 +0800</pubDate><guid>https://yamatrail.com/xv6/lab5/</guid><description>&lt;ul>
 &lt;li>Lab 連結: &lt;a href="https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html">Lab: xv6 lazy page allocation&lt;/a>&lt;/li>
 &lt;/ul>
 &lt;h2 id="eliminate-allocation-from-sbrk-easy">Eliminate allocation from sbrk() (easy)&lt;/h2>
@@ -907,34 +866,11 @@ Read the code in &lt;code>call.asm&lt;/code> for the functions &lt;code>g&lt;/co
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>[xv6 學習紀錄 09] Lab: file system</title><link>https://yamatrail.com/xv6/lab9/</link><pubDate>Sat, 01 Nov 2025 11:48:29 +0800</pubDate><guid>https://yamatrail.com/xv6/lab9/</guid><description>&lt;p>Lab 連結：&lt;a href="https://pdos.csail.mit.edu/6.S081/2022/labs/fs.html">Lab: file system&lt;/a>&lt;/p>
 &lt;h2 id="large-files-moderate">Large files (moderate)&lt;/h2>
 &lt;blockquote>
-&lt;p>Modify &lt;code>bmap()&lt;/code> so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You&amp;rsquo;ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you&amp;rsquo;re not allowed to change the size of an on-disk inode. The first 11 elements of &lt;code>ip-&amp;gt;addrs[]&lt;/code> should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when &lt;code>bigfile&lt;/code> writes 65803 blocks and usertests runs successfully:&lt;/p></description></item><item><title>Lec17 vm for app</title><link>https://yamatrail.com/xv6/lec17-vm-for-app/</link><pubDate>Tue, 04 Nov 2025 19:20:31 +0800</pubDate><guid>https://yamatrail.com/xv6/lec17-vm-for-app/</guid><description>&lt;p>課程連結：&lt;a href="https://www.youtube.com/watch?v=YNQghIvk0jc">6.S081 Lecture 17: Virtual Memory for Applications&lt;/a>&lt;/p>
-&lt;div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-&lt;iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/YNQghIvk0jc?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video">&lt;/iframe>
-&lt;/div></description></item><item><title>[xv6 學習紀錄 10] Lab: mmap</title><link>https://yamatrail.com/xv6/lab10/</link><pubDate>Sat, 01 Nov 2025 12:05:39 +0800</pubDate><guid>https://yamatrail.com/xv6/lab10/</guid><description>&lt;p>Lab 連結：&lt;a href="https://pdos.csail.mit.edu/6.S081/2022/labs/mmap.html">Lab: mmap&lt;/a>&lt;/p>
+&lt;p>Modify &lt;code>bmap()&lt;/code> so that it implements a doubly-indirect block, in addition to direct blocks and a singly-indirect block. You&amp;rsquo;ll have to have only 11 direct blocks, rather than 12, to make room for your new doubly-indirect block; you&amp;rsquo;re not allowed to change the size of an on-disk inode. The first 11 elements of &lt;code>ip-&amp;gt;addrs[]&lt;/code> should be direct blocks; the 12th should be a singly-indirect block (just like the current one); the 13th should be your new doubly-indirect block. You are done with this exercise when &lt;code>bigfile&lt;/code> writes 65803 blocks and usertests runs successfully:&lt;/p></description></item><item><title>[xv6 學習紀錄 10] Lab: mmap</title><link>https://yamatrail.com/xv6/lab10/</link><pubDate>Sat, 01 Nov 2025 12:05:39 +0800</pubDate><guid>https://yamatrail.com/xv6/lab10/</guid><description>&lt;p>Lab 連結：&lt;a href="https://pdos.csail.mit.edu/6.S081/2022/labs/mmap.html">Lab: mmap&lt;/a>&lt;/p>
 &lt;h2 id="lab-mmap-hard">Lab: mmap (hard)&lt;/h2>
 &lt;blockquote>
 &lt;p>The &lt;code>mmap&lt;/code> and &lt;code>munmap&lt;/code> system calls allow UNIX programs to exert detailed control over their address spaces. They can be used to share memory among processes, to map files into process address spaces, and as part of user-level page fault schemes such as the garbage-collection algorithms discussed in lecture. In this lab you&amp;rsquo;ll add &lt;code>mmap&lt;/code> and &lt;code>munmap&lt;/code> to xv6, focusing on memory-mapped files.&lt;/p>&lt;/blockquote>
-&lt;p>目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處&lt;/p></description></item><item><title>[xv6 學習紀錄 11-1] Networking</title><link>https://yamatrail.com/xv6/lec21-networking/</link><pubDate>Thu, 06 Nov 2025 12:45:24 +0800</pubDate><guid>https://yamatrail.com/xv6/lec21-networking/</guid><description>&lt;p>課程連結：&lt;a href="https://www.youtube.com/watch?v=Fcjychg4Tvk">6.S081 Fall 2020 Lecture 21: Networking&lt;/a>
-&lt;div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-&lt;iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="https://www.youtube.com/embed/Fcjychg4Tvk?autoplay=0&amp;amp;controls=1&amp;amp;end=0&amp;amp;loop=0&amp;amp;mute=0&amp;amp;start=0" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video">&lt;/iframe>
-&lt;/div>
-&lt;/p>
-&lt;h2 id="protocal-nesting">Protocal nesting&lt;/h2>
-&lt;ul>
-&lt;li>header 的 type 決定了之後的內容要如何解讀&lt;/li>
-&lt;/ul>
-&lt;h2 id="the-os-network-stack">The OS network stack&lt;/h2>
-&lt;h2 id="tcpdump-的解析">&lt;code>tcpdump&lt;/code> 的解析&lt;/h2>
-&lt;h2 id="queue-的使用">Queue 的使用&lt;/h2>
-&lt;p>影片中有提及不管是在那一個層級的 stack 當中，queue 的使用都是很常見的&lt;/p>
-&lt;p>可能會有一個 buffer allocator &lt;code>MBUF&lt;/code>&lt;/p>
-&lt;h2 id="e1000-nic">E1000 NIC&lt;/h2>
-&lt;p>這在 lab: network driver 中會運用的一個 NIC, 影片中有提及跟現代的 NIC 比較起來&lt;/p>
-&lt;ul>
-&lt;li>現在的 NIC 當中有做一些 check&lt;/li>
-&lt;/ul>
-&lt;h2 id="livelock-problem">Livelock Problem&lt;/h2>
-&lt;p>最後的結論是用 Polling 來解決&lt;/p></description></item><item><title>[xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers</title><link>https://yamatrail.com/xv6/ch5-interrupt-and-device-drivers/</link><pubDate>Thu, 06 Nov 2025 13:40:57 +0800</pubDate><guid>https://yamatrail.com/xv6/ch5-interrupt-and-device-drivers/</guid><description>&lt;p>這一篇筆記主要是為了 lab: network driver 中，要我們先讀一下 xv6 book ch5: Interrupts and device drivers，這篇文章是我自己的筆記&lt;/p>
+&lt;p>目前的理解會像是把 memory address map 到一個 file 中，可以有多個 process share 同一份資料的好處&lt;/p></description></item><item><title>[xv6 學習紀錄 11-2] xv6 book ch5: Interrupts and device drivers</title><link>https://yamatrail.com/xv6/ch5-interrupt-and-device-drivers/</link><pubDate>Thu, 06 Nov 2025 13:40:57 +0800</pubDate><guid>https://yamatrail.com/xv6/ch5-interrupt-and-device-drivers/</guid><description>&lt;p>這一篇筆記主要是為了 lab: network driver 中，要我們先讀一下 xv6 book ch5: Interrupts and device drivers，這篇文章是我自己的筆記&lt;/p>
 &lt;h2 id="interrupts-and-device-drivers">Interrupts and device drivers&lt;/h2>
 &lt;ul>
 &lt;li>Driver 需要了解 device 的 interface，可能很複雜或是文件寫得很差&lt;/li>
