@@ -621,10 +621,6 @@ sudo bash -c "echo 0 > /sys/module/modparams1/parameters/mp_debug_level"
 sudo cat /sys/module/modparams1/parameters/mp_debug_level
 ```
 ![](244.png)
-## Module parameter data types and validation
-### Validating kernel module parameters
-### Overriding the module parameter's name
-### Hardware-related kernel parameters
 
 # Floating point not allowed in the kernel
 一般來說在 kernel 中是不支援 floating point 的
@@ -694,6 +690,3 @@ user@ubuntu:~$ dmesg | grep -C2 min_sysinfo
                CPU: x86_64, little-endian; 64-bit OS.
 ```
 ![](253.png)
-
-# Kernel modules and security – an overview
-# Coding style guidelines for kernel developers

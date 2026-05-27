@@ -99,7 +99,6 @@
 &lt;/ul>
 &lt;p>實際在開機時，會用壓縮過後的 &lt;code>bzImage&lt;/code>，&lt;code>vmlinux&lt;/code> 是作為 debug 用，（不在這本書的範圍）&lt;/p></description></item><item><title>Ch04: Writing Your First Kernel Module - LKMs Part 1</title><link>https://yamatrail.com/linux-kernel-programming/ch04/</link><pubDate>Mon, 08 Dec 2025 08:39:49 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch04/</guid><description>&lt;h1 id="understanding-kernel-architecture--part-1">Understanding kernel architecture – part 1&lt;/h1>
 &lt;h1 id="exploring-lkms">Exploring LKMs&lt;/h1>
-&lt;h2 id="the-lkm-framework">The LKM framework&lt;/h2>
 &lt;p>&lt;img alt="4.3.png" loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch04/4.3.png">&lt;/p>
 &lt;h2 id="kernel-modules-within-the-kernel-source-tree">Kernel modules within the kernel source tree&lt;/h2>
 &lt;ul>
@@ -181,7 +180,20 @@
 &lt;/ul>
 &lt;h1 id="organizing-processes-threads-and-their-stacks--user-and-kernel-space">Organizing processes, threads, and their stacks – user and kernel space&lt;/h1>
 &lt;p>thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
-這本書會把重點著重於 thread 因為在最原始的 Unix 理念中&lt;/p></description></item><item><title>如何在文字界面底下讓樹莓派連上 Wi-Fi</title><link>https://yamatrail.com/linux-kernel-programming/pi-wifi/</link><pubDate>Mon, 16 Feb 2026 14:10:41 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/pi-wifi/</guid><description>&lt;h2 id="啟用-wlan0">啟用 &lt;code>wlan0&lt;/code>&lt;/h2>
+這本書會把重點著重於 thread 因為在最原始的 Unix 理念中&lt;/p></description></item><item><title>Ch07: Memory Management Internals - Essentials</title><link>https://yamatrail.com/linux-kernel-programming/ch07/</link><pubDate>Mon, 04 May 2026 21:02:50 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch07/</guid><description>&lt;h1 id="understanding-the-vm-split">Understanding the VM split&lt;/h1>
+&lt;p>Linux kernel 管理記憶體時有一下兩種方式&lt;/p>
+&lt;ul>
+&lt;li>virtual memory-based (通常是使用這種方式)&lt;/li>
+&lt;li>直接以 physical memory 的觀點去處理&lt;/li>
+&lt;/ul>
+&lt;p>這個章節會先討論 virtual memory 的方式，接著再討論 physical memory 的方式&lt;/p>
+&lt;ul>
+&lt;li>在 32-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 32 = 4GB&lt;/li>
+&lt;li>在 64-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 64 = 4EB&lt;/li>
+&lt;/ul>
+&lt;p>為了討論方便，這裡會先使用 32-bit 的方式&lt;/p>
+&lt;h2 id="looking-under-the-hood--the-hello-world-c-program">Looking under the hood – the Hello, world C program&lt;/h2>
+&lt;p>這裡在說明像是在這樣的 &lt;code>helloworld.c&lt;/code> 中，&lt;code>printf()&lt;/code> 是透過 loader 呼叫 system call &lt;code>mmap()&lt;/code>，讓 &lt;code>printf()&lt;/code> 可以被 map 到這個 process 的 VAS 中。&lt;/p></description></item><item><title>如何在文字界面底下讓樹莓派連上 Wi-Fi</title><link>https://yamatrail.com/linux-kernel-programming/pi-wifi/</link><pubDate>Mon, 16 Feb 2026 14:10:41 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/pi-wifi/</guid><description>&lt;h2 id="啟用-wlan0">啟用 &lt;code>wlan0&lt;/code>&lt;/h2>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo rfkill unblock wifi
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># or unlock all&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo rfkill unblock all
@@ -195,20 +207,7 @@
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Error: Scanning not allowed &lt;span style="color:#66d9ef">while&lt;/span> unavailable.
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>這是因為還沒有設定國家代碼，這時要先&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo raspi-config
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p></description></item><item><title>Ch07: Memory Management Internals - Essentials</title><link>https://yamatrail.com/linux-kernel-programming/ch07/</link><pubDate>Mon, 04 May 2026 21:02:50 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch07/</guid><description>&lt;h1 id="understanding-the-vm-split">Understanding the VM split&lt;/h1>
-&lt;p>Linux kernel 管理記憶體時有一下兩種方式&lt;/p>
-&lt;ul>
-&lt;li>virtual memory-based (通常是使用這種方式)&lt;/li>
-&lt;li>直接以 physical memory 的觀點去處理&lt;/li>
-&lt;/ul>
-&lt;p>這個章節會先討論 virtual memory 的方式，接著再討論 physical memory 的方式&lt;/p>
-&lt;ul>
-&lt;li>在 32-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 32 = 4GB&lt;/li>
-&lt;li>在 64-bit processor 上，VAS 的範圍為 0 ~ 2 ^ 64 = 4EB&lt;/li>
-&lt;/ul>
-&lt;p>為了討論方便，這裡會先使用 32-bit 的方式&lt;/p>
-&lt;h2 id="looking-under-the-hood--the-hello-world-c-program">Looking under the hood – the Hello, world C program&lt;/h2>
-&lt;p>這裡在說明像是在這樣的 &lt;code>helloworld.c&lt;/code> 中，&lt;code>printf()&lt;/code> 是透過 loader 呼叫 system call &lt;code>mmap()&lt;/code>，讓 &lt;code>printf()&lt;/code> 可以被 map 到這個 process 的 VAS 中。&lt;/p></description></item><item><title>Quick Start</title><link>https://yamatrail.com/linux-kernel-programming/quick-start/</link><pubDate>Fri, 01 May 2026 20:10:13 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/quick-start/</guid><description>&lt;blockquote>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p></description></item><item><title>Quick Start</title><link>https://yamatrail.com/linux-kernel-programming/quick-start/</link><pubDate>Fri, 01 May 2026 20:10:13 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/quick-start/</guid><description>&lt;blockquote>
 &lt;p>這篇文章的目的在於讓我自己快速的進入到開發環境中。&lt;/p>&lt;/blockquote>
 &lt;h2 id="進入到-vm-中">進入到 vm 中&lt;/h2>
 &lt;h3 id="結論使用以下指令">結論：使用以下指令&lt;/h3>

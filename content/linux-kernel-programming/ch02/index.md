@@ -310,11 +310,6 @@ make menuconfig
 grep "LLKD_OPTION1" include/generated/autoconf.h
 ```
 ![kconfig8.png](kconfig8.png)
-## A few details on the Kconfig language
-
-# Summary
-
-# Qestions
 [https://github.com/PacktPublishing/Linux-Kernel-Programming/tree/master/questions](https://github.com/PacktPublishing/Linux-Kernel-Programming/tree/master/questions)
 
 [https://github.com/PacktPublishing/Linux-Kernel-Programming/tree/master/solutions_to_assgn](https://github.com/PacktPublishing/Linux-Kernel-Programming/tree/master/solutions_to_assgn)

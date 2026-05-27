@@ -334,7 +334,6 @@
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="設定-theme">設定 theme&lt;/h3>
 &lt;p>這裡可先在 &lt;a href="https://themes.gohugo.io/">Hugo Themes&lt;/a> 看看，再決定自己要用的主題，我自己用的是 &lt;a href="https://themes.gohugo.io/themes/hugo-papermod/">PaperMod&lt;/a>&lt;/p></description></item><item><title>Ch04: Writing Your First Kernel Module - LKMs Part 1</title><link>https://yamatrail.com/linux-kernel-programming/ch04/</link><pubDate>Mon, 08 Dec 2025 08:39:49 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch04/</guid><description>&lt;h1 id="understanding-kernel-architecture--part-1">Understanding kernel architecture – part 1&lt;/h1>
 &lt;h1 id="exploring-lkms">Exploring LKMs&lt;/h1>
-&lt;h2 id="the-lkm-framework">The LKM framework&lt;/h2>
 &lt;p>&lt;img alt="4.3.png" loading="lazy" src="https://yamatrail.com/linux-kernel-programming/ch04/4.3.png">&lt;/p>
 &lt;h2 id="kernel-modules-within-the-kernel-source-tree">Kernel modules within the kernel source tree&lt;/h2>
 &lt;ul>
@@ -432,21 +431,7 @@
 &lt;/ul>
 &lt;h1 id="organizing-processes-threads-and-their-stacks--user-and-kernel-space">Organizing processes, threads, and their stacks – user and kernel space&lt;/h1>
 &lt;p>thread 可以想成是 registers + stack 的組合，其他的資源都是跟 process 共用的
-這本書會把重點著重於 thread 因為在最原始的 Unix 理念中&lt;/p></description></item><item><title>如何在文字界面底下讓樹莓派連上 Wi-Fi</title><link>https://yamatrail.com/linux-kernel-programming/pi-wifi/</link><pubDate>Mon, 16 Feb 2026 14:10:41 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/pi-wifi/</guid><description>&lt;h2 id="啟用-wlan0">啟用 &lt;code>wlan0&lt;/code>&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo rfkill unblock wifi
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># or unlock all&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo rfkill unblock all
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo ip link set wlan0 up
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo iwlist wlan0 scan
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="使用-nmcli">使用 &lt;code>nmcli&lt;/code>&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>user@raspberrypi:~ $ sudo nmcli dev wifi rescan
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>user@raspberrypi:~ $ sudo nmcli device wifi connect &lt;span style="color:#e6db74">&amp;#34;xxx&amp;#34;&lt;/span> password &lt;span style="color:#e6db74">&amp;#34;yyyyyyyyyy&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>剛開始 scan 的時候，可能會看到&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>user@raspberrypi:~ $ sudo nmcli dev wifi rescan
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Error: Scanning not allowed &lt;span style="color:#66d9ef">while&lt;/span> unavailable.
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>這是因為還沒有設定國家代碼，這時要先&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo raspi-config
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p></description></item><item><title>Ch07: Memory Management Internals - Essentials</title><link>https://yamatrail.com/linux-kernel-programming/ch07/</link><pubDate>Mon, 04 May 2026 21:02:50 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch07/</guid><description>&lt;h1 id="understanding-the-vm-split">Understanding the VM split&lt;/h1>
+這本書會把重點著重於 thread 因為在最原始的 Unix 理念中&lt;/p></description></item><item><title>Ch07: Memory Management Internals - Essentials</title><link>https://yamatrail.com/linux-kernel-programming/ch07/</link><pubDate>Mon, 04 May 2026 21:02:50 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/ch07/</guid><description>&lt;h1 id="understanding-the-vm-split">Understanding the VM split&lt;/h1>
 &lt;p>Linux kernel 管理記憶體時有一下兩種方式&lt;/p>
 &lt;ul>
 &lt;li>virtual memory-based (通常是使用這種方式)&lt;/li>
@@ -709,7 +694,21 @@
 &lt;h2 id="risc-v-assembly-easy">RISC-V assembly (easy)&lt;/h2>
 &lt;blockquote>
 &lt;p>It will be important to understand a bit of RISC-V assembly, which you were exposed to in 6.1910 (6.004). There is a file &lt;code>user/call.c&lt;/code> in your xv6 repo. &lt;code>make fs.img&lt;/code> compiles it and also produces a readable assembly version of the program in &lt;code>user/call.asm&lt;/code>.
-Read the code in &lt;code>call.asm&lt;/code> for the functions &lt;code>g&lt;/code>, &lt;code>f&lt;/code>, and &lt;code>main&lt;/code>. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file &lt;code>answers-traps.txt&lt;/code>):&lt;/p></description></item><item><title>[xv6 學習紀錄 05] Lab: xv6 lazy page allocation</title><link>https://yamatrail.com/xv6/lab5/</link><pubDate>Sat, 11 Oct 2025 11:28:40 +0800</pubDate><guid>https://yamatrail.com/xv6/lab5/</guid><description>&lt;ul>
+Read the code in &lt;code>call.asm&lt;/code> for the functions &lt;code>g&lt;/code>, &lt;code>f&lt;/code>, and &lt;code>main&lt;/code>. The instruction manual for RISC-V is on the reference page. Here are some questions that you should answer (store the answers in a file &lt;code>answers-traps.txt&lt;/code>):&lt;/p></description></item><item><title>如何在文字界面底下讓樹莓派連上 Wi-Fi</title><link>https://yamatrail.com/linux-kernel-programming/pi-wifi/</link><pubDate>Mon, 16 Feb 2026 14:10:41 +0800</pubDate><guid>https://yamatrail.com/linux-kernel-programming/pi-wifi/</guid><description>&lt;h2 id="啟用-wlan0">啟用 &lt;code>wlan0&lt;/code>&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo rfkill unblock wifi
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># or unlock all&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>sudo rfkill unblock all
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo ip link set wlan0 up
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo iwlist wlan0 scan
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="使用-nmcli">使用 &lt;code>nmcli&lt;/code>&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>user@raspberrypi:~ $ sudo nmcli dev wifi rescan
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>user@raspberrypi:~ $ sudo nmcli device wifi connect &lt;span style="color:#e6db74">&amp;#34;xxx&amp;#34;&lt;/span> password &lt;span style="color:#e6db74">&amp;#34;yyyyyyyyyy&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>剛開始 scan 的時候，可能會看到&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>user@raspberrypi:~ $ sudo nmcli dev wifi rescan
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Error: Scanning not allowed &lt;span style="color:#66d9ef">while&lt;/span> unavailable.
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>這是因為還沒有設定國家代碼，這時要先&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>sudo raspi-config
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>5 Localisation Options -&amp;gt; L4 WLAN Country -&amp;gt; 選擇 TW Taiwan&lt;/p></description></item><item><title>[xv6 學習紀錄 05] Lab: xv6 lazy page allocation</title><link>https://yamatrail.com/xv6/lab5/</link><pubDate>Sat, 11 Oct 2025 11:28:40 +0800</pubDate><guid>https://yamatrail.com/xv6/lab5/</guid><description>&lt;ul>
 &lt;li>Lab 連結: &lt;a href="https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html">Lab: xv6 lazy page allocation&lt;/a>&lt;/li>
 &lt;/ul>
 &lt;h2 id="eliminate-allocation-from-sbrk-easy">Eliminate allocation from sbrk() (easy)&lt;/h2>

@@ -166,10 +166,6 @@ sudo update-grub
 ![grub1.png](grub1.png)
 ![grub2.png](grub2.png)
 
-## Experimenting with the GRUB prompt
-
-# Verifying our new kernel's configuration
-
 # Kernel build for the Raspberry Pi
 ## Step 1 – cloning the kernel source tree
 我這裡是使用自己的 ubuntu 筆電，而不是像書上使用 virtual box 上的 gest VM
@@ -303,5 +299,3 @@ sudo touch ~/mnt/pi-boot/boot54.rc
 sudo umount ~/mnt/pi-boot
 sudo umount ~/mnt/pi-root
 ```
-
-# Miscellaneous tips on the kernel build

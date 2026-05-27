@@ -196,13 +196,6 @@ The kernel modules space：這是 Loadable Kernel Modules 的 static text and da
 這個頁面在介紹 highmem 的概念
 https://www.kernel.org/doc/Documentation/vm/highmem.txt  
 主要是在說在上面那個圖上，kernel 只有 1 GB 的空間，可是如果 memory 有 1 GB 以上該怎麼辦？會有一些 mapping 的 function 可以去做管理。
-## Writing a kernel module to show information about the kernel segment
-### Viewing the kernel segment on a Raspberry Pi via dmesg
-### Macros and variables describing the kernel segment layout
-### Trying it out – viewing kernel segment details
-### The kernel VAS via procmap
-### Trying it out – the user segmen
-#### The null trap page
 ### Viewing kernel documentation on the memory layout
 ```sh
 vim ${KSRC}/Documentation/arm/memory.rst
@@ -215,9 +208,3 @@ vim ${KSRC}/Documentation/arm64/memory.rst
 ```sh
 vim ${KSRC}/Documentation/x86/x86_64/mm.rst
 ```
-
-# Randomizing the memory layout – KASLR
-我猜這裡是在說前面的 layout 可以再重新隨機排列一下
-
-# Physical memory
-## Physical RAM organization

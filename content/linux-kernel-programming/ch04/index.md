@@ -6,7 +6,6 @@ weight = 4
 +++
 # Understanding kernel architecture – part 1
 # Exploring LKMs
-## The LKM framework
 ![4.3.png](4.3.png)
 
 ## Kernel modules within the kernel source tree
@@ -439,13 +438,6 @@ sudo minicom -D /dev/ttyUSB0 -b 115200
 (目前比較推薦 `screen`)
 
 * 注意如果是剛燒好的 SD card 還是要先連上螢幕做帳號密碼的設定
-
-### Enabling the `pr_debug()` kernel messages
-
-## Rate limiting the printk instances
-## Generating kernel messages from the user space
-## Standardizing printk output via the `pr_fmt` macro
-## Portability and the printk format specifiers
 
 # Understanding the basics of a kernel module Makefile
 
